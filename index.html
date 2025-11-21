@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CL IT Classroom | 前衛科技部落格</title>
+    <!-- 引入 Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- 引入 FontAwesome 圖標 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ----------------------------------------
+           1. 全域變數設定 (方便修改配色)
+           ---------------------------------------- */
+        :root {
+            --bg-color: #080808;          /* 極致黑背景 */
+            --card-bg: rgba(25, 25, 25, 0.6); /* 卡片半透明背景 */
+            --primary: #00ffcc;           /* 霓虹青 (主色) */
+            --secondary: #ff0055;         /* 激光紅 (撞色) */
+            --accent: #ffe600;            /* 警示黃 (點綴) */
+            --text-main: #ffffff;         /* 主要文字 */
+            --text-muted: #888888;        /* 次要文字 */
+            --font-title: 'Orbitron', sans-serif; /* 科技感標題字體 */
+            --font-body: 'Noto Sans TC', sans-serif; /* 內文黑體 */
+            --grid-color: rgba(0, 255, 204, 0.05);
+        }
+
+        /* ----------------------------------------
+           2. 基礎重置與佈局
+           ---------------------------------------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* 隱藏預設滑鼠游標 */
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            /* 背景動態網格 */
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 40px 40px;
+            min-height: 100vh;
+        }
+
+        /* 捲軸美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        /* ----------------------------------------
+           3. 自定義動態游標 (Custom Cursor)
+           ---------------------------------------- */
+        .cursor-dot,
+        .cursor-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: 9999;
+            pointer-events: none; /* 讓點擊穿透 */
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--primary);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        /* 當滑鼠懸停在互動元素上時的樣式 */
+        body.hovering .cursor-outline {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 0, 85, 0.1); /* 變為紅色半透明 */
+            border-color: var(--secondary);
+            mix-blend-mode: difference;
+        }
+
+        /* ----------------------------------------
+           4. 頭部區域 (Hero Section)
+           ---------------------------------------- */
+        header {
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+        /* 故障文字效果 (Glitch Text) */
+        .hero-title {
+            font-family: var(--font-title);
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            position: relative;
+            letter-spacing: 5px;
+            color: var(--text-main);
+            text-shadow: 2px 2px 0px var(--secondary);
+        }
+
+        .hero-title::before,
+        .hero-title::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+        }
+
+        .hero-title::before {
+            left: 2px;
+            text-shadow: -2px 0 var(--primary);
+            clip-path: inset(20% 0 80% 0);
+            animation: glitch-anim-1 4s infinite linear alternate-reverse;
+        }
+
+        .hero-title::after {
+            left: -2px;
+            text-shadow: -2px 0 var(--secondary);
+            clip-path: inset(60% 0 10% 0);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+
+        .hero-subtitle {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 10px 30px;
+            background: rgba(0, 255, 204, 0.1);
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+        
+        .hero-subtitle:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        /* 向下滾動提示 */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 50px;
+            animation: bounce 2s infinite;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+        }
+
+        /* ----------------------------------------
+           5. 內容網格系統
+           ---------------------------------------- */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 50px 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 40px;
+        }
+
+        /* ----------------------------------------
+           6. 卡片組件設計
+           ---------------------------------------- */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px 30px;
+            position: relative;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            /* 3D 透視設定 */
+            transform-style: preserve-3d;
+            transform: perspective(1000px);
+            transition: border-color 0.3s;
+            overflow: hidden;
+        }
+
+        /* 卡片頂部裝飾條 */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            opacity: 0.5;
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            border-color: var(--secondary);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+            height: 6px;
+            box-shadow: 0 0 15px var(--secondary);
+        }
+
+        /* 圖標樣式 */
+        .icon-wrapper {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            transition: 0.4s;
+            border: 1px solid transparent;
+            transform: translateZ(20px); /* 3D 浮凸效果 */
+        }
+
+        .card:hover .icon-wrapper {
+            background: transparent;
+            border-color: var(--primary);
+            color: var(--text-main);
+            box-shadow: 0 0 15px var(--primary);
+            transform: translateZ(40px) rotateY(180deg); /* 圖標翻轉 */
+        }
+
+        .card-title {
+            font-family: var(--font-title);
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--text-main);
+            transform: translateZ(15px);
+        }
+
+        .card-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            transform: translateZ(10px);
+        }
+
+        /* 分類標籤 (右上角) */
+        .card-tag {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 0.7rem;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: var(--font-title);
+            opacity: 0.7;
+        }
+
+        /* Read More 按鈕 */
+        .read-more {
+            display: inline-block;
+            margin-top: 25px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            transform: translateZ(10px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .read-more:hover {
+            color: var(--secondary);
+            gap: 15px; /* 箭頭移動效果 */
+        }
+
+        /* ----------------------------------------
+           7. 頁尾
+           ---------------------------------------- */
+        footer {
+            padding: 60px 20px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 80px;
+            background: #000;
+        }
+
+        .footer-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .social-icons a {
+            color: var(--text-main);
+            margin: 0 10px;
+            font-size: 1.2rem;
+            transition: 0.3s;
+        }
+        .social-icons a:hover { color: var(--primary); }
+
+        /* ----------------------------------------
+           8. 動畫定義
+           ---------------------------------------- */
+        @keyframes glitch-anim-1 {
+            0% { clip-path: inset(20% 0 80% 0); }
+            20% { clip-path: inset(60% 0 10% 0); }
+            40% { clip-path: inset(40% 0 50% 0); }
+            60% { clip-path: inset(80% 0 5% 0); }
+            80% { clip-path: inset(10% 0 70% 0); }
+            100% { clip-path: inset(30% 0 20% 0); }
+        }
+
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(10% 0 60% 0); }
+            20% { clip-path: inset(30% 0 20% 0); }
+            40% { clip-path: inset(70% 0 10% 0); }
+            60% { clip-path: inset(20% 0 50% 0); }
+            80% { clip-path: inset(50% 0 30% 0); }
+            100% { clip-path: inset(0% 0 90% 0); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(10px); }
+        }
+
+        /* 手機版適配 */
+        @media (max-width: 768px) {
+            .cursor-dot, .cursor-outline { display: none; } /* 手機隱藏自訂游標 */
+            * { cursor: auto; }
+            .hero-title { font-size: 3rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 自定義游標元素 -->
+    <div class="cursor-dot" data-cursor-dot></div>
+    <div class="cursor-outline" data-cursor-outline></div>
+
+    <header>
+        <h1 class="hero-title" data-text="CL IT CLASSROOM">CL IT CLASSROOM</h1>
+        <div class="hero-subtitle" data-hover>
+            探索未來 &middot; 解碼科技 &middot; 創造價值
+        </div>
+        <div class="scroll-indicator">
+            <i class="fa-solid fa-chevron-down"></i>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="grid">
+            <!-- 01. 數位時代與生活 -->
+            <article class="card" data-tilt>
+                <span class="card-tag">01</span>
+                <div class="icon-wrapper"><i class="fa-solid fa-earth-americas"></i></div>
+                <h3 class="card-title">數位時代與生活</h3>
+                <p class="card-desc">物聯網(IoT)、大數據與智慧城市如何重塑我們的日常。探討數位足跡對個人隱私的影響。</p>
+                <a href="#" class="read-more" data-hover>READ MORE <i class="fa-solid fa-arrow-right"></i></a>
+            </article>
+
+            <!-- 02. 數字系統 -->
+            <article class="card" data-tilt>
+                <span class="card-tag">02</span>
+                <div class="icon-wrapper"><i class="fa-solid fa-hashtag"></i></div>
+                <h3 class="card-title">數字系統</h3>
+                <p class="card-desc">深入底層邏輯：二進位、十六進位與資料編碼。了解電腦如何儲存與處理資訊。</p>
+                <a href="#" class="read-more" data-hover>READ MORE <i class="fa-solid fa-arrow-right"></i></a>
+            </article>
+
+            <!-- 03. 探索網路 -->
+            <article class="card" data-tilt>
+                <span class="card-tag">03</span>
+                <div class="icon-wrapper"><i class="fa-solid fa-network-wired"></i></div>
+                <h3 class="card-title">探索網路</h3>
+                <p class="card-desc">從 TCP/IP 協定到 5G 通訊技術。解析網際網路架構與雲端運算原理。</p>
+                <a href="#" class="read-more" data-hover>READ MORE <i class="fa-solid fa-arrow-right"></i></a>
+            </article>
+
+            <!-- 04. 系統平台 -->
+            <article class="card" data-tilt>
+                <span class="card-tag">04</span>
+                <div class="icon-wrapper"><i class="fa-brands fa-linux"></i></div>
+                <h3 class="card-title">系統平台</h3>
+                <p class="card-desc">作業系統核心解析：Windows, MacOS, Linux 與行動裝置平台的運作差異。</p>
+                <a href="#" class="read-more" data-hover>READ MORE <i class="fa-solid fa-arrow-right"></i></a>
+            </article>
+
+            <!-- 05. AI人工智慧 -->
+            <article class="card" data-tilt>
+                <span class="card-tag">05</span>
+                <div class="icon-wrapper"><i class="fa-solid fa-brain"></i></div>
+                <h3 class="card-title">AI人工智慧</h3>
+                <p class="card-desc">機器學習、深度學習與生成式 AI (Generative AI)。探索矽基智慧的無限可能。</p>
+                <a href="#" class="read-more" data-hover>READ MORE <i class="fa-solid fa-arrow-right"></i></a>
+            </article>
+
+            <!-- 06. 惡意程式與資訊安全 -->
+            <article class="card" data-tilt>
+                <span class="card-tag">06</span>
+                <div class="icon-wrapper"><i class="fa-solid fa-shield-virus"></i></div>
+                <h3 class="card-title">惡意程式與資安</h3>
+                <p class="card-desc">白帽 vs 黑帽。常見的攻擊手法如釣魚、勒索軟體，以及如何建立強大的防禦體系。</p>
+                <a href="#" class="read-more" data-hover>READ MORE <i class="fa-solid fa-arrow-right"></i></a>
+            </article>
+
+            <!-- 07. 演算法 -->
+            <article class="card" data-tilt>
+                <span class="card-tag">07</span>
+                <div class="icon-wrapper"><i class="fa-solid fa-diagram-project"></i></div>
+                <h3 class="card-title">演算法</h3>
+                <p class="card-desc">運算思維的核心。排序、搜尋、遞迴，學習如何用最有效率的方式解決複雜問題。</p>
+                <a href="#" class="read-more" data-hover>READ MORE <i class="fa-solid fa-arrow-right"></i></a>
+            </article>
+
+            <!-- 08. 資訊社會下的產物 -->
+            <article class="card" data-tilt>
+                <span class="card-tag">08</span>
+                <div class="icon-wrapper"><i class="fa-solid fa-vr-cardboard"></i></div>
+                <h3 class="card-title">資訊社會下的產物</h3>
+                <p class="card-desc">元宇宙、區塊鏈、NFT 與社群媒體。科技如何改變人類的社會結構與互動。</p>
+                <a href="#" class="read-more" data-hover>READ MORE <i class="fa-solid fa-arrow-right"></i></a>
+            </article>
+
+            <!-- 09. 平面設計 -->
+            <article class="card" data-tilt>
+                <span class="card-tag">09</span>
+                <div class="icon-wrapper"><i class="fa-solid fa-pen-nib"></i></div>
+                <h3 class="card-title">平面設計</h3>
+                <p class="card-desc">UI/UX 設計原則。色彩心理學、排版美學與視覺傳達，將資訊轉化為藝術。</p>
+                <a href="#" class="read-more" data-hover>READ MORE <i class="fa-solid fa-arrow-right"></i></a>
+            </article>
+
+            <!-- 10. 程式設計 -->
+            <article class="card" data-tilt>
+                <span class="card-tag">10</span>
+                <div class="icon-wrapper"><i class="fa-solid fa-code"></i></div>
+                <h3 class="card-title">程式設計</h3>
+                <p class="card-desc">Python, JavaScript, C++。從 Hello World 開始，構建屬於你的數位世界。</p>
+                <a href="#" class="read-more" data-hover>READ MORE <i class="fa-solid fa-arrow-right"></i></a>
+            </article>
+        </div>
+    </main>
+
+    <footer>
+        <p class="footer-text">&copy; 2024 CL IT CLASSROOM. SYSTEM ONLINE.</p>
+        <div class="social-icons">
+            <a href="#" data-hover><i class="fa-brands fa-github"></i></a>
+            <a href="#" data-hover><i class="fa-brands fa-twitter"></i></a>
+            <a href="#" data-hover><i class="fa-brands fa-instagram"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        // ---------------------------------------------------
+        // 1. 自定義游標邏輯 (Custom Cursor Logic)
+        // ---------------------------------------------------
+        const cursorDot = document.querySelector("[data-cursor-dot]");
+        const cursorOutline = document.querySelector("[data-cursor-outline]");
+
+        window.addEventListener("mousemove", function (e) {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            // 圓點直接跟隨
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            // 外框使用 animate 實現平滑延遲跟隨
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        // 懸停效果偵測
+        const hoverElements = document.querySelectorAll("[data-hover], a, button");
+        hoverElements.forEach(el => {
+            el.addEventListener("mouseenter", () => document.body.classList.add("hovering"));
+            el.addEventListener("mouseleave", () => document.body.classList.remove("hovering"));
+        });
+
+        // ---------------------------------------------------
+        // 2. 3D 傾斜卡片效果 (3D Tilt Effect)
+        // ---------------------------------------------------
+        const cards = document.querySelectorAll(".card");
+
+        cards.forEach(card => {
+            card.addEventListener("mousemove", (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left; // 滑鼠在卡片內的 X 座標
+                const y = e.clientY - rect.top;  // 滑鼠在卡片內的 Y 座標
+
+                // 計算旋轉中心與角度
+                const xCenter = rect.width / 2;
+                const yCenter = rect.height / 2;
+                
+                // 數值 20 控制旋轉幅度，越大旋轉越小
+                const rotateX = ((y - yCenter) / yCenter) * -10; 
+                const rotateY = ((x - xCenter) / xCenter) * 10;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            });
+
+            // 滑鼠移出時復原
+            card.addEventListener("mouseleave", () => {
+                card.style.transform = `perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)`;
+            });
+        });
+
+        // ---------------------------------------------------
+        // 3. 頁面載入動畫 (簡單的依序淡入)
+        // ---------------------------------------------------
+        window.addEventListener('load', () => {
+            const gridItems = document.querySelectorAll('.card');
+            gridItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.animation = `bounce 0.5s ease forwards ${index * 0.1}s`;
+                // 這裡僅利用 CSS 既有的 keyframe 做簡單示範，實際可改用 fade-in
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.animation = 'none'; 
+                }, 500 + (index * 100));
+            });
+        });
+    </script>
+</body>
+</html>
