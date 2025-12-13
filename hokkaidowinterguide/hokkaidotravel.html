@@ -11,60 +11,56 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f0f8ff; /* AliceBlue */
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
             -webkit-tap-highlight-color: transparent;
-            font-size: 16px;
-            color: #334155;
+            font-size: 17px;
+            color: #1e293b;
         }
         
-        /* Custom Scrollbar for hidden look but functional */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Touch Interactions */
         .touch-card {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         .touch-card:active {
-            transform: scale(0.97);
-            background-color: #f1f5f9;
+            transform: scale(0.96);
         }
 
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+        
+        .glass-header {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
+        .animate-slide-up {
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* Input styling to prevent zoom on iOS */
-        input, select, textarea {
-            font-size: 16px !important; 
-        }
-
-        /* Glassmorphism effect */
-        .glass {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
+        input, select, textarea { font-size: 17px !important; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect } = React;
 
-        // --- Icons (Internal SVG to ensure stability) ---
+        // --- SVGs ---
         const createIcon = (paths, attrs = {}) => (props) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className || ""} {...attrs}>
                 {paths.map((p, i) => <path key={i} d={p} />)}
@@ -118,28 +114,30 @@
             { name: '小樽', lat: 43.1907, lon: 140.9947 },
             { name: '函館', lat: 41.7687, lon: 140.7288 },
             { name: '旭川', lat: 43.7706, lon: 142.3649 },
+            { name: '富良野', lat: 43.3421, lon: 142.3832 },
+            { name: '美瑛', lat: 43.5905, lon: 142.4648 },
         ];
 
         const CHECKLIST_ITEMS = [
-            { category: "證件與財物", items: ["護照 (效期6個月+)", "Visit Japan Web QR Code (截圖)", "護照影本/照片", "日幣現金 (小店/市場用)", "信用卡 (海外回饋高/JCB)", "旅遊保險單 (含不便險)", "國際駕照 (若自駕, 需日文譯本)"] },
-            { category: "衣物 (玉米式)", items: ["發熱衣 (吸濕排汗)", "一般長袖/毛衣 (中層)", "防風防水外套 (Gore-tex尤佳)", "防水防滑雪靴 (刻紋深)", "厚羊毛襪 (多帶幾雙)", "防水手套 (必備)", "毛帽 (需蓋住耳朵)", "圍巾/脖圍", "冰爪 (便利商店可買)"] },
-            { category: "電子/3C", items: ["手機 + 充電線", "行動電源 (不可託運)", "轉接頭 (日本雙扁腳)", "Saily eSIM (出發前安裝)", "相機 + 備用電池 (天冷耗電快)"] },
-            { category: "個人護理", items: ["常備藥品 (感冒/胃藥/止痛)", "極潤乳液/護手霜 (超乾燥)", "護唇膏", "暖暖包 (貼式/手握)", "墨鏡 (雪地反光強)", "口罩 (防寒/防疫)", "摺疊傘 (防大雪)"] },
+            { category: "證件與財物", items: ["護照 (效期6個月+)", "Visit Japan Web (截圖)", "護照影本/照片", "日幣現金 (小店/市場)", "信用卡 (海外回饋高/JCB)", "旅遊保險單 (含不便險)", "駕照日文譯本 (自駕必備)"] },
+            { category: "衣物 (玉米式穿法)", items: ["發熱衣 (吸濕排汗)", "一般長袖 (中層)", "Gore-tex 防風防水大衣", "防滑雪靴 (刻紋深)", "厚羊毛襪 (多雙)", "防水手套 (必備)", "毛帽 (遮耳)", "圍巾/圍脖", "冰爪"] },
+            { category: "電子/3C", items: ["手機 + 充電線", "行動電源 (不可託運)", "轉接頭 (日本雙扁腳)", "Saily eSIM (先安裝)", "相機 + 備用電池"] },
+            { category: "個人護理", items: ["常備藥品 (感冒/胃藥)", "極潤乳液/護唇膏", "暖暖包 (貼式/手握)", "墨鏡 (雪地反光)", "口罩", "摺疊傘 (防大雪)"] },
         ];
 
         const CATEGORIES = [
-            { id: 'food', title: '食・美食', icon: Coffee, color: 'from-orange-400 to-red-500' },
-            { id: 'clothing', title: '衣・穿搭', icon: Shirt, color: 'from-blue-400 to-indigo-500' },
-            { id: 'stay', title: '住・住宿', icon: Home, color: 'from-indigo-400 to-purple-500' },
-            { id: 'transport', title: '行・交通', icon: Train, color: 'from-emerald-400 to-teal-500' },
-            { id: 'payment', title: '行動支付', icon: CreditCard, color: 'from-rose-400 to-pink-500' },
-            { id: 'fun', title: '育樂・景點', icon: Camera, color: 'from-violet-400 to-fuchsia-500' },
-            { id: 'weather', title: '天氣資訊', icon: Snowflake, color: 'from-sky-400 to-cyan-500' },
-            { id: 'safety', title: '安全・須知', icon: AlertTriangle, color: 'from-red-500 to-rose-600' },
-            { id: 'prep', title: '行前檢查', icon: CheckSquare, color: 'from-teal-400 to-green-500' },
-            { id: 'saily', title: 'Saily教學', icon: Smartphone, color: 'from-pink-400 to-rose-500' },
-            { id: 'flight', title: '搭機注意', icon: Plane, color: 'from-slate-500 to-gray-600' },
-            { id: 'diary', title: '旅遊記事', icon: BookOpen, color: 'from-amber-400 to-yellow-500' },
+            { id: 'food', title: '食・美食', icon: Coffee, bg: 'bg-orange-500' },
+            { id: 'clothing', title: '衣・穿搭', icon: Shirt, bg: 'bg-blue-500' },
+            { id: 'stay', title: '住・住宿', icon: Home, bg: 'bg-indigo-500' },
+            { id: 'transport', title: '行・交通', icon: Train, bg: 'bg-emerald-500' },
+            { id: 'payment', title: '行動支付', icon: CreditCard, bg: 'bg-rose-500' },
+            { id: 'fun', title: '育樂・景點', icon: Camera, bg: 'bg-violet-500' },
+            { id: 'weather', title: '天氣資訊', icon: Snowflake, bg: 'bg-sky-500' },
+            { id: 'safety', title: '安全・須知', icon: AlertTriangle, bg: 'bg-red-600' },
+            { id: 'prep', title: '行前檢查', icon: CheckSquare, bg: 'bg-teal-500' },
+            { id: 'saily', title: 'Saily教學', icon: Smartphone, bg: 'bg-pink-500' },
+            { id: 'flight', title: '搭機注意', icon: Plane, bg: 'bg-slate-500' },
+            { id: 'diary', title: '旅遊記事', icon: BookOpen, bg: 'bg-amber-500' },
         ];
 
         // --- Helper Components ---
@@ -147,37 +145,37 @@
         const Card = ({ children, className = "", onClick, noPadding }) => (
             <div 
                 onClick={onClick}
-                className={`bg-white rounded-2xl shadow-lg border border-slate-100 mb-4 overflow-hidden ${noPadding ? '' : 'p-5'} ${onClick ? 'active:scale-98 cursor-pointer touch-card' : ''} ${className}`}
+                className={`glass-panel rounded-3xl mb-4 overflow-hidden ${noPadding ? '' : 'p-6'} ${onClick ? 'active:scale-98 cursor-pointer touch-card' : ''} ${className}`}
             >
                 {children}
             </div>
         );
 
         const SectionTitle = ({ children }) => (
-            <h2 className="text-xl font-bold text-slate-800 mb-4 mt-8 flex items-center">
-                <span className="w-1.5 h-6 bg-blue-500 rounded-full mr-3"></span>
+            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-8 px-2 flex items-center">
+                <span className="w-1.5 h-7 bg-blue-500 rounded-full mr-3"></span>
                 {children}
             </h2>
         );
 
         const ExtLink = ({ href, label, color = "blue" }) => (
-            <a href={href} target="_blank" rel="noopener noreferrer" className={`flex items-center justify-between w-full p-4 bg-${color}-50 text-${color}-700 rounded-xl font-bold text-lg border border-${color}-100 active:bg-${color}-100 mb-3 transition-colors shadow-sm`}>
-                <span className="flex items-center gap-2"><ExternalLink size={20} /> {label}</span>
-                <ChevronRight size={20} className="opacity-50" />
+            <a href={href} target="_blank" rel="noopener noreferrer" className={`flex items-center justify-between w-full p-4 bg-${color}-50 text-${color}-700 rounded-2xl font-bold text-lg border border-${color}-100 active:bg-${color}-100 mb-3 transition-colors shadow-sm`}>
+                <span className="flex items-center gap-3"><ExternalLink size={22} /> {label}</span>
+                <ChevronRight size={22} className="opacity-50" />
             </a>
         );
 
-        const DetailModal = ({ title, content, onClose }) => (
-            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-                <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-                    <div className="flex justify-between items-center mb-4 border-b pb-2">
+        const Modal = ({ title, content, onClose }) => (
+            <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-md animate-fade-in" onClick={onClose}>
+                <div className="bg-white/90 rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto shadow-2xl border border-white/50" onClick={e => e.stopPropagation()}>
+                    <div className="flex justify-between items-center mb-6 sticky top-0 bg-white/90 backdrop-blur-md -mx-6 -mt-6 p-6 border-b border-gray-100 z-10">
                         <h3 className="text-2xl font-bold text-slate-800">{title}</h3>
-                        <button onClick={onClose} className="p-2 bg-slate-100 rounded-full text-slate-500"><ChevronRight className="rotate-90" /></button>
+                        <button onClick={onClose} className="p-2 bg-gray-100 rounded-full text-gray-500"><ChevronRight className="rotate-90" /></button>
                     </div>
-                    <div className="text-lg text-slate-600 leading-relaxed space-y-4 whitespace-pre-line">
+                    <div className="text-lg text-slate-600 leading-relaxed space-y-4 whitespace-pre-line px-1">
                         {content}
                     </div>
-                    <button onClick={onClose} className="mt-6 w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-lg shadow-lg active:bg-blue-700 transition-colors">
+                    <button onClick={onClose} className="mt-8 w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-xl shadow-lg active:scale-95 transition-transform">
                         關閉
                     </button>
                 </div>
@@ -201,7 +199,8 @@
                 const fetchWeather = async () => {
                     const data = {};
                     try {
-                        for (const city of CITIES) {
+                        const targets = CITIES.slice(0, 4); // Show top 4 on home
+                        for (const city of targets) {
                             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,weather_code&timezone=Asia%2FTokyo`);
                             const json = await res.json();
                             data[city.name] = {
@@ -211,7 +210,7 @@
                         }
                         setWeatherData(data);
                     } catch (e) {
-                        console.error("Weather fetch failed", e);
+                        console.error("Weather error", e);
                     } finally {
                         setLoading(false);
                     }
@@ -221,12 +220,11 @@
 
             return (
                 <div className="grid grid-cols-2 gap-3 mb-6">
-                    {CITIES.map(city => (
-                        <div key={city.name} className="glass p-4 rounded-2xl shadow-sm flex flex-col items-center justify-center border border-white/50 relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-cyan-300"></div>
+                    {CITIES.slice(0, 4).map(city => (
+                        <div key={city.name} className="glass-panel p-4 rounded-2xl shadow-sm flex flex-col items-center justify-center relative overflow-hidden">
                             <span className="text-slate-500 text-lg font-bold mb-1">{city.name}</span>
                             {loading ? (
-                                <span className="text-gray-400 text-sm">讀取中...</span>
+                                <span className="text-gray-400 text-sm">...</span>
                             ) : (
                                 <div className="flex items-center gap-3 mt-1">
                                     {getWeatherIcon(weatherData[city.name]?.code)}
@@ -243,34 +241,87 @@
 
         const TimeWidget = () => {
             const [time, setTime] = useState(new Date());
-
             useEffect(() => {
                 const timer = setInterval(() => setTime(new Date()), 1000);
                 return () => clearInterval(timer);
             }, []);
-
-            const formatTime = (date, offset) => {
-                const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-                const localDate = new Date(utc + (3600000 * offset));
-                return localDate.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+            
+            const format = (offset) => {
+                const utc = time.getTime() + (time.getTimezoneOffset() * 60000);
+                const local = new Date(utc + (3600000 * offset));
+                return local.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
             };
 
             return (
-                <div className="flex justify-between items-center bg-slate-800 text-white p-6 rounded-3xl mb-6 shadow-xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
-                    <div className="text-center w-1/2 border-r border-slate-600 pr-4 z-10">
-                        <div className="text-slate-400 text-sm mb-1 uppercase tracking-wider">台灣時間</div>
-                        <div className="text-4xl font-bold font-mono">{formatTime(time, 8)}</div>
+                <div className="flex justify-between items-center bg-slate-800 text-white p-6 rounded-3xl mb-8 shadow-xl">
+                    <div className="text-center w-1/2 border-r border-slate-600 pr-4">
+                        <div className="text-slate-400 text-sm mb-1 font-medium tracking-widest uppercase">TAIWAN</div>
+                        <div className="text-5xl font-bold font-mono tracking-tight text-white">{format(8)}</div>
                     </div>
-                    <div className="text-center w-1/2 pl-4 z-10">
-                        <div className="text-yellow-400 text-sm mb-1 font-bold uppercase tracking-wider">日本時間</div>
-                        <div className="text-4xl font-bold font-mono">{formatTime(time, 9)}</div>
+                    <div className="text-center w-1/2 pl-4">
+                        <div className="text-yellow-400 text-sm mb-1 font-bold tracking-widest uppercase">JAPAN</div>
+                        <div className="text-5xl font-bold font-mono tracking-tight text-white">{format(9)}</div>
                     </div>
                 </div>
             );
         };
 
-        // --- Pages ---
+        // --- Page Components ---
+
+        const WeatherPage = ({ onBack }) => {
+            const [forecasts, setForecasts] = useState({});
+            
+            useEffect(() => {
+                const fetchAll = async () => {
+                    const data = {};
+                    for(const city of CITIES) {
+                        // Fetch 7 days max/min
+                        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=Asia%2FTokyo`);
+                        const json = await res.json();
+                        data[city.name] = json.daily;
+                    }
+                    setForecasts(data);
+                };
+                fetchAll();
+            }, []);
+
+            return (
+                <div className="min-h-screen pb-20 animate-slide-up">
+                    <div className="glass-header p-6 pb-4 sticky top-0 z-20">
+                        <button onClick={onBack} className="flex items-center gap-2 text-xl font-bold text-slate-700 mb-2"><ArrowLeft /> 返回</button>
+                        <h1 className="text-3xl font-bold text-slate-800">一週天氣預報</h1>
+                    </div>
+                    <div className="p-5 space-y-6">
+                        {CITIES.map(city => (
+                            <Card key={city.name} className="p-5">
+                                <h3 className="text-2xl font-bold text-slate-800 mb-4 border-b pb-2">{city.name}</h3>
+                                <div className="flex overflow-x-auto gap-4 pb-2 no-scrollbar">
+                                    {forecasts[city.name]?.time.map((date, i) => (
+                                        <div key={date} className="flex-shrink-0 flex flex-col items-center min-w-[70px]">
+                                            <span className="text-slate-500 text-sm mb-1">{date.slice(5)}</span>
+                                            <div className="my-2">
+                                                {/* Simple icon logic based on code */}
+                                                {forecasts[city.name].weather_code[i] >= 71 ? <Snowflake className="text-blue-400" /> : 
+                                                 forecasts[city.name].weather_code[i] <= 3 ? <Sun className="text-yellow-500" /> : <CloudRain className="text-blue-600" />}
+                                            </div>
+                                            <div className="text-sm font-bold">
+                                                <span className="text-red-500">{Math.round(forecasts[city.name].temperature_2m_max[i])}°</span>
+                                                <span className="mx-1">/</span>
+                                                <span className="text-blue-500">{Math.round(forecasts[city.name].temperature_2m_min[i])}°</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {!forecasts[city.name] && <p>載入中...</p>}
+                                </div>
+                            </Card>
+                        ))}
+                        <SectionTitle>景點天氣查詢</SectionTitle>
+                        <ExtLink href="https://tenki.jp/leisure/1/" label="Tenki.jp 北海道景點預報" color="sky" />
+                        <ExtLink href="https://weathernews.jp/s/ski/area/hokkaido.html" label="滑雪場積雪情報" color="sky" />
+                    </div>
+                </div>
+            );
+        };
 
         const DiaryView = ({ onBack }) => {
             const [entries, setEntries] = useState(() => JSON.parse(localStorage.getItem('hokkaido_diary_entries') || '[]'));
@@ -318,13 +369,13 @@
             };
 
             return (
-                <div className="min-h-screen bg-slate-50 pb-20 animate-fade-in">
-                     <div className="bg-gradient-to-br from-amber-400 to-yellow-500 text-white p-6 pb-8 rounded-b-[2.5rem] shadow-lg sticky top-0 z-20">
-                        <div className="flex justify-between items-center mb-4">
-                            <button onClick={onBack} className="flex items-center gap-2 text-xl font-bold opacity-90 active:opacity-60"><ArrowLeft /> 返回</button>
-                            <button onClick={() => setShowSettings(!showSettings)} className="p-2 rounded-full bg-white/20"><Settings size={24} /></button>
+                <div className="min-h-screen pb-20 animate-slide-up bg-[#f0f8ff]">
+                     <div className="glass-header p-6 pb-4 sticky top-0 z-20">
+                        <div className="flex justify-between items-center mb-2">
+                            <button onClick={onBack} className="flex items-center gap-2 text-xl font-bold text-slate-700"><ArrowLeft /> 返回</button>
+                            <button onClick={() => setShowSettings(!showSettings)} className="p-2 rounded-full bg-slate-100"><Settings size={24} /></button>
                         </div>
-                        <h1 className="text-3xl font-bold flex items-center gap-3"><BookOpen size={32} /> 旅遊記事本</h1>
+                        <h1 className="text-3xl font-bold text-amber-600 flex items-center gap-3"><BookOpen size={32} /> 旅遊記事本</h1>
                         {showSettings && (
                             <div className="mt-4 bg-white p-4 rounded-xl shadow-lg text-slate-800">
                                 <label className="block text-sm font-bold mb-2">Google Apps Script URL:</label>
@@ -333,30 +384,31 @@
                         )}
                     </div>
 
-                    <div className="p-5 space-y-4 -mt-4">
-                        <Card className="shadow-xl">
+                    <div className="p-5 space-y-4">
+                        <Card className="shadow-xl border-amber-200">
                             <div className="grid grid-cols-2 gap-4 mb-4">
-                                <div><label className="text-xs text-slate-500 font-bold uppercase">日期</label><input type="date" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 mt-1" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} /></div>
-                                <div><label className="text-xs text-slate-500 font-bold uppercase">時間</label><input type="time" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 mt-1" value={formData.time} onChange={e => setFormData({...formData, time: e.target.value})} /></div>
+                                <div><label className="text-xs text-slate-500 font-bold uppercase">日期</label><input type="date" className="w-full p-3 bg-white rounded-xl border border-slate-200 mt-1" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} /></div>
+                                <div><label className="text-xs text-slate-500 font-bold uppercase">時間</label><input type="time" className="w-full p-3 bg-white rounded-xl border border-slate-200 mt-1" value={formData.time} onChange={e => setFormData({...formData, time: e.target.value})} /></div>
                             </div>
-                            <div className="mb-4"><label className="text-xs text-slate-500 font-bold uppercase">地點</label><input type="text" placeholder="例如：小樽運河" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 mt-1" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} /></div>
-                            <div className="mb-4"><label className="text-xs text-slate-500 font-bold uppercase">Google 地圖連結</label><div className="flex gap-2 mt-1"><input type="text" placeholder="貼上連結" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200" value={formData.mapLink} onChange={e => setFormData({...formData, mapLink: e.target.value})} /><a href="https://maps.google.com" target="_blank" className="p-3 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center"><MapPin /></a></div></div>
+                            <div className="mb-4"><label className="text-xs text-slate-500 font-bold uppercase">地點</label><input type="text" placeholder="例如：小樽運河" className="w-full p-3 bg-white rounded-xl border border-slate-200 mt-1" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} /></div>
+                            <div className="mb-4"><label className="text-xs text-slate-500 font-bold uppercase">Google 地圖連結</label><div className="flex gap-2 mt-1"><input type="text" placeholder="貼上連結" className="w-full p-3 bg-white rounded-xl border border-slate-200" value={formData.mapLink} onChange={e => setFormData({...formData, mapLink: e.target.value})} /><a href="https://maps.google.com" target="_blank" className="p-3 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center"><MapPin /></a></div></div>
                             <div className="grid grid-cols-2 gap-4 mb-4">
-                                <div><label className="text-xs text-slate-500 font-bold uppercase">天氣</label><select className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 mt-1" value={formData.weather} onChange={e => setFormData({...formData, weather: e.target.value})}><option>晴</option><option>多雲</option><option>陰</option><option>雪</option><option>暴風雪</option><option>雨</option></select></div>
-                                <div><label className="text-xs text-slate-500 font-bold uppercase">交通</label><select className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 mt-1" value={formData.transport} onChange={e => setFormData({...formData, transport: e.target.value})}><option>步行</option><option>JR火車</option><option>地鐵</option><option>巴士</option><option>計程車</option><option>自駕</option></select></div>
+                                <div><label className="text-xs text-slate-500 font-bold uppercase">天氣</label><select className="w-full p-3 bg-white rounded-xl border border-slate-200 mt-1" value={formData.weather} onChange={e => setFormData({...formData, weather: e.target.value})}><option>晴</option><option>多雲</option><option>陰</option><option>雪</option><option>暴風雪</option><option>雨</option></select></div>
+                                <div><label className="text-xs text-slate-500 font-bold uppercase">交通</label><select className="w-full p-3 bg-white rounded-xl border border-slate-200 mt-1" value={formData.transport} onChange={e => setFormData({...formData, transport: e.target.value})}><option>步行</option><option>JR火車</option><option>地鐵</option><option>巴士</option><option>計程車</option><option>自駕</option></select></div>
                             </div>
-                            <div className="mb-4"><label className="text-xs text-slate-500 font-bold uppercase">費用 (日圓)</label><input type="number" placeholder="0" className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 mt-1" value={formData.cost} onChange={e => setFormData({...formData, cost: e.target.value})} /></div>
-                            <div className="mb-4"><label className="text-xs text-slate-500 font-bold uppercase">重要記事</label><textarea rows="3" placeholder="今天發生了..." className="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 mt-1" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})}></textarea></div>
-                            <button onClick={handleSave} disabled={isSubmitting} className="w-full bg-yellow-500 text-white font-bold text-xl py-4 rounded-xl shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2">{isSubmitting ? '傳送中...' : <><Save /> 儲存紀錄</>}</button>
+                            <div className="mb-4"><label className="text-xs text-slate-500 font-bold uppercase">費用 (日圓)</label><input type="number" placeholder="0" className="w-full p-3 bg-white rounded-xl border border-slate-200 mt-1" value={formData.cost} onChange={e => setFormData({...formData, cost: e.target.value})} /></div>
+                            <div className="mb-4"><label className="text-xs text-slate-500 font-bold uppercase">重要記事</label><textarea rows="3" placeholder="今天發生了..." className="w-full p-3 bg-white rounded-xl border border-slate-200 mt-1" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})}></textarea></div>
+                            <div className="mb-4"><label className="text-xs text-slate-500 font-bold uppercase">備註</label><input type="text" placeholder="其他備忘..." className="w-full p-3 bg-white rounded-xl border border-slate-200 mt-1" value={formData.remarks} onChange={e => setFormData({...formData, remarks: e.target.value})} /></div>
+                            <button onClick={handleSave} disabled={isSubmitting} className="w-full bg-amber-500 text-white font-bold text-xl py-4 rounded-xl shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2">{isSubmitting ? '傳送中...' : <><Save /> 儲存紀錄</>}</button>
                         </Card>
-                        <h3 className="text-xl font-bold text-slate-700 ml-2 mt-8">歷史紀錄</h3>
                         {entries.map(entry => (
-                            <div key={entry.id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 relative">
+                            <div key={entry.id} className="glass-panel p-5 rounded-2xl relative">
                                 <button onClick={() => handleDelete(entry.id)} className="absolute top-4 right-4 text-slate-300 hover:text-red-500 p-2"><Trash2 size={20} /></button>
                                 <div className="flex items-baseline gap-2 mb-2"><span className="text-lg font-bold text-slate-800">{entry.date}</span><span className="text-slate-500">{entry.time}</span></div>
                                 <div className="flex items-center gap-2 text-lg text-blue-700 font-bold mb-2"><MapPin size={18} /> {entry.mapLink ? <a href={entry.mapLink} target="_blank" className="underline">{entry.location}</a> : entry.location}</div>
-                                <div className="flex gap-3 mb-3 text-sm text-slate-600"><span className="bg-slate-100 px-2 py-1 rounded">{entry.weather}</span><span className="bg-slate-100 px-2 py-1 rounded">{entry.transport}</span>{entry.cost && <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">¥{entry.cost}</span>}</div>
+                                <div className="flex gap-3 mb-3 text-sm text-slate-600"><span className="bg-white/50 px-2 py-1 rounded">{entry.weather}</span><span className="bg-white/50 px-2 py-1 rounded">{entry.transport}</span>{entry.cost && <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded">¥{entry.cost}</span>}</div>
                                 <p className="text-slate-700 whitespace-pre-wrap text-lg">{entry.notes}</p>
+                                {entry.remarks && <p className="text-slate-500 text-sm mt-2 pt-2 border-t border-slate-200">{entry.remarks}</p>}
                             </div>
                         ))}
                     </div>
@@ -371,48 +423,141 @@
             const content = {
                 food: (
                     <>
-                        <p className="text-lg text-slate-600 mb-6">北海道冬季海鮮肥美，暖身料理更是必吃。以下精選在地美食：</p>
-                        <SectionTitle>必吃四大天王</SectionTitle>
+                        <p className="text-lg text-slate-600 mb-6 font-medium">北海道美食四大天王，暖身必吃：</p>
+                        <Card onClick={() => setModalContent({title: "成吉思汗烤肉", content: "★ 特色：鐵鍋燒烤無腥味羊肉，肉汁煮熟蔬菜。\n★ 名店：達摩 (Daruma)、札幌啤酒園。\n★ 秘訣：配白飯超搭！"})}>
+                            <div className="flex items-center gap-4"><div className="bg-orange-100 p-3 rounded-full text-2xl">🥩</div><div><strong className="text-xl text-slate-800">成吉思汗烤肉</strong><p className="text-slate-500">鮮嫩羊肉 x 獨門醬汁</p></div></div>
+                        </Card>
+                        <Card onClick={() => setModalContent({title: "湯咖哩", content: "★ 特色：藥膳湯底+炸蔬菜+大雞腿。\n★ 名店：GARAKU、Suage+、奧芝商店。\n★ 點餐：選湯底→主菜→辣度→飯量。"})}>
+                            <div className="flex items-center gap-4"><div className="bg-yellow-100 p-3 rounded-full text-2xl">🍛</div><div><strong className="text-xl text-slate-800">湯咖哩</strong><p className="text-slate-500">札幌靈魂美食</p></div></div>
+                        </Card>
+                        <Card onClick={() => setModalContent({title: "豪華海鮮丼", content: "★ 必吃：帝王蟹、海膽、干貝。\n★ 地點：函館朝市(釣烏賊)、小樽三角市場(滝波食堂)、札幌二条市場。"})}><div className="flex items-center gap-4"><div className="bg-red-100 p-3 rounded-full text-2xl">🦀</div><div><strong className="text-xl text-slate-800">海鮮丼 / 三大蟹</strong><p className="text-slate-500">冬季最肥美</p></div></div></Card>
+                        <SectionTitle>快速查詢</SectionTitle>
+                        <ExtLink href="https://tabelog.com/tw/hokkaido/" label="Tabelog 美食榜 (中文)" color="orange" />
+                    </>
+                ),
+                transport: (
+                    <>
+                        <SectionTitle>JR 鐵路周遊券 (JR Pass)</SectionTitle>
+                        <Card onClick={() => setModalContent({title: "JR 北海道鐵路周遊券", content: "★ 票價 (7日)：約 ¥29,000 (依匯率變動)\n★ 範圍：JR北海道全線 (特急/快速/普通)。\n★ 划算嗎？只要有「札幌↔函館」來回就回本。\n★ 注意：特急(如北斗號) 全車指定席，務必先劃位！"})}>
+                            <h3 className="text-xl font-bold text-emerald-700 mb-1">北海道鐵路周遊券</h3>
+                            <p className="text-slate-600">長距離移動必備 (函館/釧路)</p>
+                        </Card>
+                        <ExtLink href="https://www.jrhokkaido.co.jp/global/chinese/ticket/railpass/index.html" label="JR Pass 官方詳情與購票" color="emerald" />
+                        
+                        <SectionTitle>入境手續：Visit Japan Web</SectionTitle>
+                        <Card onClick={() => setModalContent({title: "數位化快速通關步驟", content: "1. 註冊帳號：Visit Japan Web 官網。\n2. 登錄行程：航班資訊、日本住宿地址。\n3. 填寫資料：入境審查(外國人記錄) + 海關申報。\n4. 取得 QR Code：黃色(入境) + 藍色(海關) 已合併為一個 QR Code。\n5. 截圖保存：出發前務必截圖，避免機場網路不穩。\n★ 2025新制：部分機場推行預先通關，可在桃機先辦理(試辦中)。"})}>
+                            <h3 className="text-xl font-bold text-blue-700 mb-1">Visit Japan Web 教學</h3>
+                            <p className="text-slate-600">2025 最新版：QR Code 合併制</p>
+                        </Card>
+                        <ExtLink href="https://vjw-lp.digital.go.jp/zh-hant/" label="Visit Japan Web 官網" color="blue" />
+                    </>
+                ),
+                payment: (
+                    <>
+                        <SectionTitle>1. 西瓜卡 Suica (交通/超商)</SectionTitle>
+                        <Card className="border-l-4 border-green-500 pl-4">
+                            <h3 className="font-bold text-xl text-slate-800 mb-2">iPhone 用戶 (免實體卡)</h3>
+                            <ol className="list-decimal pl-5 space-y-2 text-slate-700">
+                                <li>打開內建「錢包 (Wallet)」App。</li>
+                                <li>按右上「+」>「交通卡」> 搜尋「Suica」。</li>
+                                <li>輸入金額 > Apple Pay 付款 (建議用 Mastercard/JCB)。</li>
+                                <li><strong>免解鎖</strong>：搭車時手機直接靠閘門即可。</li>
+                            </ol>
+                        </Card>
+                        <Card className="border-l-4 border-gray-500 pl-4">
+                            <h3 className="font-bold text-xl text-slate-800 mb-2">Android 用戶</h3>
+                            <p className="text-slate-600">台灣安卓手機多不支援日本 FeliCa 晶片。建議：</p>
+                            <ul className="list-disc pl-5 mt-1 text-slate-700">
+                                <li>購買實體卡 (Suica/Kitaca/ICOCA)。</li>
+                                <li>使用 iPhone 家人的手機綁定多張。</li>
+                            </ul>
+                        </Card>
+
+                        <SectionTitle>2. PayPay (掃碼支付)</SectionTitle>
+                        <Card className="border-l-4 border-rose-500 pl-4">
+                            <h3 className="font-bold text-xl text-slate-800 mb-2">免下載 PayPay，直接用台灣 App</h3>
+                            <p className="text-slate-600 mb-3">看到紅色 <span className="text-red-600 font-bold">P</span> PayPay 標誌，用以下 App 掃碼 (免手續費)：</p>
+                            <ul className="list-disc pl-5 space-y-1 text-slate-700 font-medium">
+                                <li>全支付 (PXPay Plus)</li>
+                                <li>街口支付 (JKOPay)</li>
+                                <li>玉山 Wallet</li>
+                            </ul>
+                            <div className="mt-3 bg-slate-100 p-3 rounded text-sm text-slate-600">
+                                <strong>操作：</strong>開 App > 切換地區「日本」 > 掃店家 QR Code > 輸入日幣金額。
+                            </div>
+                        </Card>
+                        <ExtLink href="https://livejapan.com/zh-tw/article-a0005219/" label="日本行動支付詳細攻略" color="rose" />
+                    </>
+                ),
+                fun: (
+                    <>
+                        <SectionTitle>必去育樂景點</SectionTitle>
                         <div className="space-y-4">
-                            <Card onClick={() => setModalContent({title: "成吉思汗烤肉 (ジンギスカン)", content: "★ 特色：使用中央隆起的鐵鍋燒烤羊肉，肉汁流向邊緣煮熟蔬菜。北海道羊肉無腥味，鮮嫩多汁。\n\n★ 推薦店家：\n1. 達摩 (Daruma)：札幌必排隊老店，醬汁是一絕。\n2. 札幌啤酒園：環境氣氛佳，適合多人聚餐，可順便喝新鮮啤酒。\n\n★ 小撇步：建議點一份白飯，搭配烤肉與醬汁超下飯！"})}>
-                                <div className="flex justify-between items-center">
-                                    <div className="flex items-center gap-4">
-                                        <div className="bg-orange-100 p-3 rounded-full text-2xl">🥩</div>
-                                        <div><strong className="text-lg block text-slate-800">成吉思汗烤肉</strong><span className="text-slate-500 text-sm">鮮嫩羊肉 x 獨門醬汁</span></div>
-                                    </div>
-                                    <Info className="text-orange-400" />
-                                </div>
+                            <Card onClick={() => setModalContent({title: "旭山動物園", content: "★ 亮點：冬季限定「企鵝散步」，每日兩場(11:00/14:30，視雪況調整)。\n★ 必看：北極熊館、海豹館。\n★ 交通：旭川站搭巴士約40分。"})}>
+                                <strong className="text-xl text-purple-700 block">🐧 旭山動物園</strong>
+                                <span className="text-slate-600">冬季企鵝散步是重頭戲</span>
                             </Card>
-                            <Card onClick={() => setModalContent({title: "湯咖哩 (Soup Curry)", content: "★ 特色：源自札幌的藥膳湯底，加入大量炸蔬菜與主食(大雞腿/豬角煮)。\n\n★ 推薦店家：\n1. GARAKU：湯頭濃郁，人氣第一，排隊名店。\n2. Suage+：串燒風格，吃法特別，蔬菜鮮甜。\n3. 奧芝商店：主打濃郁蝦湯底。\n\n★ 點餐法：1.選湯底 2.選主菜 3.選辣度 4.選飯量"})}>
-                                <div className="flex justify-between items-center">
-                                    <div className="flex items-center gap-4">
-                                        <div className="bg-yellow-100 p-3 rounded-full text-2xl">🍛</div>
-                                        <div><strong className="text-lg block text-slate-800">湯咖哩</strong><span className="text-slate-500 text-sm">札幌靈魂美食，暖身首選</span></div>
-                                    </div>
-                                    <Info className="text-orange-400" />
-                                </div>
+                            <Card onClick={() => setModalContent({title: "白金青池 (點燈)", content: "★ 亮點：冬季湖面結冰並積雪，夜晚點燈(Illumination)營造夢幻氛圍。\n★ 時間：約 17:00~21:00 (依月份不同)。\n★ 交通：美瑛站開車或搭巴士。"})}>
+                                <strong className="text-xl text-purple-700 block">❄️ 美瑛白金青池</strong>
+                                <span className="text-slate-600">夜晚點燈，夢幻藍色世界</span>
                             </Card>
-                            <Card onClick={() => setModalContent({title: "豪華海鮮丼 & 三大蟹", content: "★ 特色：冬季是螃蟹(帝王蟹、松葉蟹、毛蟹)與海膽最肥美的季節。\n\n★ 推薦地點：\n1. 函館朝市：必玩「釣活烏賊」，現殺現吃透明刺身。\n2. 小樽三角市場：滝波食堂，自選配料堆成山。\n3. 札幌二条市場：交通最方便，早上來碗丼飯。\n\n★ 必吃：海膽、干貝、鮭魚卵。"})}>
-                                <div className="flex justify-between items-center">
-                                    <div className="flex items-center gap-4">
-                                        <div className="bg-red-100 p-3 rounded-full text-2xl">🦀</div>
-                                        <div><strong className="text-lg block text-slate-800">海鮮丼 / 三大蟹</strong><span className="text-slate-500 text-sm">極鮮海味，痛風也甘願</span></div>
-                                    </div>
-                                    <Info className="text-orange-400" />
-                                </div>
+                            <Card onClick={() => setModalContent({title: "函館百萬夜景", content: "★ 亮點：世界三大夜景之一，冬季空氣清澈，視野最棒。\n★ 交通：搭乘函館山纜車。\n★ 備註：山上極冷，務必戴帽子手套。"})}>
+                                <strong className="text-xl text-purple-700 block">🌃 函館山夜景</strong>
+                                <span className="text-slate-600">雙C海灣地形，百萬夜景</span>
                             </Card>
-                            <Card onClick={() => setModalContent({title: "北海道甜點", content: "★ 六花亭：蘭姆葡萄夾心餅乾，必買伴手禮。\n★ LeTAO：雙層乳酪蛋糕，小樽本店限定口味。\n★ 北菓樓：妖精之森年輪蛋糕、夢不思議泡芙。\n★ 白色戀人：參觀工廠並享用現做甜點。"})}>
-                                <div className="flex justify-between items-center">
-                                    <div className="flex items-center gap-4">
-                                        <div className="bg-pink-100 p-3 rounded-full text-2xl">🍦</div>
-                                        <div><strong className="text-lg block text-slate-800">必吃甜點</strong><span className="text-slate-500 text-sm">六花亭, LeTAO, 北菓樓</span></div>
-                                    </div>
-                                    <Info className="text-orange-400" />
-                                </div>
+                            <Card onClick={() => setModalContent({title: "小樽運河", content: "★ 亮點：保留紅磚倉庫群，充滿懷舊風情。\n★ 活動：2月「小樽雪燈路」，運河上漂浮燭光。\n★ 必逛：堺町通商店街(甜點、玻璃館)。"})}>
+                                <strong className="text-xl text-purple-700 block">🕯️ 小樽運河</strong>
+                                <span className="text-slate-600">浪漫懷舊，必逛商店街</span>
                             </Card>
                         </div>
-                        <SectionTitle>快速查詢</SectionTitle>
-                        <ExtLink href="https://tabelog.com/tw/hokkaido/" label="Tabelog 美食排行榜 (中文)" color="orange" />
+                        <ExtLink href="https://www.city.asahikawa.hokkaido.jp/asahiyamazoo/" label="旭山動物園官網" color="purple" />
+                        <ExtLink href="https://www.biei-hokkaido.jp/zh-TW/" label="美瑛觀光協會 (青池資訊)" color="purple" />
+                    </>
+                ),
+                flight: (
+                    <>
+                        <SectionTitle>台灣出入境規定 (2025)</SectionTitle>
+                        <Card className="border-l-4 border-red-500">
+                            <h3 className="font-bold text-lg text-slate-800 mb-2">🚫 禁止入境攜帶 (回台)</h3>
+                            <ul className="list-disc pl-5 text-slate-700 space-y-1">
+                                <li><strong>肉類製品：</strong>火腿、香腸、肉乾、含肉泡麵 (嚴禁豬瘟疫區)。</li>
+                                <li><strong>新鮮蔬果：</strong>所有新鮮水果、蔬菜、種子。</li>
+                                <li><strong>加熱菸/電子菸：</strong>全面禁止攜帶入境。</li>
+                            </ul>
+                        </Card>
+                        <SectionTitle>搭機安檢速查</SectionTitle>
+                        <Card className="border-l-4 border-blue-500">
+                            <h3 className="font-bold text-lg text-slate-800 mb-2">👜 必須隨身</h3>
+                            <p className="text-slate-600">行動電源、鋰電池、打火機 (限1個傳統型)。</p>
+                        </Card>
+                        <Card className="border-l-4 border-orange-500">
+                            <h3 className="font-bold text-lg text-slate-800 mb-2">🧳 必須託運</h3>
+                            <p className="text-slate-600">刀剪類 (指甲剪)、超過100ml 液體、腳架 (超過60cm)。</p>
+                        </Card>
+                    </>
+                ),
+                safety: (
+                    <>
+                        <SectionTitle>🐻 熊出沒注意</SectionTitle>
+                        <Card>
+                            <p className="text-slate-700 mb-2">北海道全境皆是棕熊棲息地。近年目擊增加。</p>
+                            <ul className="list-disc pl-5 text-slate-600 text-sm space-y-1">
+                                <li>勿將食物垃圾留置戶外。</li>
+                                <li>清晨/黃昏是活動高峰，避免單獨進入山林。</li>
+                                <li>攜帶熊鈴，發出聲音讓熊知道人的存在。</li>
+                                <li><strong>若遇見熊：</strong>保持冷靜，安靜緩慢後退，<strong>絕對不要跑</strong>(會觸發追逐本能)。</li>
+                            </ul>
+                        </Card>
+                        <SectionTitle>⚠️ 防震知識</SectionTitle>
+                        <Card>
+                            <p className="text-slate-700 mb-2">日本是地震大國，室內遇震時：</p>
+                            <ol className="list-decimal pl-5 text-slate-600 text-sm space-y-1">
+                                <li><strong>保護頭部：</strong>躲在堅固桌下 (Drop, Cover, Hold on)。</li>
+                                <li><strong>遠離玻璃：</strong>窗戶、櫃子可能倒塌碎裂。</li>
+                                <li><strong>確保出口：</strong>地震停止後，打開門窗確保逃生路線。</li>
+                                <li><strong>勿搭電梯：</strong>走樓梯避難。</li>
+                            </ol>
+                        </Card>
                     </>
                 ),
                 clothing: (
@@ -421,154 +566,28 @@
                             <p className="text-lg font-bold text-blue-900 mb-1">穿搭關鍵：「玉米式穿法」</p>
                             <p className="text-base text-blue-800">室內暖氣極強 (25°C)，室外零下 (-5°C)。<br/>重點是<span className="font-bold text-red-600">「內薄外厚，方便穿脫」</span>，進室內脫大衣即可。</p>
                         </div>
-                        <SectionTitle>從頭到腳裝備檢查</SectionTitle>
+                        <SectionTitle>建議裝備</SectionTitle>
                         <div className="space-y-3">
-                            <Card noPadding className="p-4 flex items-start gap-4">
-                                <span className="bg-blue-100 text-blue-600 font-bold px-3 py-1 rounded text-sm">內層</span>
-                                <div><strong className="block text-slate-800">發熱衣</strong><span className="text-slate-600 text-sm">貼身、吸汗。勿穿棉質(流汗會冷)。</span></div>
-                            </Card>
-                            <Card noPadding className="p-4 flex items-start gap-4">
-                                <span className="bg-blue-100 text-blue-600 font-bold px-3 py-1 rounded text-sm">中層</span>
-                                <div><strong className="block text-slate-800">一般上衣 / 薄毛衣</strong><span className="text-slate-600 text-sm">室內穿這層剛好。高領在室內可能太熱。</span></div>
-                            </Card>
-                            <Card noPadding className="p-4 flex items-start gap-4">
-                                <span className="bg-blue-100 text-blue-600 font-bold px-3 py-1 rounded text-sm">外層</span>
-                                <div><strong className="block text-slate-800">防風防水長大衣</strong><span className="text-slate-600 text-sm">最重要！長版蓋臀，羽絨含量高，Gore-tex尤佳。</span></div>
-                            </Card>
-                            <Card noPadding className="p-4 flex items-start gap-4">
-                                <span className="bg-blue-100 text-blue-600 font-bold px-3 py-1 rounded text-sm">足部</span>
-                                <div><strong className="block text-slate-800">防滑雪靴 + 冰爪</strong><span className="text-slate-600 text-sm">鞋底刻紋深。建議當地超商買「簡易冰爪」套上。</span></div>
-                            </Card>
-                            <Card noPadding className="p-4 flex items-start gap-4">
-                                <span className="bg-blue-100 text-blue-600 font-bold px-3 py-1 rounded text-sm">配件</span>
-                                <div><strong className="block text-slate-800">毛帽、圍巾、手套</strong><span className="text-slate-600 text-sm">毛帽要蓋耳，手套必須防水(玩雪用)。</span></div>
-                            </Card>
+                            <Card noPadding className="p-4 flex gap-4"><span className="bg-blue-100 text-blue-600 px-3 py-1 rounded font-bold">內層</span><div><strong>發熱衣</strong><span className="text-slate-500 block text-sm">貼身吸汗，勿穿棉質。</span></div></Card>
+                            <Card noPadding className="p-4 flex gap-4"><span className="bg-blue-100 text-blue-600 px-3 py-1 rounded font-bold">外層</span><div><strong>防風防水大衣</strong><span className="text-slate-500 block text-sm">長版蓋臀，Gore-tex尤佳。</span></div></Card>
+                            <Card noPadding className="p-4 flex gap-4"><span className="bg-blue-100 text-blue-600 px-3 py-1 rounded font-bold">足部</span><div><strong>防滑雪靴 + 冰爪</strong><span className="text-slate-500 block text-sm">刻紋深，建議買簡易冰爪。</span></div></Card>
                         </div>
-                    </>
-                ),
-                payment: (
-                    <>
-                        <div className="bg-rose-50 p-4 rounded-xl mb-6 text-rose-800 border border-rose-100">
-                            <p className="font-bold text-lg mb-2">💡 日本支付新趨勢</p>
-                            <p>現在日本雖然現金仍必要，但電子支付已非常普及。建議準備以下兩種工具，讓付款更流暢。</p>
-                        </div>
-
-                        <SectionTitle>1. PayPay (透過台灣 App)</SectionTitle>
-                        <Card className="border-l-4 border-rose-500">
-                            <h3 className="font-bold text-xl text-slate-800 mb-2">免下載 PayPay，直接用台灣 App</h3>
-                            <p className="text-slate-600 mb-4">看到店家有紅色 <span className="text-red-600 font-bold">P</span> PayPay 標誌，即可使用以下 App 掃碼付款（免手續費）：</p>
-                            <ul className="list-disc pl-5 space-y-2 text-slate-700">
-                                <li><strong>全支付 (PXPay Plus)</strong></li>
-                                <li><strong>街口支付 (JKOPay)</strong></li>
-                                <li><strong>玉山 Wallet</strong></li>
-                            </ul>
-                            <div className="mt-4 bg-slate-100 p-3 rounded-lg text-sm text-slate-600">
-                                <strong>操作方式：</strong>開啟 App > 切換地區至「日本」(或點選付款碼/掃描) > 掃描店家 QR Code 或出示條碼給店家掃。
-                            </div>
-                        </Card>
-
-                        <SectionTitle>2. 西瓜卡 Suica (交通/超商)</SectionTitle>
-                        <Card className="border-l-4 border-green-500">
-                            <h3 className="font-bold text-xl text-slate-800 mb-2">iPhone 用戶 (超簡單)</h3>
-                            <ol className="list-decimal pl-5 space-y-2 text-slate-700">
-                                <li>打開內建<strong>「錢包 (Wallet)」</strong>App。</li>
-                                <li>點擊右上角「+」 > 選擇「交通卡」。</li>
-                                <li>搜尋並選擇「Suica」。</li>
-                                <li>輸入金額 (需使用 Apple Pay 信用卡付款)。</li>
-                                <li>完成！搭車/超商結帳時，<strong>手機免解鎖直接靠卡</strong>即可。</li>
-                            </ol>
-                        </Card>
-                        <Card className="border-l-4 border-green-500">
-                            <h3 className="font-bold text-xl text-slate-800 mb-2">Android 用戶</h3>
-                            <p className="text-slate-600 mb-2">需確認手機是否支援日本 FeliCa (大部分台灣安卓機不支援)。</p>
-                            <p className="text-slate-600"><strong>替代方案：</strong>直接購買實體 Suica / Kitaca 卡，或使用 iPhone 家人的手機。</p>
-                        </Card>
-                    </>
-                ),
-                transport: (
-                    <>
-                        <SectionTitle>鐵路周遊券 (JR Pass)</SectionTitle>
-                        <Card onClick={() => setModalContent({title: "JR 北海道鐵路周遊券", content: "★ 票價 (7日券)：約 ¥29,000 (需依當下匯率)\n\n★ 適用範圍：JR北海道全線 (特急、快速、普通)。\n\n★ 是否划算？\n若行程包含「札幌 ↔ 函館」(來回約¥19,000) 再加上「札幌 ↔ 旭川」或機場來回，基本上就回本了。\n\n★ 重要注意：\n特急列車 (如北斗號) 全車指定席，務必先去綠色窗口或售票機劃位！"})}>
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h3 className="text-xl font-bold text-emerald-700">北海道鐵路周遊券</h3>
-                                    <p className="text-slate-500">長距離移動必備 (函館/釧路)</p>
-                                </div>
-                                <Info className="text-emerald-500" />
-                            </div>
-                        </Card>
-
-                        <SectionTitle>冬季自駕警告</SectionTitle>
-                        <div className="bg-red-50 border-2 border-red-200 p-5 rounded-2xl mb-6 shadow-sm">
-                            <div className="flex items-center gap-2 mb-3">
-                                <AlertTriangle className="text-red-600" size={28} />
-                                <strong className="text-xl text-red-800">極度危險・新手勿試</strong>
-                            </div>
-                            <ul className="list-disc pl-5 text-lg text-red-900 space-y-2">
-                                <li><strong>黑冰 (Black Ice)：</strong>路面看似濕亮，其實是透明薄冰，極滑！</li>
-                                <li><strong>白牆 (Whiteout)：</strong>暴風雪時視線完全歸零，請立即開雙黃燈停靠。</li>
-                                <li><strong>「急」禁物：</strong>禁止急煞、急轉、急加速。</li>
-                                <li><strong>車距：</strong>請保持平時的 3 倍以上。</li>
-                            </ul>
-                        </div>
-                        <ExtLink href="https://www.jrhokkaido.co.jp/global/chinese/index.html" label="JR 北海道運行狀況" color="emerald" />
                     </>
                 ),
                 stay: (
                     <>
-                        <SectionTitle>住宿類型指南</SectionTitle>
-                        <Card>
-                            <h3 className="font-bold text-lg text-indigo-700 mb-1">商務飯店 (Business Hotel)</h3>
-                            <p className="text-slate-600 text-sm">地點便利(車站旁)，房間小但功能齊全，價格實惠。適合少行李旅人。</p>
-                        </Card>
-                        <Card>
-                            <h3 className="font-bold text-lg text-indigo-700 mb-1">溫泉旅館 (Ryokan)</h3>
-                            <p className="text-slate-600 text-sm">體驗榻榻米、懷石料理與大浴場。推薦：定山溪、登別、洞爺湖。</p>
-                        </Card>
-                        <SectionTitle>訂房建議</SectionTitle>
-                        <ul className="list-disc pl-5 text-slate-700 space-y-2">
-                            <li><strong>旺季早訂：</strong>雪祭期間 (2月) 房價飆漲且難訂，建議半年前預訂。</li>
-                            <li><strong>地點選擇：</strong>冬季雪地拖行李極痛苦，務必選「離地鐵/車站近」或有「地下連通道」的飯店。</li>
-                        </ul>
+                       <SectionTitle>住宿選擇</SectionTitle>
+                       <Card><strong className="text-lg text-indigo-700">商務飯店</strong><p className="text-slate-600">車站旁便利，價格實惠。</p></Card>
+                       <Card><strong className="text-lg text-indigo-700">溫泉旅館</strong><p className="text-slate-600">定山溪、登別。體驗榻榻米與懷石料理。</p></Card>
+                       <div className="mt-4 bg-indigo-50 p-4 rounded-xl text-indigo-800">💡 <strong>建議：</strong>雪季務必選「離地鐵近」或有「地下連通道」的飯店，避免雪地拖行李。</div>
                     </>
                 ),
-                fun: (
+                prep: (
                     <>
-                        <SectionTitle>冬季限定祭典</SectionTitle>
-                        <div className="space-y-4">
-                            <Card>
-                                <strong className="text-lg text-purple-700">❄️ 札幌雪祭</strong>
-                                <p className="text-slate-600">2月上旬。大通公園巨大雪雕，薄野冰雕。</p>
-                            </Card>
-                            <Card>
-                                <strong className="text-lg text-purple-700">🕯️ 小樽雪燈路</strong>
-                                <p className="text-slate-600">2月上旬。運河上漂浮著燭光球，極度浪漫。</p>
-                            </Card>
-                            <Card>
-                                <strong className="text-lg text-purple-700">🐧 旭山動物園</strong>
-                                <p className="text-slate-600">冬季限定「企鵝散步」，近距離看企鵝遊行。</p>
-                            </Card>
-                            <Card>
-                                <strong className="text-lg text-purple-700">🌃 函館百萬夜景</strong>
-                                <p className="text-slate-600">冬季空氣澄澈，夜景最美。需搭纜車上山。</p>
-                            </Card>
-                        </div>
-                    </>
-                ),
-                safety: (
-                    <>
-                        <SectionTitle>走路防滑技巧</SectionTitle>
-                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                            <ul className="space-y-3 text-lg text-slate-700">
-                                <li className="flex gap-3"><span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm">1</span><span><strong>企鵝步：</strong>小步走，重心前傾，腳掌整個著地。</span></li>
-                                <li className="flex gap-3"><span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm">2</span><span><strong>雙手騰空：</strong>絕對不要插口袋，滑倒時才能支撐。</span></li>
-                                <li className="flex gap-3"><span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-sm">3</span><span><strong>避開亮面：</strong>閃閃發亮的路面是冰，踩在鬆軟白雪上較安全。</span></li>
-                            </ul>
-                        </div>
-                        <SectionTitle>緊急聯絡</SectionTitle>
-                        <Card className="flex justify-between items-center p-4"><span>📞 駐札幌辦事處</span><a href="tel:0112222930" className="text-blue-600 font-bold">011-222-2930</a></Card>
-                        <Card className="flex justify-between items-center p-4"><span>🚑 救護車/火警</span><span className="text-red-600 font-bold text-xl">119</span></Card>
-                        <Card className="flex justify-between items-center p-4"><span>👮 警察局</span><span className="text-slate-800 font-bold text-xl">110</span></Card>
+                       <p className="text-lg text-slate-600 mb-4">出發前請逐一核對，確保萬無一失。</p>
+                       <button className="w-full bg-teal-500 text-white p-4 rounded-xl text-xl font-bold shadow-lg active:scale-95 transition-transform" onClick={() => document.getElementById('checklist-btn').click()}>
+                            開始檢查清單
+                       </button>
                     </>
                 ),
                 saily: (
@@ -580,48 +599,17 @@
                         </div>
                         <SectionTitle>關鍵步驟</SectionTitle>
                         <div className="space-y-4">
-                            <div className="flex gap-4">
-                                <div className="flex-shrink-0 w-8 h-8 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center font-bold">1</div>
-                                <div><strong className="block text-slate-800">在台灣安裝</strong><span className="text-slate-600">出發前有網路時，先購買並完成 "Install eSIM"。</span></div>
-                            </div>
-                            <div className="flex gap-4">
-                                <div className="flex-shrink-0 w-8 h-8 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center font-bold">2</div>
-                                <div><strong className="block text-slate-800">抵達日本後啟用</strong><span className="text-slate-600">設定 > 行動服務 > Saily > 開啟「啟用此號碼」並開啟<span className="text-red-500 font-bold">「數據漫遊」</span>。</span></div>
-                            </div>
+                            <Card noPadding className="p-4 flex gap-4 items-center">
+                                <div className="w-8 h-8 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center font-bold">1</div>
+                                <div><strong className="block text-slate-800">在台灣安裝</strong><span className="text-slate-600 text-sm">有網路時先購買並 "Install eSIM"。</span></div>
+                            </Card>
+                            <Card noPadding className="p-4 flex gap-4 items-center">
+                                <div className="w-8 h-8 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center font-bold">2</div>
+                                <div><strong className="block text-slate-800">抵達後啟用</strong><span className="text-slate-600 text-sm">開啟「啟用此號碼」與 <span className="text-red-500 font-bold">數據漫遊</span>。</span></div>
+                            </Card>
                         </div>
-                        <div className="mt-8">
+                        <div className="mt-6">
                             <ExtLink href="https://support.saily.com/hc/zh-tw/categories/12777342059164" label="Saily 官方詳細教學" color="pink" />
-                        </div>
-                    </>
-                ),
-                prep: (
-                    <>
-                       <p className="text-lg text-slate-600 mb-4">出發前請逐一核對，確保萬無一失。</p>
-                       <button className="w-full bg-gradient-to-r from-teal-500 to-green-500 text-white p-4 rounded-xl text-xl font-bold shadow-lg active:scale-95 transition-transform" onClick={() => document.getElementById('checklist-btn').click()}>
-                            開始檢查清單
-                       </button>
-                    </>
-                ),
-                flight: (
-                    <>
-                        <SectionTitle>登機/安檢速查</SectionTitle>
-                        <div className="space-y-4">
-                            <Card className="border-l-4 border-red-500">
-                                <strong className="text-lg block text-slate-800 mb-1">🔋 行動電源 / 鋰電池</strong>
-                                <span className="text-slate-600">必須<span className="text-red-600 font-bold">隨身攜帶</span>，嚴禁託運。</span>
-                            </Card>
-                            <Card className="border-l-4 border-red-500">
-                                <strong className="text-lg block text-slate-800 mb-1">🔥 打火機</strong>
-                                <span className="text-slate-600">每人限帶 1 個 (傳統型) 隨身。防風藍焰打火機禁帶。</span>
-                            </Card>
-                            <Card className="border-l-4 border-blue-500">
-                                <strong className="text-lg block text-slate-800 mb-1">🧴 液體 (隨身行李)</strong>
-                                <span className="text-slate-600">單瓶需 100ml 以下，並裝在 1 公升透明夾鏈袋內。超過請託運。</span>
-                            </Card>
-                            <Card className="border-l-4 border-blue-500">
-                                <strong className="text-lg block text-slate-800 mb-1">🔪 刀剪 / 腳架</strong>
-                                <span className="text-slate-600">指甲剪、瑞士刀、超過 60cm 腳架必須託運。</span>
-                            </Card>
                         </div>
                     </>
                 )
@@ -634,77 +622,54 @@
             );
 
             return (
-                <div className="min-h-screen bg-slate-50 pb-20 animate-fade-in">
-                    <div className={`bg-gradient-to-br ${catData.color} p-6 pb-12 rounded-b-[2.5rem] shadow-lg sticky top-0 z-20 text-white`}>
-                        <button onClick={onBack} className="flex items-center gap-2 text-xl font-bold mb-4 opacity-90 active:opacity-60">
-                            <ArrowLeft /> 返回
-                        </button>
-                        <h1 className="text-4xl font-bold flex items-center gap-3">
-                            {React.createElement(catData.icon, { size: 40 })}
+                <div className="min-h-screen pb-20 animate-slide-up">
+                    <div className={`glass-header p-6 pb-4 sticky top-0 z-20`}>
+                        <button onClick={onBack} className="flex items-center gap-2 text-xl font-bold text-slate-700 mb-2"><ArrowLeft /> 返回</button>
+                        <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                            {React.createElement(catData.icon, { size: 36, className: catData.bg.replace('bg-', 'text-') })}
                             {catData.title}
                         </h1>
                     </div>
-                    <div className="p-5 -mt-6 relative z-30">
+                    <div className="p-5">
                         {content[category] || defaultContent}
                     </div>
-                    {modalContent && <DetailModal title={modalContent.title} content={modalContent.content} onClose={() => setModalContent(null)} />}
+                    {modalContent && <Modal title={modalContent.title} content={modalContent.content} onClose={() => setModalContent(null)} />}
                 </div>
             );
         };
 
         const ChecklistView = ({ onBack }) => {
-            const [checked, setChecked] = useState(() => {
-                const saved = localStorage.getItem('hokkaido_checklist_v2');
-                return saved ? JSON.parse(saved) : {};
-            });
-
+            const [checked, setChecked] = useState(() => JSON.parse(localStorage.getItem('hokkaido_checklist_v3') || '{}'));
             const toggleCheck = (item) => {
                 const newChecked = { ...checked, [item]: !checked[item] };
                 setChecked(newChecked);
-                localStorage.setItem('hokkaido_checklist_v2', JSON.stringify(newChecked));
+                localStorage.setItem('hokkaido_checklist_v3', JSON.stringify(newChecked));
             };
-
-            const calculateProgress = () => {
-                const total = CHECKLIST_ITEMS.reduce((acc, cat) => acc + cat.items.length, 0);
-                const done = Object.values(checked).filter(Boolean).length;
-                return Math.round((done / total) * 100);
-            };
+            const progress = Math.round((Object.values(checked).filter(Boolean).length / CHECKLIST_ITEMS.reduce((a,c)=>a+c.items.length,0)) * 100);
 
             return (
-                <div className="min-h-screen bg-slate-50 pb-20 animate-fade-in">
-                    <div className="bg-gradient-to-br from-teal-500 to-green-600 text-white p-6 pb-8 rounded-b-[2.5rem] shadow-lg sticky top-0 z-20">
-                        <button onClick={onBack} className="flex items-center gap-2 text-xl font-bold mb-4 opacity-90 active:opacity-60">
-                            <ArrowLeft /> 返回
-                        </button>
+                <div className="min-h-screen pb-20 animate-slide-up">
+                    <div className="glass-header p-6 sticky top-0 z-20">
+                        <button onClick={onBack} className="flex items-center gap-2 text-xl font-bold text-slate-700 mb-4"><ArrowLeft /> 返回</button>
                         <div className="flex justify-between items-end">
-                            <h1 className="text-3xl font-bold">行前檢查清單</h1>
-                            <span className="text-5xl font-bold">{calculateProgress()}%</span>
+                            <h1 className="text-3xl font-bold text-teal-700">行前檢查</h1>
+                            <span className="text-5xl font-bold text-teal-600">{progress}%</span>
                         </div>
-                        <div className="w-full bg-black/20 h-3 rounded-full mt-4 overflow-hidden">
-                            <div className="bg-yellow-400 h-full transition-all duration-500 ease-out" style={{ width: `${calculateProgress()}%` }}></div>
+                        <div className="w-full bg-gray-200 h-3 rounded-full mt-4 overflow-hidden">
+                            <div className="bg-teal-500 h-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
                         </div>
                     </div>
-
                     <div className="p-5 space-y-6">
                         {CHECKLIST_ITEMS.map((cat, idx) => (
                             <div key={idx}>
-                                <h3 className="text-lg font-bold text-teal-800 mb-3 ml-1 flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-teal-500 rounded-full"></span>
-                                    {cat.category}
-                                </h3>
-                                <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+                                <h3 className="text-lg font-bold text-teal-800 mb-3 ml-1">{cat.category}</h3>
+                                <div className="glass-panel rounded-2xl overflow-hidden">
                                     {cat.items.map((item) => (
-                                        <div 
-                                            key={item} 
-                                            onClick={() => toggleCheck(item)}
-                                            className="flex items-center p-4 border-b border-slate-50 last:border-0 active:bg-teal-50 transition-colors cursor-pointer"
-                                        >
-                                            <div className={`w-6 h-6 rounded border-2 flex items-center justify-center mr-4 flex-shrink-0 transition-all ${checked[item] ? 'bg-teal-500 border-teal-500 scale-110' : 'border-slate-300'}`}>
+                                        <div key={item} onClick={() => toggleCheck(item)} className="flex items-center p-4 border-b border-gray-100 last:border-0 active:bg-teal-50 transition-colors cursor-pointer">
+                                            <div className={`w-6 h-6 rounded border-2 flex items-center justify-center mr-4 transition-all ${checked[item] ? 'bg-teal-500 border-teal-500' : 'border-slate-300'}`}>
                                                 {checked[item] && <CheckSquare className="text-white" size={16} />}
                                             </div>
-                                            <span className={`text-lg flex-1 ${checked[item] ? 'text-slate-400 line-through decoration-slate-300' : 'text-slate-700'}`}>
-                                                {item}
-                                            </span>
+                                            <span className={`text-lg flex-1 ${checked[item] ? 'text-slate-400 line-through' : 'text-slate-700'}`}>{item}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -721,23 +686,24 @@
             const [view, setView] = useState('home');
             
             useEffect(() => {
-                const handlePopState = (event) => setView(event.state?.view || 'home');
+                const handlePopState = (e) => setView(e.state?.view || 'home');
                 window.addEventListener('popstate', handlePopState);
                 return () => window.removeEventListener('popstate', handlePopState);
             }, []);
 
-            const navigate = (newView) => {
-                window.history.pushState({ view: newView }, '', '');
-                setView(newView);
+            const navigate = (v) => {
+                window.history.pushState({ view: v }, '', '');
+                setView(v);
                 window.scrollTo(0, 0);
             };
 
             if (view === 'checklist') return <ChecklistView onBack={() => navigate('home')} />;
             if (view === 'diary') return <DiaryView onBack={() => navigate('home')} />;
+            if (view === 'weather') return <WeatherPage onBack={() => navigate('home')} />;
             if (view !== 'home') return <ContentView category={view} onBack={() => navigate('home')} />;
 
             return (
-                <div className="min-h-screen bg-slate-50 pb-10">
+                <div className="min-h-screen pb-10 font-sans">
                     <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 pb-12 rounded-b-[3rem] shadow-xl mb-6 text-white relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none"></div>
                         <h1 className="text-3xl font-bold mb-1 text-center drop-shadow-md">北海道冬季旅遊</h1>
@@ -752,7 +718,7 @@
                             {CATEGORIES.map(cat => (
                                 <div 
                                     key={cat.id}
-                                    onClick={() => navigate(cat.id === 'prep' ? 'checklist' : cat.id === 'diary' ? 'diary' : cat.id)}
+                                    onClick={() => navigate(cat.id === 'prep' ? 'checklist' : cat.id === 'diary' ? 'diary' : cat.id === 'weather' ? 'weather' : cat.id)}
                                     id={cat.id === 'prep' ? 'checklist-btn' : ''}
                                     className={`bg-white p-4 rounded-2xl shadow-md border border-slate-100 flex flex-col items-center justify-center gap-3 aspect-[1.1] active:scale-95 transition-transform cursor-pointer relative overflow-hidden group`}
                                 >
