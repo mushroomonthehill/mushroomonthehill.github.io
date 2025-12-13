@@ -50,6 +50,15 @@
         .animate-slide-up {
             animation: slideUp 0.4s ease-out forwards;
         }
+        
+        /* Modal Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
 
         input, select, textarea { font-size: 17px !important; }
     </style>
@@ -178,22 +187,26 @@
             </a>
         );
 
-        const Modal = ({ title, content, onClose }) => (
-            <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-md animate-fade-in" onClick={onClose}>
-                <div className="bg-white/95 rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto shadow-2xl border border-white/50" onClick={e => e.stopPropagation()}>
-                    <div className="flex justify-between items-center mb-6 sticky top-0 bg-white/95 backdrop-blur-md -mx-6 -mt-6 p-6 border-b border-gray-100 z-10">
-                        <h3 className="text-2xl font-bold text-slate-800">{title}</h3>
-                        <button onClick={onClose} className="p-2 bg-gray-100 rounded-full text-gray-500"><ChevronRight className="rotate-90" /></button>
+        // Fixed Modal with Portal to escape transform context
+        const Modal = ({ title, content, onClose }) => {
+            return ReactDOM.createPortal(
+                <div className="fixed inset-0 bg-black/40 z-[9999] flex items-center justify-center p-4 backdrop-blur-md animate-fade-in" onClick={onClose} style={{position: 'fixed'}}>
+                    <div className="bg-white/95 rounded-3xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto shadow-2xl border border-white/50" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-6 sticky top-0 bg-white/95 backdrop-blur-md -mx-6 -mt-6 p-6 border-b border-gray-100 z-10">
+                            <h3 className="text-2xl font-bold text-slate-800">{title}</h3>
+                            <button onClick={onClose} className="p-2 bg-gray-100 rounded-full text-gray-500"><ChevronRight className="rotate-90" /></button>
+                        </div>
+                        <div className="text-lg text-slate-600 leading-relaxed space-y-4 whitespace-pre-line px-1">
+                            {content}
+                        </div>
+                        <button onClick={onClose} className="mt-8 w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-xl shadow-lg active:scale-95 transition-transform">
+                            關閉
+                        </button>
                     </div>
-                    <div className="text-lg text-slate-600 leading-relaxed space-y-4 whitespace-pre-line px-1">
-                        {content}
-                    </div>
-                    <button onClick={onClose} className="mt-8 w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-xl shadow-lg active:scale-95 transition-transform">
-                        關閉
-                    </button>
-                </div>
-            </div>
-        );
+                </div>,
+                document.body
+            );
+        };
 
         // --- Widgets ---
 
@@ -416,7 +429,6 @@
                 time: new Date().toTimeString().slice(0, 5),
                 location: '', mapLink: '', weather: '晴', transport: '步行', cost: '', notes: '', remarks: ''
             });
-            const [scriptUrl, setScriptUrl] = useState(() => localStorage.getItem('google_script_url') || 'https://script.google.com/macros/s/AKfycbxi72Nmdpb8l1uOpW7XL9BsquH0O038njQnI_5IRBZzD6xbH3pY6tW7DjTtRK3MOEy4uQ/exec');
             const [showSettings, setShowSettings] = useState(false);
             const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -426,23 +438,9 @@
                 setEntries(updatedEntries);
                 localStorage.setItem('hokkaido_diary_entries', JSON.stringify(updatedEntries));
                 
-                if (scriptUrl) {
-                    setIsSubmitting(true);
-                    try {
-                        await fetch(scriptUrl, {
-                            method: 'POST', mode: 'no-cors', 
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(newEntry)
-                        });
-                        alert('已儲存！');
-                    } catch (e) {
-                        alert('已存於手機，但雲端同步失敗。');
-                    } finally {
-                        setIsSubmitting(false);
-                    }
-                } else {
-                    alert('已儲存至手機！');
-                }
+                // Local only
+                alert('已儲存至手機！');
+                
                 setFormData(prev => ({ ...prev, location: '', mapLink: '', cost: '', notes: '', remarks: '' }));
             };
 
@@ -459,20 +457,14 @@
                      <div className="glass-header p-6 pb-4 sticky top-0 z-20">
                         <div className="flex justify-between items-center mb-2">
                             <button onClick={onBack} className="flex items-center gap-2 text-xl font-bold text-slate-700"><ArrowLeft /> 返回</button>
-                            <button onClick={() => setShowSettings(!showSettings)} className="p-2 rounded-full bg-slate-100"><Settings size={24} /></button>
+                            {/* Settings removed as requested */}
                         </div>
                         <h1 className="text-3xl font-bold text-amber-600 flex items-center gap-3"><BookOpen size={32} /> 旅遊記事本</h1>
-                        {showSettings && (
-                            <div className="mt-4 bg-white p-4 rounded-xl shadow-lg text-slate-800">
-                                <label className="block text-sm font-bold mb-2">Google Apps Script URL:</label>
-                                <input type="text" value={scriptUrl} onChange={(e) => { setScriptUrl(e.target.value); localStorage.setItem('google_script_url', e.target.value); }} className="w-full p-3 border rounded-lg text-base" />
-                            </div>
-                        )}
                     </div>
 
                     <div className="p-5 space-y-4">
                         <Card className="shadow-xl border-amber-200">
-                            <div className="flex flex-col gap-4 mb-4">
+                            <div className="flex flex-col gap-4 mb-4 pr-1">
                                 <div><label className="text-xs text-slate-500 font-bold uppercase">日期</label><input type="date" className="w-full p-3 bg-white rounded-xl border border-slate-200 mt-1" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} /></div>
                                 <div><label className="text-xs text-slate-500 font-bold uppercase">時間</label><input type="time" className="w-full p-3 bg-white rounded-xl border border-slate-200 mt-1" value={formData.time} onChange={e => setFormData({...formData, time: e.target.value})} /></div>
                             </div>
@@ -1155,4 +1147,3 @@
     </script>
 </body>
 </html>
-
