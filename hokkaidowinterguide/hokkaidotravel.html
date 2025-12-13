@@ -61,7 +61,6 @@
         const { useState, useEffect } = React;
 
         // --- Icons ---
-        // 使用簡單的 SVG 定義確保穩定性
         const IconBase = ({ children, size = 24, className = "", ...props }) => (
             <svg 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -138,7 +137,6 @@
             { category: "個人護理", items: ["常備藥品 (感冒/胃藥)", "極潤乳液/護唇膏", "暖暖包 (貼式/手握)", "墨鏡 (雪地反光)", "口罩", "摺疊傘 (防大雪)"] },
         ];
 
-        // FIXED: Using 'bg' property correctly for Tailwind classes
         const CATEGORIES = [
             { id: 'food', title: '食・美食', icon: Coffee, bg: 'bg-orange-500' },
             { id: 'clothing', title: '衣・穿搭', icon: Shirt, bg: 'bg-blue-500' },
@@ -398,7 +396,8 @@
 
                     <div className="p-5 space-y-4">
                         <Card className="shadow-xl border-amber-200">
-                            <div className="grid grid-cols-2 gap-4 mb-4">
+                            {/* Layout Changed: Stack Date and Time vertically */}
+                            <div className="flex flex-col gap-4 mb-4">
                                 <div><label className="text-xs text-slate-500 font-bold uppercase">日期</label><input type="date" className="w-full p-3 bg-white rounded-xl border border-slate-200 mt-1" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} /></div>
                                 <div><label className="text-xs text-slate-500 font-bold uppercase">時間</label><input type="time" className="w-full p-3 bg-white rounded-xl border border-slate-200 mt-1" value={formData.time} onChange={e => setFormData({...formData, time: e.target.value})} /></div>
                             </div>
@@ -638,7 +637,7 @@
                     <div className={`glass-header p-6 pb-4 sticky top-0 z-20`}>
                         <button onClick={onBack} className="flex items-center gap-2 text-xl font-bold text-slate-700 mb-2"><ArrowLeft /> 返回</button>
                         <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-                            <catData.icon size={36} className={catData.bg.replace('bg-', 'text-')} />
+                            {React.createElement(catData.icon, { size: 36, className: catData.bg.replace('bg-', 'text-') })}
                             {catData.title}
                         </h1>
                     </div>
@@ -735,8 +734,8 @@
                                     className={`bg-white p-4 rounded-2xl shadow-md border border-slate-100 flex flex-col items-center justify-center gap-3 aspect-[1.1] active:scale-95 transition-transform cursor-pointer relative overflow-hidden group`}
                                 >
                                     <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-br ${cat.bg.replace('bg-', 'from-').replace('500', '400')} to-white opacity-20 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110`}></div>
-                                    <div className={`p-4 rounded-full ${cat.bg} text-white shadow-lg`}>
-                                        <cat.icon size={28} />
+                                    <div className={`p-3 rounded-full bg-gradient-to-br ${cat.bg} text-white shadow-lg`}>
+                                        {React.createElement(cat.icon, { size: 28 })}
                                     </div>
                                     <span className="font-bold text-lg text-slate-700">{cat.title}</span>
                                 </div>
