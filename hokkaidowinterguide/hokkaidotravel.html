@@ -448,6 +448,61 @@
                 ),
                 transport: (
                     <>
+                        <SectionTitle>各地交通時間與費用速查</SectionTitle>
+                        <div className="space-y-3">
+                            <Card noPadding className="p-4 bg-white/60">
+                                <div className="flex justify-between items-center mb-1">
+                                    <strong className="text-lg text-emerald-800">札幌 ↔ 小樽</strong>
+                                    <span className="text-sm bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded">JR 30-45分</span>
+                                </div>
+                                <p className="text-slate-600 text-sm">票價約 ¥750 | 建議停留 4-6小時 | 運河、堺町通、壽司</p>
+                            </Card>
+                            <Card noPadding className="p-4 bg-white/60">
+                                <div className="flex justify-between items-center mb-1">
+                                    <strong className="text-lg text-emerald-800">札幌 ↔ 定山溪</strong>
+                                    <span className="text-sm bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded">巴士 60-90分</span>
+                                </div>
+                                <p className="text-slate-600 text-sm">河童號巴士 | 建議停留 2-4小時 | 日歸溫泉、二見吊橋</p>
+                            </Card>
+                            <Card noPadding className="p-4 bg-white/60">
+                                <div className="flex justify-between items-center mb-1">
+                                    <strong className="text-lg text-emerald-800">札幌 ↔ 登別</strong>
+                                    <span className="text-sm bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded">JR/巴士 90-120分</span>
+                                </div>
+                                <p className="text-slate-600 text-sm">JR較快但需轉公車 | 建議停留 4-6小時 | 地獄谷、溫泉街</p>
+                            </Card>
+                            <Card noPadding className="p-4 bg-white/60">
+                                <div className="flex justify-between items-center mb-1">
+                                    <strong className="text-lg text-emerald-800">札幌 ↔ 旭川</strong>
+                                    <span className="text-sm bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded">特急 1.5小時</span>
+                                </div>
+                                <p className="text-slate-600 text-sm">轉公車30分至動物園 | 建議停留 3-4小時 | 企鵝散步</p>
+                            </Card>
+                            <Card noPadding className="p-4 bg-white/60">
+                                <div className="flex justify-between items-center mb-1">
+                                    <strong className="text-lg text-emerald-800">札幌 ↔ 富良野/美瑛</strong>
+                                    <span className="text-sm bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded">轉乘約 2-3小時</span>
+                                </div>
+                                <p className="text-slate-600 text-sm">建議安排整天 (6-10小時) | 拼布之路、青池</p>
+                            </Card>
+                            <Card noPadding className="p-4 bg-white/60">
+                                <div className="flex justify-between items-center mb-1">
+                                    <strong className="text-lg text-emerald-800">札幌市區短程</strong>
+                                    <span className="text-sm bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded">6-30分</span>
+                                </div>
+                                <p className="text-slate-600 text-sm">地鐵/巴士/路面電車 | 視路程而定</p>
+                            </Card>
+                        </div>
+
+                        <SectionTitle>官方旅遊資訊連結</SectionTitle>
+                        <div className="space-y-2">
+                            <ExtLink href="https://www.japan-guide.com/e/e6700.html" label="小樽旅遊資訊 (Japan Guide)" color="emerald" />
+                            <ExtLink href="https://jozankei.jp/zh-hant/access/" label="定山溪觀光協會 (交通指南)" color="emerald" />
+                            <ExtLink href="https://noboribetsu-spa.jp/tw/access/" label="登別國際觀光協會 (交通時刻)" color="emerald" />
+                            <ExtLink href="https://www.sapporobeer.jp/beer-museum/" label="札幌啤酒博物館 (官網)" color="emerald" />
+                            <ExtLink href="https://mt-moiwa.jp/" label="藻岩山纜車 (夜景資訊)" color="emerald" />
+                        </div>
+
                         <SectionTitle>JR 鐵路周遊券 (JR Pass)</SectionTitle>
                         <Card onClick={() => setModalContent({title: "JR 北海道鐵路周遊券", content: "★ 票價 (7日)：約 ¥29,000 (依匯率變動)\n★ 範圍：JR北海道全線 (特急/快速/普通)。\n★ 划算嗎？只要有「札幌↔函館」來回就回本。\n★ 注意：特急(如北斗號) 全車指定席，務必先劃位！"})}>
                             <h3 className="text-xl font-bold text-emerald-700 mb-1">北海道鐵路周遊券</h3>
