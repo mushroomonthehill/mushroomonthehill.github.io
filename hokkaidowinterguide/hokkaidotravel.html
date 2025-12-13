@@ -200,7 +200,24 @@
         const CurrencyWidget = () => {
             const [jpy, setJpy] = useState('');
             const [twd, setTwd] = useState('');
-            const RATE = 0.215;
+            const [rate, setRate] = useState(0.215); // Fallback rate
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const fetchRate = async () => {
+                    try {
+                        const res = await fetch('https://api.exchangerate-api.com/v4/latest/JPY');
+                        const data = await res.json();
+                        const newRate = data.rates.TWD;
+                        setRate(newRate);
+                    } catch (e) {
+                        console.error("Rate fetch failed, using fallback");
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                fetchRate();
+            }, []);
 
             const handleJpyChange = (e) => {
                 const val = e.target.value;
@@ -208,7 +225,7 @@
                 if (val === '') {
                     setTwd('');
                 } else {
-                    setTwd((parseFloat(val) * RATE).toFixed(1).replace(/\.0$/, ''));
+                    setTwd((parseFloat(val) * rate).toFixed(1).replace(/\.0$/, ''));
                 }
             };
 
@@ -218,7 +235,7 @@
                 if (val === '') {
                     setJpy('');
                 } else {
-                    setJpy((parseFloat(val) / RATE).toFixed(0));
+                    setJpy((parseFloat(val) / rate).toFixed(0));
                 }
             };
 
@@ -226,7 +243,7 @@
                 <div className="glass-panel p-4 rounded-3xl shadow-sm mb-6 mx-1">
                      <div className="flex items-center gap-2 mb-2 text-slate-600 font-bold">
                         <CreditCard size={20} />
-                        <span>匯率試算 (約 0.215)</span>
+                        <span>匯率試算 <span className="text-xs font-normal text-slate-500">(即時匯率 = {rate.toFixed(3)})</span></span>
                     </div>
                     <div className="flex gap-4 items-center">
                         <div className="flex-1">
