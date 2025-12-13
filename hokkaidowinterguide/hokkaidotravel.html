@@ -197,6 +197,64 @@
 
         // --- Widgets ---
 
+        const CurrencyWidget = () => {
+            const [jpy, setJpy] = useState('');
+            const [twd, setTwd] = useState('');
+            const RATE = 0.215;
+
+            const handleJpyChange = (e) => {
+                const val = e.target.value;
+                setJpy(val);
+                if (val === '') {
+                    setTwd('');
+                } else {
+                    setTwd((parseFloat(val) * RATE).toFixed(1).replace(/\.0$/, ''));
+                }
+            };
+
+            const handleTwdChange = (e) => {
+                const val = e.target.value;
+                setTwd(val);
+                if (val === '') {
+                    setJpy('');
+                } else {
+                    setJpy((parseFloat(val) / RATE).toFixed(0));
+                }
+            };
+
+            return (
+                <div className="glass-panel p-4 rounded-3xl shadow-sm mb-6 mx-1">
+                     <div className="flex items-center gap-2 mb-2 text-slate-600 font-bold">
+                        <CreditCard size={20} />
+                        <span>匯率試算 (約 0.215)</span>
+                    </div>
+                    <div className="flex gap-4 items-center">
+                        <div className="flex-1">
+                            <label className="text-xs text-slate-500 block mb-1">日幣 JPY</label>
+                            <input 
+                                type="number" 
+                                value={jpy} 
+                                onChange={handleJpyChange}
+                                className="w-full p-2 rounded-lg bg-white/50 border border-slate-200 text-lg font-mono"
+                                placeholder="¥"
+                            />
+                        </div>
+                        <div className="text-slate-400">=</div>
+                        <div className="flex-1">
+                            <label className="text-xs text-slate-500 block mb-1">台幣 TWD</label>
+                             <input 
+                                type="number" 
+                                value={twd} 
+                                onChange={handleTwdChange}
+                                className="w-full p-2 rounded-lg bg-white/50 border border-slate-200 text-lg font-mono"
+                                placeholder="$"
+                            />
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         const WeatherWidget = () => {
             const [weatherData, setWeatherData] = useState({});
             const [loading, setLoading] = useState(true);
@@ -269,11 +327,11 @@
                 <div className="flex justify-between items-center bg-slate-800 text-white p-6 rounded-3xl mb-8 shadow-xl">
                     <div className="text-center w-1/2 border-r border-slate-600 pr-4">
                         <div className="text-slate-400 text-sm mb-1 font-medium tracking-widest uppercase">TAIWAN</div>
-                        <div className="text-5xl font-bold font-mono tracking-tight text-white">{format(8)}</div>
+                        <div className="text-4xl font-bold font-mono tracking-tight text-white">{format(8)}</div>
                     </div>
                     <div className="text-center w-1/2 pl-4">
                         <div className="text-yellow-400 text-sm mb-1 font-bold tracking-widest uppercase">JAPAN</div>
-                        <div className="text-5xl font-bold font-mono tracking-tight text-white">{format(9)}</div>
+                        <div className="text-4xl font-bold font-mono tracking-tight text-white">{format(9)}</div>
                     </div>
                 </div>
             );
@@ -916,49 +974,10 @@
                 ),
                 stay: (
                     <>
-                       <SectionTitle>住宿類型選擇</SectionTitle>
-                       <Card onClick={() => setModalContent({title: "商務飯店 (Business Hotel)", content: "★ 特色：地點便利(通常在車站旁)，價格實惠。\n★ 設施：房間較小，但功能齊全(冰箱、吹風機、睡袍)。\n★ 適合：行李較少、早出晚歸的自由行旅客。\n★ 注意：部分飯店不提供免費瓶裝水，水龍頭冷水通常可生飲。"})}><strong className="text-lg text-indigo-700 block">商務飯店</strong><p className="text-slate-600 text-sm">交通便利，CP值高。</p></Card>
-                       <Card onClick={() => setModalContent({title: "溫泉旅館 (Ryokan)", content: "★ 特色：體驗日本傳統文化，通常含一泊二食(晚餐+早餐)。\n★ 設施：榻榻米房間(和室)、大眾溫泉浴場。\n★ 禮儀：進入榻榻米房需脫拖鞋；用餐時間通常固定。\n★ 推薦：定山溪、登別、洞爺湖等溫泉區。"})}><strong className="text-lg text-indigo-700 block">溫泉旅館</strong><p className="text-slate-600 text-sm">享受榻榻米、懷石料理與溫泉。</p></Card>
-                       
-                       <SectionTitle>入住禮儀與注意事項</SectionTitle>
-                       <Card className="border-l-4 border-indigo-500 pl-4">
-                           <h3 className="font-bold text-lg text-slate-800 mb-2">基本禮節</h3>
-                           <ul className="list-disc pl-5 text-slate-700 space-y-2 text-sm">
-                               <li><strong>守時：</strong>Check-in 請準時，若會晚到務必提前聯繫旅館。</li>
-                               <li><strong>脫鞋：</strong>進入日式旅館玄關需脫鞋；榻榻米房內連拖鞋都不能穿(僅著襪)。</li>
-                               <li><strong>安靜：</strong>日本旅館隔音不一定好，深夜請降低音量，避免奔跑。</li>
-                               <li><strong>行李：</strong>輪子請擦拭乾淨再推入榻榻米房，或提著走避免刮傷。</li>
-                           </ul>
-                       </Card>
-
-                       <SectionTitle>溫泉入浴須知</SectionTitle>
-                       <Card className="bg-indigo-50 border border-indigo-100">
-                           <ul className="list-decimal pl-5 text-indigo-900 space-y-2 text-sm font-medium">
-                               <li><strong>先洗淨：</strong>進入浴池前，務必在沖洗區將身體徹底洗乾淨。</li>
-                               <li><strong>全裸入浴：</strong>不可穿著泳衣、內衣或圍浴巾入池 (除少數混浴規定外)。</li>
-                               <li><strong>毛巾不入水：</strong>小毛巾可放在頭上或池邊，絕對不可浸入溫泉水中。</li>
-                               <li><strong>刺青注意：</strong>多數大眾池禁止刺青者進入。建議事先詢問或使用遮瑕貼布，或預約私人湯屋。</li>
-                               <li><strong>頭髮綁起：</strong>長髮請盤起，不要泡在水裡。</li>
-                           </ul>
-                       </Card>
-
-                       <SectionTitle>浴衣正確穿法</SectionTitle>
-                       <Card>
-                           <div className="flex items-center gap-4 mb-3">
-                               <div className="bg-indigo-100 p-2 rounded-full text-2xl">👘</div>
-                               <div>
-                                   <strong className="text-lg text-slate-800">左上右下 (重要！)</strong>
-                                   <p className="text-slate-500 text-xs">穿反會變成壽衣穿法，請小心！</p>
-                               </div>
-                           </div>
-                           <div className="text-sm text-slate-700 space-y-2 border-t pt-3">
-                               <p>1. 披上浴衣，將衣領對齊。</p>
-                               <p>2. 先將<strong>右邊</strong>衣襟貼合身體。</p>
-                               <p>3. 再將<strong>左邊</strong>衣襟蓋在右邊上面 (左邊在外面)。</p>
-                               <p>4. 繫上腰帶 (結打在正面或側面皆可)。</p>
-                               <p className="text-indigo-600 font-bold mt-2">口訣：右手可以伸進衣服裡摸到心跳。</p>
-                           </div>
-                       </Card>
+                       <SectionTitle>住宿選擇</SectionTitle>
+                       <Card><strong className="text-lg text-indigo-700">商務飯店</strong><p className="text-slate-600">車站旁便利，價格實惠。</p></Card>
+                       <Card><strong className="text-lg text-indigo-700">溫泉旅館</strong><p className="text-slate-600">定山溪、登別。體驗榻榻米與懷石料理。</p></Card>
+                       <div className="mt-4 bg-indigo-50 p-4 rounded-xl text-indigo-800">💡 <strong>建議：</strong>雪季務必選「離地鐵近」或有「地下連通道」的飯店，避免雪地拖行李。</div>
                     </>
                 ),
                 prep: (
@@ -1091,6 +1110,8 @@
                     </div>
 
                     <div className="px-5 -mt-8 relative z-10">
+                        {/* Currency Widget Added Here */}
+                        <CurrencyWidget />
                         <WeatherWidget />
                         
                         <div className="grid grid-cols-2 gap-4">
