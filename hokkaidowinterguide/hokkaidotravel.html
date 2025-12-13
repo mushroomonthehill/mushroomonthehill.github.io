@@ -107,7 +107,8 @@
             CloudRain: (props) => <IconBase {...props}><line x1="16" y1="13" x2="16" y2="21" /><line x1="8" y1="13" x2="8" y2="21" /><line x1="12" y1="15" x2="12" y2="23" /><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25" /></IconBase>,
             ChevronRight: (props) => <IconBase {...props}><polyline points="9 18 15 12 9 6" /></IconBase>,
             CreditCard: (props) => <IconBase {...props}><rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" /></IconBase>,
-            Info: (props) => <IconBase {...props}><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></IconBase>
+            Info: (props) => <IconBase {...props}><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></IconBase>,
+            Youtube: (props) => <IconBase {...props}><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z" /><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" /></IconBase>
         };
 
         const { 
@@ -116,7 +117,7 @@
             Camera, AlertTriangle, BookOpen, Smartphone, 
             ArrowLeft, Save, Settings, ExternalLink, Calendar,
             Train, PlusCircle, Trash2, Snowflake, Sun, Cloud, CloudRain,
-            ChevronRight, CreditCard, Info
+            ChevronRight, CreditCard, Info, Youtube
         } = Icons;
 
         // --- Data ---
@@ -170,9 +171,9 @@
             </h2>
         );
 
-        const ExtLink = ({ href, label, color = "blue" }) => (
+        const ExtLink = ({ href, label, color = "blue", icon: Icon = ExternalLink }) => (
             <a href={href} target="_blank" rel="noopener noreferrer" className={`flex items-center justify-between w-full p-4 bg-${color}-50 text-${color}-700 rounded-2xl font-bold text-lg border border-${color}-100 active:bg-${color}-100 mb-3 transition-colors shadow-sm`}>
-                <span className="flex items-center gap-3"><ExternalLink size={22} /> {label}</span>
+                <span className="flex items-center gap-3"><Icon size={22} /> {label}</span>
                 <ChevronRight size={22} className="opacity-50" />
             </a>
         );
@@ -211,7 +212,7 @@
                 const fetchWeather = async () => {
                     const data = {};
                     try {
-                        const targets = CITIES.slice(0, 4); // Show top 4 on home
+                        const targets = CITIES.slice(0, 4);
                         for (const city of targets) {
                             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,weather_code&timezone=Asia%2FTokyo`);
                             const json = await res.json();
@@ -396,7 +397,6 @@
 
                     <div className="p-5 space-y-4">
                         <Card className="shadow-xl border-amber-200">
-                            {/* Layout Changed: Stack Date and Time vertically */}
                             <div className="flex flex-col gap-4 mb-4">
                                 <div><label className="text-xs text-slate-500 font-bold uppercase">日期</label><input type="date" className="w-full p-3 bg-white rounded-xl border border-slate-200 mt-1" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} /></div>
                                 <div><label className="text-xs text-slate-500 font-bold uppercase">時間</label><input type="time" className="w-full p-3 bg-white rounded-xl border border-slate-200 mt-1" value={formData.time} onChange={e => setFormData({...formData, time: e.target.value})} /></div>
@@ -500,6 +500,53 @@
                         <ExtLink href="https://livejapan.com/zh-tw/article-a0005219/" label="日本行動支付詳細攻略" color="rose" />
                     </>
                 ),
+                stay: (
+                    <>
+                       <SectionTitle>住宿類型選擇</SectionTitle>
+                       <Card onClick={() => setModalContent({title: "商務飯店 (Business Hotel)", content: "★ 特色：地點便利(通常在車站旁)，價格實惠。\n★ 設施：房間較小，但功能齊全(冰箱、吹風機、睡袍)。\n★ 適合：行李較少、早出晚歸的自由行旅客。\n★ 注意：部分飯店不提供免費瓶裝水，水龍頭冷水通常可生飲。"})}><strong className="text-lg text-indigo-700 block">商務飯店</strong><p className="text-slate-600 text-sm">交通便利，CP值高。</p></Card>
+                       <Card onClick={() => setModalContent({title: "溫泉旅館 (Ryokan)", content: "★ 特色：體驗日本傳統文化，通常含一泊二食(晚餐+早餐)。\n★ 設施：榻榻米房間(和室)、大眾溫泉浴場。\n★ 禮儀：進入榻榻米房需脫拖鞋；用餐時間通常固定。\n★ 推薦：定山溪、登別、洞爺湖等溫泉區。"})}><strong className="text-lg text-indigo-700 block">溫泉旅館</strong><p className="text-slate-600 text-sm">享受榻榻米、懷石料理與溫泉。</p></Card>
+                       
+                       <SectionTitle>入住禮儀與注意事項</SectionTitle>
+                       <Card className="border-l-4 border-indigo-500 pl-4">
+                           <h3 className="font-bold text-lg text-slate-800 mb-2">基本禮節</h3>
+                           <ul className="list-disc pl-5 text-slate-700 space-y-2 text-sm">
+                               <li><strong>守時：</strong>Check-in 請準時，若會晚到務必提前聯繫旅館。</li>
+                               <li><strong>脫鞋：</strong>進入日式旅館玄關需脫鞋；榻榻米房內連拖鞋都不能穿(僅著襪)。</li>
+                               <li><strong>安靜：</strong>日本旅館隔音不一定好，深夜請降低音量，避免奔跑。</li>
+                               <li><strong>行李：</strong>輪子請擦拭乾淨再推入榻榻米房，或提著走避免刮傷。</li>
+                           </ul>
+                       </Card>
+
+                       <SectionTitle>溫泉入浴須知</SectionTitle>
+                       <Card className="bg-indigo-50 border border-indigo-100">
+                           <ul className="list-decimal pl-5 text-indigo-900 space-y-2 text-sm font-medium">
+                               <li><strong>先洗淨：</strong>進入浴池前，務必在沖洗區將身體徹底洗乾淨。</li>
+                               <li><strong>全裸入浴：</strong>不可穿著泳衣、內衣或圍浴巾入池 (除少數混浴規定外)。</li>
+                               <li><strong>毛巾不入水：</strong>小毛巾可放在頭上或池邊，絕對不可浸入溫泉水中。</li>
+                               <li><strong>刺青注意：</strong>多數大眾池禁止刺青者進入。建議事先詢問或使用遮瑕貼布，或預約私人湯屋。</li>
+                               <li><strong>頭髮綁起：</strong>長髮請盤起，不要泡在水裡。</li>
+                           </ul>
+                       </Card>
+
+                       <SectionTitle>浴衣正確穿法</SectionTitle>
+                       <Card>
+                           <div className="flex items-center gap-4 mb-3">
+                               <div className="bg-indigo-100 p-2 rounded-full text-2xl">👘</div>
+                               <div>
+                                   <strong className="text-lg text-slate-800">左上右下 (重要！)</strong>
+                                   <p className="text-slate-500 text-xs">穿反會變成壽衣穿法，請小心！</p>
+                               </div>
+                           </div>
+                           <div className="text-sm text-slate-700 space-y-2 border-t pt-3">
+                               <p>1. 披上浴衣，將衣領對齊。</p>
+                               <p>2. 先將<strong>右邊</strong>衣襟貼合身體。</p>
+                               <p>3. 再將<strong>左邊</strong>衣襟蓋在右邊上面 (左邊在外面)。</p>
+                               <p>4. 繫上腰帶 (結打在正面或側面皆可)。</p>
+                               <p className="text-indigo-600 font-bold mt-2">口訣：右手可以伸進衣服裡摸到心跳。</p>
+                           </div>
+                       </Card>
+                    </>
+                ),
                 fun: (
                     <>
                         <SectionTitle>必去育樂景點</SectionTitle>
@@ -521,53 +568,227 @@
                                 <span className="text-slate-600">浪漫懷舊，必逛商店街</span>
                             </Card>
                         </div>
-                        <ExtLink href="https://www.city.asahikawa.hokkaido.jp/asahiyamazoo/" label="旭山動物園官網" color="purple" />
-                        <ExtLink href="https://www.biei-hokkaido.jp/zh-TW/" label="美瑛觀光協會 (青池資訊)" color="purple" />
+                        
+                        <SectionTitle>冬季7天6夜背包客行程 (以札幌為基地)</SectionTitle>
+                        <div className="space-y-4">
+                            <Card noPadding className="p-4">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="bg-violet-100 text-violet-700 font-bold px-2 py-1 rounded">Day 1</span>
+                                    <strong className="text-lg text-slate-800">札幌暖身日</strong>
+                                </div>
+                                <ul className="list-disc pl-5 text-slate-600 text-sm space-y-1">
+                                    <li><strong>路線：</strong>新千歲機場 → 札幌站 → 大通公園 → 狸小路</li>
+                                    <li><strong>晚餐：</strong>拉麵或湯咖哩</li>
+                                    <li><strong>重點：</strong>剛到不跑遠，適應寒冷。</li>
+                                </ul>
+                            </Card>
+                            <Card noPadding className="p-4">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="bg-violet-100 text-violet-700 font-bold px-2 py-1 rounded">Day 2</span>
+                                    <strong className="text-lg text-slate-800">小樽一日遊 (08:30出發)</strong>
+                                </div>
+                                <ul className="list-disc pl-5 text-slate-600 text-sm space-y-1">
+                                    <li><strong>景點：</strong>運河、玻璃館、音樂盒堂。</li>
+                                    <li><strong>亮點：</strong>雪景+運河+燈光，拍照超美。</li>
+                                    <li><strong>回程：</strong>避開下班尖峰，16:30前搭車回札幌。</li>
+                                </ul>
+                            </Card>
+                            <Card noPadding className="p-4">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="bg-violet-100 text-violet-700 font-bold px-2 py-1 rounded">Day 3</span>
+                                    <strong className="text-lg text-slate-800">定山溪溫泉 (日歸)</strong>
+                                </div>
+                                <ul className="list-disc pl-5 text-slate-600 text-sm space-y-1">
+                                    <li><strong>行程：</strong>上午出發泡湯，下午回札幌。</li>
+                                    <li><strong>目的：</strong>洗去寒氣，補充體力。</li>
+                                </ul>
+                            </Card>
+                            <Card noPadding className="p-4">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="bg-violet-100 text-violet-700 font-bold px-2 py-1 rounded">Day 4</span>
+                                    <strong className="text-lg text-slate-800">札幌市區深度遊</strong>
+                                </div>
+                                <ul className="list-disc pl-5 text-slate-600 text-sm space-y-1">
+                                    <li><strong>建議：</strong>札幌啤酒博物館(室內)、咖啡店。</li>
+                                    <li><strong>天氣好：</strong>可上藻岩山看夜景。</li>
+                                </ul>
+                            </Card>
+                            <Card noPadding className="p-4">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="bg-violet-100 text-violet-700 font-bold px-2 py-1 rounded">Day 5</span>
+                                    <strong className="text-lg text-slate-800">登別一日遊 (視天氣)</strong>
+                                </div>
+                                <p className="text-slate-600 text-sm mb-2">★ 條件：JR正常行駛且無暴風雪。</p>
+                                <ul className="list-disc pl-5 text-slate-600 text-sm space-y-1">
+                                    <li>若天氣不佳，直接升級為「札幌自由購物日」。</li>
+                                </ul>
+                            </Card>
+                            <Card noPadding className="p-4">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="bg-violet-100 text-violet-700 font-bold px-2 py-1 rounded">Day 6</span>
+                                    <strong className="text-lg text-slate-800">自由日 A</strong>
+                                </div>
+                                <p className="text-slate-600 text-sm">選擇一：市區咖啡店放空、拍雪。<br/>選擇二：旭山動物園 (體力好才選，需早起)。</p>
+                            </Card>
+                            <Card noPadding className="p-4">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="bg-violet-100 text-violet-700 font-bold px-2 py-1 rounded">Day 7</span>
+                                    <strong className="text-lg text-slate-800">最後採買 + 回程</strong>
+                                </div>
+                                <p className="text-slate-600 text-sm text-red-500 font-bold">★ 務必提早進機場逛國內線航廈！</p>
+                            </Card>
+                        </div>
+
+                        <SectionTitle>札幌地下街「文字導航」</SectionTitle>
+                        <div className="bg-violet-50 p-4 rounded-2xl border border-violet-100 mb-6">
+                            <p className="font-bold text-violet-800 mb-2">核心口訣：札幌站 → 地下街 → 大通 → 薄野</p>
+                            <p className="text-sm text-violet-700">下雪天請無條件走地下，只要抓住這條主軸，再大的雪都能走回來。</p>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            <Card noPadding className="p-4 border-l-4 border-violet-400">
+                                <strong className="text-lg text-slate-800 block mb-1">1. 札幌站 (重生點)</strong>
+                                <p className="text-slate-600 text-sm mb-2">JR、地鐵交會。迷路時回到這裡就安全，有暖氣廁所。</p>
+                                <span className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">關鍵：JR塔、ESTA/APIA入口</span>
+                            </Card>
+                            <div className="flex justify-center text-violet-300"><ChevronRight className="rotate-90" /></div>
+                            
+                            <Card noPadding className="p-4 border-l-4 border-violet-400">
+                                <strong className="text-lg text-slate-800 block mb-1">2. 地下步行空間 (命脈)</strong>
+                                <p className="text-slate-600 text-sm mb-2">全程室內。沿著指標往「大通 (Odori)」或「Susukino」方向走。</p>
+                            </Card>
+                            <div className="flex justify-center text-violet-300"><ChevronRight className="rotate-90" /></div>
+
+                            <Card noPadding className="p-4 border-l-4 border-violet-400">
+                                <strong className="text-lg text-slate-800 block mb-1">3. 大通公園 (換氣點)</strong>
+                                <p className="text-slate-600 text-sm mb-2">唯一短暫出地面的地方。看得到電視塔=沒迷路。</p>
+                            </Card>
+                            <div className="flex justify-center text-violet-300"><ChevronRight className="rotate-90" /></div>
+
+                            <Card noPadding className="p-4 border-l-4 border-violet-400">
+                                <strong className="text-lg text-slate-800 block mb-1">4. 薄野 (不夜城)</strong>
+                                <p className="text-slate-600 text-sm mb-2">餐廳密集，十字路口有大霓虹燈。拉麵橫丁在此。</p>
+                            </Card>
+                        </div>
+
+                        <div className="mt-8">
+                            <ExtLink href="https://www.city.asahikawa.hokkaido.jp/asahiyamazoo/" label="旭山動物園官網" color="purple" />
+                            <ExtLink href="https://www.biei-hokkaido.jp/zh-TW/" label="美瑛觀光協會 (青池資訊)" color="purple" />
+                        </div>
                     </>
                 ),
                 flight: (
                     <>
-                        <SectionTitle>台灣出入境規定 (2025)</SectionTitle>
-                        <Card className="border-l-4 border-red-500">
-                            <h3 className="font-bold text-lg text-slate-800 mb-2">🚫 禁止入境攜帶 (回台)</h3>
-                            <ul className="list-disc pl-5 text-slate-700 space-y-1">
-                                <li><strong>肉類製品：</strong>火腿、香腸、肉乾、含肉泡麵 (嚴禁豬瘟疫區)。</li>
-                                <li><strong>新鮮蔬果：</strong>所有新鮮水果、蔬菜、種子。</li>
-                                <li><strong>加熱菸/電子菸：</strong>全面禁止攜帶入境。</li>
+                        <SectionTitle>台灣出境流程 (桃園機場)</SectionTitle>
+                        <div className="grid grid-cols-2 gap-3 mb-6">
+                            <div className="bg-slate-100 p-3 rounded-xl flex flex-col items-center text-center">
+                                <span className="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center mb-1 text-sm font-bold">1</span>
+                                <span className="font-bold text-slate-700">報到/託運</span>
+                                <span className="text-xs text-slate-500">2-3小時前</span>
+                            </div>
+                            <div className="bg-slate-100 p-3 rounded-xl flex flex-col items-center text-center">
+                                <span className="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center mb-1 text-sm font-bold">2</span>
+                                <span className="font-bold text-slate-700">安全檢查</span>
+                                <span className="text-xs text-slate-500">液體/3C取出</span>
+                            </div>
+                            <div className="bg-slate-100 p-3 rounded-xl flex flex-col items-center text-center">
+                                <span className="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center mb-1 text-sm font-bold">3</span>
+                                <span className="font-bold text-slate-700">證照查驗</span>
+                                <span className="text-xs text-slate-500">自動通關</span>
+                            </div>
+                            <div className="bg-slate-100 p-3 rounded-xl flex flex-col items-center text-center">
+                                <span className="bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center mb-1 text-sm font-bold">4</span>
+                                <span className="font-bold text-slate-700">前往登機</span>
+                                <span className="text-xs text-slate-500">起飛前40分</span>
+                            </div>
+                        </div>
+
+                        <SectionTitle>安檢須知 (隨身 vs 託運)</SectionTitle>
+                        <Card className="border-l-4 border-blue-500">
+                            <h3 className="font-bold text-lg text-blue-800 mb-2 flex items-center gap-2"><div className="w-2 h-2 bg-blue-500 rounded-full"></div> 隨身行李 (Carry-on)</h3>
+                            <ul className="list-disc pl-5 text-slate-700 space-y-2 text-sm">
+                                <li><strong>行動電源/鋰電池：</strong><span className="text-red-600 font-bold">必須隨身</span>，嚴禁託運。</li>
+                                <li><strong>打火機：</strong>限隨身攜帶 1 個 (傳統型)，防風藍焰型禁止上機。</li>
+                                <li><strong>液體/膠狀/噴霧：</strong>單瓶需在 100ml 以下，並裝入 1 公升透明夾鏈袋 (每人限一袋)。</li>
+                                <li><strong>3C產品：</strong>筆電、平板、相機等需從包包取出，單獨通過 X 光機檢查。</li>
                             </ul>
                         </Card>
-                        <SectionTitle>搭機安檢速查</SectionTitle>
-                        <Card className="border-l-4 border-blue-500">
-                            <h3 className="font-bold text-lg text-slate-800 mb-2">👜 必須隨身</h3>
-                            <p className="text-slate-600">行動電源、鋰電池、打火機 (限1個傳統型)。</p>
-                        </Card>
                         <Card className="border-l-4 border-orange-500">
-                            <h3 className="font-bold text-lg text-slate-800 mb-2">🧳 必須託運</h3>
-                            <p className="text-slate-600">刀剪類 (指甲剪)、超過100ml 液體、腳架 (超過60cm)。</p>
+                            <h3 className="font-bold text-lg text-orange-800 mb-2 flex items-center gap-2"><div className="w-2 h-2 bg-orange-500 rounded-full"></div> 託運行李 (Checked)</h3>
+                            <ul className="list-disc pl-5 text-slate-700 space-y-2 text-sm">
+                                <li><strong>液體：</strong>超過 100ml 之液體、乳液、果凍、布丁等。</li>
+                                <li><strong>刀剪工具：</strong>指甲剪、美工刀、瑞士刀、剪刀。</li>
+                                <li><strong>腳架/自拍棒：</strong>管徑超過 1cm 或收合長度超過 60cm 者。</li>
+                                <li><strong>運動用品：</strong>棒球棍、高爾夫球桿等可能做為攻擊性武器之物品。</li>
+                            </ul>
                         </Card>
+
+                        <SectionTitle>入境日本違禁品</SectionTitle>
+                        <Card className="bg-red-50 border border-red-100">
+                            <ul className="list-disc pl-5 text-red-800 space-y-1 text-sm">
+                                <li><strong>肉類製品：</strong>不論生熟、真空包裝 (如肉乾、香腸、火腿、含肉泡麵) 皆嚴格禁止。</li>
+                                <li><strong>新鮮蔬果：</strong>所有新鮮水果、蔬菜、植物種子、土壤。</li>
+                                <li><strong>仿冒品：</strong>假名牌包、手錶等侵犯智慧財產權物品。</li>
+                            </ul>
+                        </Card>
+
+                        <div className="mt-6 space-y-2">
+                            <ExtLink href="https://www.taoyuan-airport.com/outbound" label="桃園機場出境手續說明" color="slate" />
+                            <ExtLink href="https://www.taoyuan-airport.com/security_check" label="詳細安檢規定 (民航局)" color="slate" />
+                            <ExtLink href="https://youtu.be/_FXJqKe49kQ" label="觀看安檢教學影片" color="red" icon={Youtube} />
+                        </div>
                     </>
                 ),
                 safety: (
                     <>
-                        <SectionTitle>🐻 熊出沒注意</SectionTitle>
-                        <Card>
-                            <p className="text-slate-700 mb-2">北海道全境皆是棕熊棲息地。近年目擊增加。</p>
-                            <ul className="list-disc pl-5 text-slate-600 text-sm space-y-1">
-                                <li>勿將食物垃圾留置戶外。</li>
-                                <li>清晨/黃昏是活動高峰，避免單獨進入山林。</li>
-                                <li>攜帶熊鈴，發出聲音讓熊知道人的存在。</li>
-                                <li><strong>若遇見熊：</strong>保持冷靜，安靜緩慢後退，<strong>絕對不要跑</strong>(會觸發追逐本能)。</li>
-                            </ul>
+                        <SectionTitle>🚨 緊急求助 (請截圖)</SectionTitle>
+                        <Card className="border-l-4 border-red-600">
+                            <h3 className="font-bold text-xl text-red-700 mb-2">駐日代表處札幌分處</h3>
+                            <div className="space-y-2 text-slate-700">
+                                <p><strong>地址：</strong>北海道札幌市中央區北4條西4丁目1番地 伊藤大樓5樓</p>
+                                <p><strong>電話：</strong><a href="tel:+81112222930" className="text-blue-600 underline">011-222-2930</a></p>
+                                <p><strong>急難救助專線：</strong><a href="tel:+818014602568" className="text-red-600 font-bold underline text-lg">080-1460-2568</a><br/><span className="text-sm text-slate-500">(僅限車禍、搶劫、生命安危等緊急狀況撥打)</span></p>
+                            </div>
                         </Card>
-                        <SectionTitle>⚠️ 防震知識</SectionTitle>
+
+                        <SectionTitle>📞 日本緊急報案</SectionTitle>
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                            <Card noPadding className="p-4 bg-red-50 border border-red-100 flex flex-col items-center justify-center">
+                                <span className="text-3xl">🚔</span>
+                                <strong className="text-xl text-red-800 mt-2">警察局 110</strong>
+                                <span className="text-xs text-red-600">遇到事故/犯罪</span>
+                            </Card>
+                            <Card noPadding className="p-4 bg-red-50 border border-red-100 flex flex-col items-center justify-center">
+                                <span className="text-3xl">🚑</span>
+                                <strong className="text-xl text-red-800 mt-2">救護/火警 119</strong>
+                                <span className="text-xs text-red-600">急病/受傷/火災</span>
+                            </Card>
+                        </div>
+
+                        <SectionTitle>📱 必備防災 APP</SectionTitle>
                         <Card>
-                            <p className="text-slate-700 mb-2">日本是地震大國，室內遇震時：</p>
-                            <ol className="list-decimal pl-5 text-slate-600 text-sm space-y-1">
-                                <li><strong>保護頭部：</strong>躲在堅固桌下 (Drop, Cover, Hold on)。</li>
-                                <li><strong>遠離玻璃：</strong>窗戶、櫃子可能倒塌碎裂。</li>
-                                <li><strong>確保出口：</strong>地震停止後，打開門窗確保逃生路線。</li>
-                                <li><strong>勿搭電梯：</strong>走樓梯避難。</li>
-                            </ol>
+                            <div className="flex items-center gap-4">
+                                <div className="bg-blue-100 p-3 rounded-xl"><Smartphone className="text-blue-600" /></div>
+                                <div>
+                                    <strong className="text-lg text-slate-800">Safety tips</strong>
+                                    <p className="text-slate-600 text-sm">日本觀光局開發，提供地震、海嘯、氣象警報推播 (支援繁中)。</p>
+                                </div>
+                            </div>
+                            <div className="mt-3 flex gap-2">
+                                <a href="https://apps.apple.com/app/id858357174" target="_blank" className="flex-1 bg-slate-800 text-white text-center py-2 rounded-lg text-sm">iOS 下載</a>
+                                <a href="https://play.google.com/store/apps/details?id=jp.co.rcsc.safetyTips.android" target="_blank" className="flex-1 bg-slate-800 text-white text-center py-2 rounded-lg text-sm">Android 下載</a>
+                            </div>
+                        </Card>
+
+                        <SectionTitle>🐻 熊出沒注意</SectionTitle>
+                        <Card className="bg-yellow-50 border-yellow-200">
+                            <p className="text-slate-800 font-bold mb-2">遇到棕熊怎麼辦？</p>
+                            <ul className="list-disc pl-5 text-slate-700 space-y-2">
+                                <li><strong>絕對不要跑！</strong> (逃跑會觸發熊的追逐本能)</li>
+                                <li>保持冷靜，安靜、緩慢地向後退。</li>
+                                <li>不要背對熊，視線保持看著牠。</li>
+                                <li>若在遠處，發出聲音讓熊知道人的存在，牠通常會避開。</li>
+                            </ul>
                         </Card>
                     </>
                 ),
@@ -587,10 +808,49 @@
                 ),
                 stay: (
                     <>
-                       <SectionTitle>住宿選擇</SectionTitle>
-                       <Card><strong className="text-lg text-indigo-700">商務飯店</strong><p className="text-slate-600">車站旁便利，價格實惠。</p></Card>
-                       <Card><strong className="text-lg text-indigo-700">溫泉旅館</strong><p className="text-slate-600">定山溪、登別。體驗榻榻米與懷石料理。</p></Card>
-                       <div className="mt-4 bg-indigo-50 p-4 rounded-xl text-indigo-800">💡 <strong>建議：</strong>雪季務必選「離地鐵近」或有「地下連通道」的飯店，避免雪地拖行李。</div>
+                       <SectionTitle>住宿類型選擇</SectionTitle>
+                       <Card onClick={() => setModalContent({title: "商務飯店 (Business Hotel)", content: "★ 特色：地點便利(通常在車站旁)，價格實惠。\n★ 設施：房間較小，但功能齊全(冰箱、吹風機、睡袍)。\n★ 適合：行李較少、早出晚歸的自由行旅客。\n★ 注意：部分飯店不提供免費瓶裝水，水龍頭冷水通常可生飲。"})}><strong className="text-lg text-indigo-700 block">商務飯店</strong><p className="text-slate-600 text-sm">交通便利，CP值高。</p></Card>
+                       <Card onClick={() => setModalContent({title: "溫泉旅館 (Ryokan)", content: "★ 特色：體驗日本傳統文化，通常含一泊二食(晚餐+早餐)。\n★ 設施：榻榻米房間(和室)、大眾溫泉浴場。\n★ 禮儀：進入榻榻米房需脫拖鞋；用餐時間通常固定。\n★ 推薦：定山溪、登別、洞爺湖等溫泉區。"})}><strong className="text-lg text-indigo-700 block">溫泉旅館</strong><p className="text-slate-600 text-sm">享受榻榻米、懷石料理與溫泉。</p></Card>
+                       
+                       <SectionTitle>入住禮儀與注意事項</SectionTitle>
+                       <Card className="border-l-4 border-indigo-500 pl-4">
+                           <h3 className="font-bold text-lg text-slate-800 mb-2">基本禮節</h3>
+                           <ul className="list-disc pl-5 text-slate-700 space-y-2 text-sm">
+                               <li><strong>守時：</strong>Check-in 請準時，若會晚到務必提前聯繫旅館。</li>
+                               <li><strong>脫鞋：</strong>進入日式旅館玄關需脫鞋；榻榻米房內連拖鞋都不能穿(僅著襪)。</li>
+                               <li><strong>安靜：</strong>日本旅館隔音不一定好，深夜請降低音量，避免奔跑。</li>
+                               <li><strong>行李：</strong>輪子請擦拭乾淨再推入榻榻米房，或提著走避免刮傷。</li>
+                           </ul>
+                       </Card>
+
+                       <SectionTitle>溫泉入浴須知</SectionTitle>
+                       <Card className="bg-indigo-50 border border-indigo-100">
+                           <ul className="list-decimal pl-5 text-indigo-900 space-y-2 text-sm font-medium">
+                               <li><strong>先洗淨：</strong>進入浴池前，務必在沖洗區將身體徹底洗乾淨。</li>
+                               <li><strong>全裸入浴：</strong>不可穿著泳衣、內衣或圍浴巾入池 (除少數混浴規定外)。</li>
+                               <li><strong>毛巾不入水：</strong>小毛巾可放在頭上或池邊，絕對不可浸入溫泉水中。</li>
+                               <li><strong>刺青注意：</strong>多數大眾池禁止刺青者進入。建議事先詢問或使用遮瑕貼布，或預約私人湯屋。</li>
+                               <li><strong>頭髮綁起：</strong>長髮請盤起，不要泡在水裡。</li>
+                           </ul>
+                       </Card>
+
+                       <SectionTitle>浴衣正確穿法</SectionTitle>
+                       <Card>
+                           <div className="flex items-center gap-4 mb-3">
+                               <div className="bg-indigo-100 p-2 rounded-full text-2xl">👘</div>
+                               <div>
+                                   <strong className="text-lg text-slate-800">左上右下 (重要！)</strong>
+                                   <p className="text-slate-500 text-xs">穿反會變成壽衣穿法，請小心！</p>
+                               </div>
+                           </div>
+                           <div className="text-sm text-slate-700 space-y-2 border-t pt-3">
+                               <p>1. 披上浴衣，將衣領對齊。</p>
+                               <p>2. 先將<strong>右邊</strong>衣襟貼合身體。</p>
+                               <p>3. 再將<strong>左邊</strong>衣襟蓋在右邊上面 (左邊在外面)。</p>
+                               <p>4. 繫上腰帶 (結打在正面或側面皆可)。</p>
+                               <p className="text-indigo-600 font-bold mt-2">口訣：右手可以伸進衣服裡摸到心跳。</p>
+                           </div>
+                       </Card>
                     </>
                 ),
                 prep: (
