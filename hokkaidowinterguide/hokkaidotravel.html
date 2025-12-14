@@ -587,39 +587,105 @@
                 ),
                 payment: (
                     <>
-                        <SectionTitle>1. 西瓜卡 Suica (交通/超商)</SectionTitle>
-                        <Card className="border-l-4 border-green-500 pl-4">
-                            <h3 className="font-bold text-xl text-slate-800 mb-2">iPhone 用戶 (免實體卡)</h3>
-                            <ol className="list-decimal pl-5 space-y-2 text-slate-700">
-                                <li>打開內建「錢包 (Wallet)」App。</li>
-                                <li>按右上「+」>「交通卡」> 搜尋「Suica」。</li>
-                                <li>輸入金額 > Apple Pay 付款 (建議用 Mastercard/JCB)。</li>
-                                <li><strong>免解鎖</strong>：搭車時手機直接靠閘門即可。</li>
+                        {/* 2025 趨勢總結 */}
+                        <div className="bg-rose-50 border-l-4 border-rose-500 p-4 rounded-r-xl mb-6 shadow-sm">
+                            <h3 className="font-bold text-rose-900 mb-1 text-lg">2025 北海道支付趨勢</h3>
+                            <p className="text-rose-800 text-sm leading-relaxed">
+                                主流配置：<span className="font-bold">手機西瓜卡 (Suica)</span> 作為交通主力，搭配 <span className="font-bold">台灣支付 App (掃 PayPay)</span> 賺回饋，並備妥 <span className="font-bold">信用卡</span> 與少量現金。
+                            </p>
+                        </div>
+
+                        <SectionTitle>推薦行動支付方式</SectionTitle>
+                        <div className="space-y-4">
+                            {/* 1. 交通 IC 卡 */}
+                            <Card onClick={() => setModalContent({title: "交通 IC 卡 (Suica/PASMO)", content: "★ 最方便：綁定 Apple Pay / Google Pay，免解鎖手機直接感應。\n★ 適用範圍：電車、巴士、超商(7-11/全家)、自動販賣機、置物櫃。\n★ 儲值：直接用手機信用卡儲值，免去排隊找售票機。" })}>
+                                <div className="flex items-start gap-4">
+                                    <div className="bg-green-100 p-3 rounded-full text-green-600 mt-1"><Train size={24} /></div>
+                                    <div>
+                                        <strong className="text-xl text-slate-800 block mb-1">交通 IC 卡 (Suica)</strong>
+                                        <p className="text-slate-600 text-sm">手機感應最快，超商交通通吃。</p>
+                                    </div>
+                                </div>
+                            </Card>
+
+                            {/* 2. PayPay */}
+                            <Card onClick={() => setModalContent({title: "PayPay x 台灣支付 App", content: "★ 原理：日本 PayPay 是最大掃碼支付，台灣 App 跨境串接。\n★ 支援 App：全支付 (PXPay Plus)、街口支付 (JKOPay)、玉山 Wallet。\n★ 優勢：直接扣台幣帳戶或綁定信用卡，通常享有高額海外回饋 (請依各家銀行活動為準)。\n★ 辨識：看到紅色「P」PayPay 立牌或 QR Code 即可詢問使用。" })}>
+                                <div className="flex items-start gap-4">
+                                    <div className="bg-rose-100 p-3 rounded-full text-rose-600 mt-1"><Smartphone size={24} /></div>
+                                    <div>
+                                        <strong className="text-xl text-slate-800 block mb-1">PayPay (掃碼支付)</strong>
+                                        <p className="text-slate-600 text-sm">用全支付/街口/玉山，掃日本QR Code。</p>
+                                    </div>
+                                </div>
+                            </Card>
+
+                            {/* 3. 信用卡 */}
+                            <Card onClick={() => setModalContent({title: "實體信用卡 (VISA/Mastercard)", content: "★ 2025 重要變革：日本全面推行「IC 晶片密碼輸入」，取消簽名制。\n★ 必備：出發前務必向銀行確認您的「預借現金密碼」或「交易 PIN 碼」(通常是4位數)。\n★ 備用：JCB 卡在日本優惠多，建議備一張。" })}>
+                                <div className="flex items-start gap-4">
+                                    <div className="bg-blue-100 p-3 rounded-full text-blue-600 mt-1"><CreditCard size={24} /></div>
+                                    <div>
+                                        <strong className="text-xl text-slate-800 block mb-1">信用卡 (需 PIN 碼)</strong>
+                                        <p className="text-slate-600 text-sm">大額消費主力，注意需輸入密碼。</p>
+                                    </div>
+                                </div>
+                            </Card>
+                        </div>
+
+                        <SectionTitle>iPhone 西瓜卡 (Suica) 設定指南</SectionTitle>
+                        <Card className="bg-gradient-to-br from-gray-800 to-gray-900 text-white border-none">
+                            <div className="flex items-center gap-3 mb-4 border-b border-gray-600 pb-3">
+                                <span className="text-2xl">🐧</span>
+                                <h3 className="font-bold text-lg">免買實體卡，30秒開通</h3>
+                            </div>
+                            <ol className="list-decimal pl-5 space-y-4 text-sm text-gray-200">
+                                <li>
+                                    <strong>打開「錢包 (Wallet)」App：</strong>
+                                    <span className="block text-gray-400 text-xs mt-1">點擊右上角的「+」號。</span>
+                                </li>
+                                <li>
+                                    <strong>選擇「交通卡」：</strong>
+                                    <span className="block text-gray-400 text-xs mt-1">在搜尋欄輸入或滑動找到「Suica」。</span>
+                                </li>
+                                <li>
+                                    <strong>儲值金額：</strong>
+                                    <span className="block text-gray-400 text-xs mt-1">輸入想儲值的日幣金額 (例如 ¥1000)，透過 Apple Pay 付款即開通完成。</span>
+                                </li>
+                                <li>
+                                    <strong>如何使用？(免解鎖)：</strong>
+                                    <span className="block text-gray-400 text-xs mt-1">進出閘門或超商結帳時，<span className="text-green-400 font-bold">手機頂端靠近感應區</span>即可，不用喚醒螢幕，不用開 App。</span>
+                                </li>
                             </ol>
                         </Card>
-                        <Card className="border-l-4 border-gray-500 pl-4">
-                            <h3 className="font-bold text-xl text-slate-800 mb-2">Android 用戶</h3>
-                            <p className="text-slate-600">台灣安卓手機多不支援日本 FeliCa 晶片。建議：</p>
-                            <ul className="list-disc pl-5 mt-1 text-slate-700">
-                                <li>購買實體卡 (Suica/Kitaca/ICOCA)。</li>
-                                <li>使用 iPhone 家人的手機綁定多張。</li>
-                            </ul>
-                        </Card>
 
-                        <SectionTitle>2. PayPay (掃碼支付)</SectionTitle>
-                        <Card className="border-l-4 border-rose-500 pl-4">
-                            <h3 className="font-bold text-xl text-slate-800 mb-2">免下載 PayPay，直接用台灣 App</h3>
-                            <p className="text-slate-600 mb-3">看到紅色 <span className="text-red-600 font-bold">P</span> PayPay 標誌，用以下 App 掃碼 (免手續費)：</p>
-                            <ul className="list-disc pl-5 space-y-1 text-slate-700 font-medium">
-                                <li>全支付 (PXPay Plus)</li>
-                                <li>街口支付 (JKOPay)</li>
-                                <li>玉山 Wallet</li>
-                            </ul>
-                            <div className="mt-3 bg-slate-100 p-3 rounded text-sm text-slate-600">
-                                <strong>操作：</strong>開 App > 切換地區「日本」 > 掃店家 QR Code > 輸入日幣金額。
-                            </div>
-                        </Card>
-                        <ExtLink href="https://livejapan.com/zh-tw/article-a0005219/" label="日本行動支付詳細攻略" color="rose" />
+                        <SectionTitle>2025 注意事項</SectionTitle>
+                        <div className="grid grid-cols-1 gap-3">
+                            <Card noPadding className="p-4 border-l-4 border-red-500 bg-red-50">
+                                <div className="flex items-start gap-3">
+                                    <AlertTriangle className="text-red-600 shrink-0" />
+                                    <div>
+                                        <strong className="text-red-800 block">LINE Pay 日本服務終止</strong>
+                                        <p className="text-red-700 text-sm">日本 LINE Pay 已於 2025 年 4 月停止服務。請勿依賴 LINE Pay，建議改用 PayPay 串接功能。</p>
+                                    </div>
+                                </div>
+                            </Card>
+                            <Card noPadding className="p-4 border-l-4 border-yellow-500 bg-yellow-50">
+                                <div className="flex items-start gap-3">
+                                    <Info className="text-yellow-700 shrink-0" />
+                                    <div>
+                                        <strong className="text-yellow-900 block">現金仍需備用</strong>
+                                        <p className="text-yellow-800 text-sm">偏鄉巴士、神社、老舖拉麵店可能只收現金。</p>
+                                    </div>
+                                </div>
+                            </Card>
+                        </div>
+
+                        <SectionTitle>相關連結與教學</SectionTitle>
+                        <div className="space-y-2">
+                            <ExtLink href="https://tokyo.letsgojp.com/archives/83485/#:~:text=%E5%93%AA%E4%BA%9B%E5%9C%B0%E6%96%B9%E5%8F%AF%E4%BB%A5%E7%94%A8%E3%80%8CSuica%E3%80%8D%E9%80%B2%E8%A1%8C%E6%94%AF%E4%BB%98%EF%BC%9F" label="Suica 使用範圍與地點詳解" color="green" />
+                            <ExtLink href="https://tw.wamazing.com/media/article/a-3639/" label="2025 日本行動支付全攻略" color="rose" />
+                            <ExtLink href="https://japantravel.navitime.com/zh-tw/area/jp/guide/NTJhowto0161-zh-tw/" label="訪日 Cashless 支付指南" color="slate" />
+                            <ExtLink href="https://www.klook.com/zh-TW/blog/suica-card/" label="Klook 西瓜卡詳細教學" color="blue" />
+                        </div>
                     </>
                 ),
                 stay: (
@@ -1001,14 +1067,93 @@
                 clothing: (
                     <>
                         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl mb-6 shadow-sm">
-                            <p className="text-lg font-bold text-blue-900 mb-1">穿搭關鍵：「玉米式穿法」</p>
-                            <p className="text-base text-blue-800">室內暖氣極強 (25°C)，室外零下 (-5°C)。<br/>重點是<span className="font-bold text-red-600">「內薄外厚，方便穿脫」</span>，進室內脫大衣即可。</p>
+                            <h3 className="text-lg font-bold text-blue-900 mb-1">穿搭關鍵：「玉米式穿法」</h3>
+                            <p className="text-base text-blue-800">
+                                室內暖氣極強 (約25°C)，室外則是零下低溫。
+                                <br/>重點是<span className="font-bold text-red-600">「外厚內薄，方便穿脫」</span>，進室內只要脫掉大衣就好，裡面不要穿太厚重。
+                            </p>
                         </div>
-                        <SectionTitle>建議裝備</SectionTitle>
-                        <div className="space-y-3">
-                            <Card noPadding className="p-4 flex gap-4"><span className="bg-blue-100 text-blue-600 px-3 py-1 rounded font-bold">內層</span><div><strong>發熱衣</strong><span className="text-slate-500 block text-sm">貼身吸汗，勿穿棉質。</span></div></Card>
-                            <Card noPadding className="p-4 flex gap-4"><span className="bg-blue-100 text-blue-600 px-3 py-1 rounded font-bold">外層</span><div><strong>防風防水大衣</strong><span className="text-slate-500 block text-sm">長版蓋臀，Gore-tex尤佳。</span></div></Card>
-                            <Card noPadding className="p-4 flex gap-4"><span className="bg-blue-100 text-blue-600 px-3 py-1 rounded font-bold">足部</span><div><strong>防滑雪靴 + 冰爪</strong><span className="text-slate-500 block text-sm">刻紋深，建議買簡易冰爪。</span></div></Card>
+
+                        <SectionTitle>全身穿搭詳細指南</SectionTitle>
+                        <div className="space-y-4">
+                            {/* Inner Layer */}
+                            <Card onClick={() => setModalContent({title: "內層：吸濕排汗發熱衣", content: "★ 推薦：Uniqlo 發熱衣或戶外運動品牌的機能內衣，平價時尚品牌就很好穿。\n★ 重點：要貼身、吸濕排汗。絕對避免穿「純棉衛生衣」，因為流汗後乾得慢，反而會越穿越冷。\n★ 調整：若怕悶熱可選輕量款；若長時間在戶外，可選高領或刷毛款。" })}>
+                                <div className="flex items-start gap-4">
+                                    <div className="bg-blue-100 p-3 rounded-full text-blue-600 mt-1 shrink-0"><Shirt size={24} /></div>
+                                    <div>
+                                        <strong className="text-xl text-slate-800 block mb-1">內層：發熱衣</strong>
+                                        <p className="text-slate-600 text-sm">貼身、吸濕排汗。怕冷選高領。</p>
+                                    </div>
+                                </div>
+                            </Card>
+
+                            {/* Middle Layer */}
+                            <Card onClick={() => setModalContent({title: "中層：保暖層", content: "★ 選擇：毛衣、法蘭絨襯衫、鋪棉背心、厚棉 T (大學 T) 或輕羽絨衣。\n★ 策略：這一層負責鎖住體溫。如果很怕冷，可以穿兩層中層 (例如：襯衫+輕羽絨背心)。"})}>
+                                <div className="flex items-start gap-4">
+                                    <div className="bg-indigo-100 p-3 rounded-full text-indigo-600 mt-1 shrink-0"><span className="text-2xl">🧥</span></div>
+                                    <div>
+                                        <strong className="text-xl text-slate-800 block mb-1">中層：保暖鎖溫</strong>
+                                        <p className="text-slate-600 text-sm">毛衣、厚棉T、輕羽絨背心。</p>
+                                    </div>
+                                </div>
+                            </Card>
+
+                            {/* Outer Layer */}
+                            <Card onClick={() => setModalContent({title: "最外層：防風防水大衣", content: "★ 材質：Gore-tex 或同級防風防水材質最佳，因為雪融化會弄濕衣服。\n★ 版型：強烈建議選「長版」，長度要能蓋住大腿，保暖度差非常多！\n★ 黑科技：市面上有「USB發熱外套」(如 SUSTAIN next 2.0)，接行動電源可主動發熱，又輕又顯瘦，適合極度怕冷的人 (-20°C~20°C 都能穿)。"})}>
+                                <div className="flex items-start gap-4">
+                                    <div className="bg-sky-100 p-3 rounded-full text-sky-600 mt-1 shrink-0"><Snowflake size={24} /></div>
+                                    <div>
+                                        <strong className="text-xl text-slate-800 block mb-1">外層：防風防水大衣</strong>
+                                        <p className="text-slate-600 text-sm">長版蓋大腿更保暖，推薦發熱外套。</p>
+                                    </div>
+                                </div>
+                            </Card>
+
+                            {/* Bottoms */}
+                            <Card onClick={() => setModalContent({title: "下半身穿搭", content: "★ 警告：單穿牛仔褲在室外會變成「冰棒」，非常冷！\n★ 建議：\n1. 內搭發熱褲/褲襪 + 外褲。\n2. 直接穿刷毛褲或防風雪褲。\n★ 襪子：建議穿厚羊毛襪，怕冷可穿兩雙。" })}>
+                                <div className="flex items-start gap-4">
+                                    <div className="bg-slate-100 p-3 rounded-full text-slate-600 mt-1 shrink-0"><span className="text-2xl">👖</span></div>
+                                    <div>
+                                        <strong className="text-xl text-slate-800 block mb-1">下身：嚴禁單穿牛仔褲</strong>
+                                        <p className="text-slate-600 text-sm">內搭發熱褲或穿刷毛褲。</p>
+                                    </div>
+                                </div>
+                            </Card>
+
+                            {/* Shoes - Added Section */}
+                            <Card onClick={() => setModalContent({title: "足部：防滑雪靴", content: "★ 關鍵：北海道路面結冰非常滑！一般球鞋絕對不行，容易滑倒受傷。\n★ 挑選重點：\n1. 防滑：鞋底刻紋要深，或選購具備翻轉式冰爪的雪靴。\n2. 防水：避免雪融化弄濕襪子（濕了會凍傷）。\n3. 高筒：防止踩入深雪時，雪從腳踝灌入鞋內。\n★ 必備輔助：建議在台灣或當地超商購買「簡易冰爪」套在鞋底，行走結冰路面更安全。" })}>
+                                <div className="flex items-start gap-4">
+                                    <div className="bg-orange-100 p-3 rounded-full text-orange-600 mt-1 shrink-0"><span className="text-2xl">🥾</span></div>
+                                    <div>
+                                        <strong className="text-xl text-slate-800 block mb-1">足部：防滑防水雪靴</strong>
+                                        <p className="text-slate-600 text-sm">高筒防水+深鞋紋，建議加掛冰爪。</p>
+                                    </div>
+                                </div>
+                            </Card>
+                        </div>
+
+                        <SectionTitle>必備配件 (小兵立大功)</SectionTitle>
+                        <div className="grid grid-cols-2 gap-3">
+                            <Card noPadding className="p-3 bg-white text-center">
+                                <span className="text-2xl block mb-1">🧤</span>
+                                <strong className="text-slate-700 text-sm">防水手套</strong>
+                                <span className="text-xs text-slate-500 block">玩雪必備</span>
+                            </Card>
+                            <Card noPadding className="p-3 bg-white text-center">
+                                <span className="text-2xl block mb-1">🧣</span>
+                                <strong className="text-slate-700 text-sm">圍巾/脖圍</strong>
+                                <span className="text-xs text-slate-500 block">防止風灌入</span>
+                            </Card>
+                            <Card noPadding className="p-3 bg-white text-center">
+                                <span className="text-2xl block mb-1">🧢</span>
+                                <strong className="text-slate-700 text-sm">毛帽</strong>
+                                <span className="text-xs text-slate-500 block">遮耳防凍傷</span>
+                            </Card>
+                            <Card noPadding className="p-3 bg-white text-center">
+                                <span className="text-2xl block mb-1">🕶️</span>
+                                <strong className="text-slate-700 text-sm">墨鏡</strong>
+                                <span className="text-xs text-slate-500 block">防雪地反光</span>
+                            </Card>
                         </div>
                     </>
                 )
