@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tailwind 前端特訓班</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 React 和 ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- 引入 Babel 用於解析 JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        /* 自定義滾動條樣式 */
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #334155;
+          border-radius: 20px;
+        }
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.4s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- 1. 圖標組件定義 (移至外部) ---
+        const Icon = ({ path, className, ...props }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="24" 
+                height="24" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className={className}
+                {...props}
+            >
+                {path}
+            </svg>
+        );
+
+        const Icons = {
+            CheckCircle: (props) => <Icon {...props} path={<React.Fragment><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></React.Fragment>} />,
+            ChevronRight: (props) => <Icon {...props} path={<path d="m9 18 6-6-6-6"/>} />,
+            Code: (props) => <Icon {...props} path={<React.Fragment><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></React.Fragment>} />,
+            Layout: (props) => <Icon {...props} path={<React.Fragment><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="9" x2="9" y1="21" y2="9"/></React.Fragment>} />,
+            Smartphone: (props) => <Icon {...props} path={<React.Fragment><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></React.Fragment>} />,
+            Layers: (props) => <Icon {...props} path={<React.Fragment><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></React.Fragment>} />,
+            Box: (props) => <Icon {...props} path={<React.Fragment><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22v-9"/></React.Fragment>} />,
+            Award: (props) => <Icon {...props} path={<React.Fragment><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></React.Fragment>} />,
+            ArrowLeft: (props) => <Icon {...props} path={<React.Fragment><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></React.Fragment>} />,
+            ExternalLink: (props) => <Icon {...props} path={<React.Fragment><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></React.Fragment>} />,
+            Zap: (props) => <Icon {...props} path={<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>} />,
+            CheckSquare: (props) => <Icon {...props} path={<React.Fragment><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></React.Fragment>} />,
+            Trophy: (props) => <Icon {...props} path={<React.Fragment><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.46.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></React.Fragment>} />,
+            Menu: (props) => <Icon {...props} path={<React.Fragment><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></React.Fragment>} />,
+            X: (props) => <Icon {...props} path={<React.Fragment><path d="M18 6 6 18"/><path d="m6 6 12 12"/></React.Fragment>} />,
+            Terminal: (props) => <Icon {...props} path={<React.Fragment><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></React.Fragment>} />,
+        };
+
+        // --- 2. 課程資料 (移至外部) ---
+        const curriculumData = [
+          {
+            id: 1,
+            title: "Week 1: 前端世界啟動",
+            subtitle: "完全零基礎 - HTML 基礎",
+            icon: <Icons.Code className="w-6 h-6" />,
+            description: "了解網頁運作原理，建立第一個 HTML 檔案，掌握基礎標籤。",
+            days: [
+              { 
+                day: 1, 
+                title: "網頁到底是什麼?", 
+                learn: ["網頁如何被瀏覽器顯示", "HTML/CSS/JS 在幹嘛"], 
+                syntax: [
+                    { title: "檔案命名", code: "index.html", desc: "首頁檔案通常命名為 index.html" },
+                    { title: "HTML 結構", code: "<html>...</html>", desc: "所有網頁內容都在這個標籤內" }
+                ],
+                do: ["安裝 VS Code", "建立資料夾與檔案"], 
+                criteria: "用瀏覽器打開自己的 HTML 檔案", 
+                tips: "VS Code 是前端工程師的神兵利器，請安裝 'Live Server' 套件來即時預覽網頁。" 
+              },
+              { 
+                day: 2, 
+                title: "第一個 HTML", 
+                learn: ["HTML 基本結構 (html, head, body)", "常用標籤 (h1-h6, p)"], 
+                syntax: [
+                    { title: "標題 (Heading)", code: "<h1>這是大標題</h1>\n<h2>這是次標題</h2>", desc: "h1 到 h6 字體由大到小，h1 最重要。" },
+                    { title: "段落 (Paragraph)", code: "<p>這是一段文字內容...</p>", desc: "用來包覆一般的文章內容。" }
+                ],
+                do: ["寫出標題與段落"], 
+                criteria: "能說出 h1 跟 p 的差別", 
+                tips: "h1 是最重要的標題（通常一頁只有一個），p 是用來放一般文字段落的。" 
+              },
+              { 
+                day: 3, 
+                title: "圖片與連結", 
+                learn: ["img 標籤與 src 屬性", "a 標籤與 href 屬性"], 
+                syntax: [
+                    { title: "圖片 (Image)", code: '<img src="photo.jpg" alt="照片說明" />', desc: "src 是圖片路徑，alt 是當圖片跑不出來時顯示的文字。" },
+                    { title: "連結 (Anchor)", code: '<a href="https://google.com">前往 Google</a>', desc: "href 是要跳轉的網址。" }
+                ],
+                do: ["放一張圖片", "放一個連結"], 
+                criteria: "點連結能正常跳轉，圖片能正常顯示", 
+                tips: "記得圖片路徑要正確，相對路徑與絕對路徑的概念很重要。" 
+              },
+              { 
+                day: 4, 
+                title: "區塊概念", 
+                learn: ["div 與 section 的差別", "區塊模型 (Box Model) 初探"], 
+                syntax: [
+                    { title: "通用容器 (Div)", code: "<div>\n  <p>單純用來排版或包裝內容</p>\n</div>", desc: "div (Division) 是一個無語意的容器，僅用於將內容分組以便設定樣式 (CSS) 或操作 (JS)。" },
+                    { title: "主題區塊 (Section)", code: "<section>\n  <h2>關於我們</h2>\n  <p>這是一個有主題的區塊...</p>\n</section>", desc: "section 代表文件中的一個「章節」或「區塊」，通常包含一個標題。如果內容可以獨立列在目錄中，就適合用 section。" }
+                ],
+                do: ["把內容分成三個區塊"], 
+                criteria: "看得出頁面結構分層", 
+                tips: "div 是一個無語意的容器，section 則代表一個有主題的區塊。" 
+              },
+              { 
+                day: 5, 
+                title: "本週整理", 
+                learn: ["複習 Week 1 所有標籤"], 
+                syntax: [
+                    { title: "基礎網頁結構", code: "<!DOCTYPE html>\n<html>\n  <head>\n    <title>我的網頁</title>\n  </head>\n  <body>\n    <!-- 內容寫這裡 -->\n  </body>\n</html>", desc: "這是一個標準的 HTML5 檔案骨架。" }
+                ],
+                do: ["完成一頁「純 HTML 個人介紹」"], 
+                criteria: "結構清楚、內容完整", 
+                tips: "將前四天學到的標題、圖片、連結組合起來，做成一個簡單的自我介紹頁。" 
+              }
+            ]
+          },
+          {
+            id: 2,
+            title: "Week 2: HTML 結構思維",
+            subtitle: "工程師起點 - 語意化",
+            icon: <Icons.Layers className="w-6 h-6" />,
+            description: "學習正確的 HTML 語意，讓網頁結構更標準、更易讀。",
+            days: [
+              { 
+                day: 6, 
+                title: "語意化 HTML", 
+                learn: ["header, main, footer 的定義"], 
+                syntax: [
+                    { title: "頁首 (Header)", code: "<header>...</header>", desc: "放置網站 Logo、導覽列。" },
+                    { title: "主要內容 (Main)", code: "<main>...</main>", desc: "放置網頁獨有的主要內容，一頁只能有一個。" },
+                    { title: "頁尾 (Footer)", code: "<footer>...</footer>", desc: "放置版權宣告、聯絡資訊。" }
+                ],
+                do: ["重構頁面結構"], 
+                criteria: "不再全部都用 div", 
+                tips: "語意化標籤有助於 SEO (搜尋引擎優化) 和無障礙閱讀。" 
+              },
+              { 
+                day: 7, 
+                title: "標題層級", 
+                learn: ["h1~h6 的階層關係"], 
+                syntax: [
+                    { title: "層級結構", code: "<h1>主標題</h1>\n<section>\n  <h2>章節標題</h2>\n  <p>...</p>\n</section>", desc: "標題應該像大綱一樣有層次，不要跳級（例如 h1 直接接 h3）。" }
+                ],
+                do: ["調整標題階層"], 
+                criteria: "看起來像一份有層次的文件", 
+                tips: "不要因為想要字大一點就用 h1，樣式該交給 CSS，HTML 只管結構。" 
+              },
+              { 
+                day: 8, 
+                title: "清單與資訊整理", 
+                learn: ["ul (無序清單)", "ol (有序清單)", "li (清單項目)"], 
+                syntax: [
+                    { title: "無序清單", code: "<ul>\n  <li>項目 1</li>\n  <li>項目 2</li>\n</ul>", desc: "前面會是圓點，適合沒有順序的列表（如導覽列）。" },
+                    { title: "有序清單", code: "<ol>\n  <li>步驟 1</li>\n  <li>步驟 2</li>\n</ol>", desc: "前面會是數字，適合有順序的步驟。" }
+                ],
+                do: ["製作技能清單或經歷清單"], 
+                criteria: "資訊排列有條理", 
+                tips: "導覽列 (Navbar) 通常也是用 ul > li 做的喔！" 
+              },
+              { 
+                day: 9, 
+                title: "HTML 常見錯誤", 
+                learn: ["巢狀結構規則", "標籤閉合"], 
+                syntax: [
+                    { title: "正確巢狀", code: "<div>\n  <p>這是正確的</p>\n</div>", desc: "內層標籤必須在外層標籤結束前結束。" },
+                    { title: "錯誤示範", code: "<p><div>塊級元素不能放在行內元素裡</div></p>", desc: "p 標籤內不能放 div。" }
+                ],
+                do: ["檢查並修正錯誤 HTML"], 
+                criteria: "瀏覽器顯示正常，結構無邏輯錯誤", 
+                tips: "塊級元素 (Block) 可以包行內元素 (Inline)，但反過來通常不行。" 
+              },
+              { 
+                day: 10, 
+                title: "小專案：結構完善的頁面", 
+                learn: ["綜合運用語意化標籤"], 
+                syntax: [
+                    { title: "完整佈局", code: "<body>\n  <header>...</header>\n  <main>\n    <article>...</article>\n  </main>\n  <footer>...</footer>\n</body>", desc: "標準的單頁式網站結構。" }
+                ],
+                do: ["完成結構完善的 HTML 頁面"], 
+                criteria: "程式碼整潔，未來可直接用於美化", 
+                tips: "這是為了下週開始套用 Tailwind CSS 做準備，地基要打穩。" 
+              }
+            ]
+          },
+          {
+            id: 3,
+            title: "Week 3: Tailwind 正式登場",
+            subtitle: "Utility-first 思維",
+            icon: <Icons.Zap className="w-6 h-6" />,
+            description: "開始使用 Tailwind CSS，體驗不寫 CSS 檔案的開發速度。",
+            days: [
+              { 
+                day: 11, 
+                title: "認識 Tailwind", 
+                learn: ["Utility-first 概念", "CDN 快速引入"], 
+                syntax: [
+                    { title: "Utility-first 概念", code: '<div class="flex items-center justify-center p-4 bg-blue-500 text-white rounded">', desc: "Utility-first 意思是直接在 HTML 上使用功能性 class（如 text-center, p-4）來建構設計，而不是寫在獨立的 CSS 檔案中。這樣可以大幅減少命名困擾並加快開發速度。" },
+                    { title: "引入 Tailwind (CDN)", code: '<script src="https://cdn.tailwindcss.com"><\/script>', desc: "在 <head> 標籤內加入這行即可開始使用。" }
+                ],
+                do: ["用 CDN 套用 Tailwind 到 HTML"], 
+                criteria: "網頁樣式真的有發生變化", 
+                tips: "在 head 標籤內加入 Tailwind 的 CDN 連結即可開始體驗。" 
+              },
+              { 
+                day: 12, 
+                title: "文字樣式", 
+                learn: ["text-{size} (文字大小)", "font-{weight} (粗細)", "text-{align} (對齊)"], 
+                syntax: [
+                    { title: "字體大小", code: 'class="text-sm text-base text-lg text-xl text-3xl"', desc: "控制文字大小。" },
+                    { title: "字體粗細", code: 'class="font-light font-normal font-bold"', desc: "控制文字粗細。" },
+                    { title: "文字對齊", code: 'class="text-center text-right"', desc: "文字置中或靠右。" }
+                ],
+                do: ["調整標題與內文樣式"], 
+                criteria: "一眼分得出標題與內文層級", 
+                tips: "試試看 text-3xl font-bold text-center。" 
+              },
+              { 
+                day: 13, 
+                title: "顏色與背景", 
+                learn: ["text-{color}-{shade}", "bg-{color}-{shade}", "Tailwind 色票系統"], 
+                syntax: [
+                    { title: "Tailwind 色票系統", code: 'text-blue-500\nbg-slate-100\nborder-red-600', desc: "Tailwind 顏色由「顏色名稱」+「深淺數值」組成。數值從 50 (最淺) 到 950 (最深)。例如 sky-500 是標準天空藍，sky-900 是深藍，sky-50 是極淺藍。" },
+                    { title: "文字顏色", code: 'class="text-blue-600"', desc: "設定文字顏色。" },
+                    { title: "背景顏色", code: 'class="bg-slate-900"', desc: "設定背景顏色。" }
+                ],
+                do: ["設定背景與文字色"], 
+                criteria: "顏色搭配不刺眼、畫面不亂", 
+                tips: "Tailwind 預設色票 (如 slate, blue, red) 後面都要接數字 (50-950) 代表深淺。" 
+              },
+              { 
+                day: 14, 
+                title: "間距系統", 
+                learn: ["padding (p-*)", "margin (m-*)", "間距數值意義"], 
+                syntax: [
+                    { title: "間距數值意義", code: 'p-1 = 0.25rem = 4px\np-4 = 1rem = 16px\nm-8 = 2rem = 32px', desc: "Tailwind 的間距數值通常是 1 單位 = 0.25rem (約 4px)。所以 p-4 代表 4 * 4px = 16px 的內距。" },
+                    { title: "內距 (Padding)", code: 'class="p-4 pt-2 px-6"', desc: "p: 四周, pt: 上, px: 左右。" },
+                    { title: "外距 (Margin)", code: 'class="m-4 mt-8 my-auto"', desc: "m: 四周, mt: 上, my: 上下。" }
+                ],
+                do: ["調整版面空間"], 
+                criteria: "看起來「有呼吸感」，不擁擠", 
+                tips: "p-4 代表 padding: 1rem (16px)。記住 1 單位 = 0.25rem = 4px。" 
+              },
+              { 
+                day: 15, 
+                title: "本週成果", 
+                learn: ["綜合運用文字、顏色、間距"], 
+                syntax: [
+                    { title: "按鈕範例", code: '<button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">\n  按鈕\n</button>', desc: "結合背景、文字顏色、內距、圓角與 Hover 狀態。" }
+                ],
+                do: ["完成第一版 Tailwind 網頁"], 
+                criteria: "已經不像純 HTML 作業，有設計感", 
+                tips: "嘗試模仿你喜歡的簡單網頁區塊。" 
+              }
+            ]
+          },
+          {
+            id: 4,
+            title: "Week 4: Flexbox 排版",
+            subtitle: "佈局關鍵週",
+            icon: <Icons.Layout className="w-6 h-6" />,
+            description: "掌握 Flexbox，這是現代網頁排版最重要的核心技能。",
+            days: [
+              { 
+                day: 16, 
+                title: "Flex 基本", 
+                learn: ["flex", "flex-row (橫排)", "flex-col (直排)"], 
+                syntax: [
+                    { title: "啟動 Flex", code: 'class="flex"', desc: "子元素預設會變成橫排。" },
+                    { title: "排列方向", code: 'class="flex flex-col"', desc: "讓子元素變成垂直排列。" }
+                ],
+                do: ["把原本垂直的內容排成一排"], 
+                criteria: "不靠亂試，理解主軸方向", 
+                tips: "加上 'flex' class，子元素預設就會變成橫排 (row)。" 
+              },
+              { 
+                day: 17, 
+                title: "置中技巧", 
+                learn: ["justify-center (主軸置中)", "items-center (交錯軸置中)"], 
+                syntax: [
+                    { title: "水平垂直置中", code: 'class="flex justify-center items-center h-screen"', desc: "這是前端最經典的面試題，一行搞定。" },
+                    { title: "主軸對齊", code: 'class="justify-between"', desc: "子元素分散對齊（靠左、靠右）。" }
+                ],
+                do: ["將內容完美置中"], 
+                criteria: "真的懂為什麼會置中，分得清主軸與交錯軸", 
+                tips: "這是 Flexbox 最強大的功能之一，口訣：justify 管主軸，items 管副軸。" 
+              },
+              { 
+                day: 18, 
+                title: "卡片版型", 
+                learn: ["Flex 佈局實戰", "gap (間距)"], 
+                syntax: [
+                    { title: "元素間距", code: 'class="flex gap-4"', desc: "在子元素之間增加固定的距離，不用個別設 margin。" }
+                ],
+                do: ["製作三張卡片並排"], 
+                criteria: "對齊整齊，間距一致", 
+                tips: "使用 gap-4 可以快速設定卡片之間的距離，不用再個別設 margin。" 
+              },
+              { 
+                day: 19, 
+                title: "實戰調整", 
+                learn: ["flex-wrap (換行)", "flex-grow (伸展)"], 
+                syntax: [
+                    { title: "自動換行", code: 'class="flex flex-wrap"', desc: "當空間不足時，子元素自動換到下一行。" },
+                    { title: "填滿空間", code: 'class="flex-1"', desc: "讓該元素佔據剩餘的所有空間。" }
+                ],
+                do: ["修改版型適應不同內容"], 
+                criteria: "看起來像真正的網站區塊", 
+                tips: "flex-wrap 讓多出的內容自動換行，避免破版。" 
+              },
+              { 
+                day: 20, 
+                title: "小成果：卡片區塊", 
+                learn: ["綜合 Flex 技巧"], 
+                syntax: [
+                    { title: "常見卡片列表", code: '<div class="flex flex-wrap justify-center gap-6">\n  <!-- 卡片 1 -->\n  <!-- 卡片 2 -->\n</div>', desc: "響應式卡片列表的基礎結構。" }
+                ],
+                do: ["完成一個可重用的卡片區塊"], 
+                criteria: "結構穩固，內容變多也不會壞掉", 
+                tips: "這個卡片區塊是未來專案最常用的元件之一。" 
+              }
+            ]
+          },
+          {
+            id: 5,
+            title: "Week 5: 質感升級",
+            subtitle: "脫離新手感",
+            icon: <Icons.Award className="w-6 h-6" />,
+            description: "學習圓角、陰影、裁切等細節，讓網頁看起來更專業。",
+            days: [
+              { 
+                day: 21, 
+                title: "圓角與陰影", 
+                learn: ["rounded-* (圓角)", "shadow-* (陰影)"], 
+                syntax: [
+                    { title: "圓角", code: 'class="rounded-lg rounded-full"', desc: "rounded-full 可以製作圓形圖片或按鈕。" },
+                    { title: "陰影", code: 'class="shadow-md shadow-xl"', desc: "增加層次感。" }
+                ],
+                do: ["替卡片加上圓角與陰影"], 
+                criteria: "卡片浮起來了，質感提升", 
+                tips: "shadow-lg 配上 rounded-xl 是很常見的現代化設計組合。" 
+              },
+              { 
+                day: 22, 
+                title: "圖片裁切", 
+                learn: ["object-cover", "overflow-hidden", "aspect-ratio"], 
+                syntax: [
+                    { title: "長寬比 (Aspect Ratio)", code: 'class="aspect-video" 或 class="aspect-square"', desc: "強制設定元素的長寬比。aspect-video 是 16:9，aspect-square 是 1:1。常用於影片或商品圖片。" },
+                    { title: "圖片填滿", code: 'class="w-full h-48 object-cover"', desc: "防止圖片變形，像 background-size: cover 一樣裁切。" },
+                    { title: "溢出隱藏", code: 'class="overflow-hidden"', desc: "讓超出容器圓角的圖片被切掉。" }
+                ],
+                do: ["讓不同尺寸圖片顯示一致"], 
+                criteria: "圖片不變形，長寬固定", 
+                tips: "img 標籤加上 object-cover 就像是背景圖的 background-size: cover。" 
+              },
+              { 
+                day: 23, 
+                title: "留白與對齊", 
+                learn: ["設計原則：留白 (White space)"], 
+                syntax: [
+                    { title: "寬鬆行高", code: 'class="leading-relaxed"', desc: "增加文字行距，提升閱讀舒適度。" },
+                    { title: "容器內距", code: 'class="p-6"', desc: "不要讓文字貼著邊框。" }
+                ],
+                do: ["優化版面間距"], 
+                criteria: "畫面舒適，重點突出", 
+                tips: "不要害怕留白，空白也是設計的一部分。" 
+              },
+              { 
+                day: 24, 
+                title: "風格統一", 
+                learn: ["建立一致的設計語彙"], 
+                syntax: [
+                    { title: "提取樣式 (Concept)", code: 'class="btn-primary"', desc: "雖然 Tailwind 鼓勵 utility class，但保持 class 組合一致很重要。" }
+                ],
+                do: ["統一全站的按鈕與標題樣式"], 
+                criteria: "看起來是一整套的設計", 
+                tips: "可以將常用樣式提取出來，或利用 Tailwind 的 @apply (需配置環境) 或單純保持 class 一致。" 
+              },
+              { 
+                day: 25, 
+                title: "本週成果頁", 
+                learn: ["細節修飾"], 
+                syntax: [
+                    { title: "卡片完成體", code: '<div class="bg-white rounded-xl shadow-lg overflow-hidden">\n  <img class="w-full h-48 object-cover" src="..." />\n  <div class="p-6">\n    <h3 class="font-bold text-xl">標題</h3>\n  </div>\n</div>', desc: "一個標準的高質感卡片結構。" }
+                ],
+                do: ["產出一個高質感的靜態頁面"], 
+                criteria: "你會開始嫌棄自己以前做的畫面", 
+                tips: "比較一下 Week 1 的作品，感受你的進步！" 
+              }
+            ]
+          },
+          {
+            id: 6,
+            title: "Week 6: 互動效果",
+            subtitle: "不用 JS 也能動",
+            icon: <Icons.Box className="w-6 h-6" />,
+            description: "利用 Tailwind 的狀態修飾符 (modifiers) 製作互動效果。",
+            days: [
+              { 
+                day: 26, 
+                title: "Hover 效果", 
+                learn: ["hover:{utility}"], 
+                syntax: [
+                    { title: "懸停變色", code: 'class="bg-blue-500 hover:bg-blue-600"', desc: "滑鼠移上去時改變背景色。" },
+                    { title: "懸停文字", code: 'class="text-slate-500 hover:text-blue-500"', desc: "滑鼠移上去時文字變色。" }
+                ],
+                do: ["滑鼠移過去按鈕變色"], 
+                criteria: "互動回饋明顯", 
+                tips: "hover:bg-blue-600 讓按鈕在滑鼠懸停時變深色。" 
+              },
+              { 
+                day: 27, 
+                title: "Transition 過渡", 
+                learn: ["transition", "duration-*", "ease-*"], 
+                syntax: [
+                    { title: "平滑過渡", code: 'class="transition duration-300"', desc: "讓變化過程有動畫效果，不是瞬間切換。" },
+                    { title: "緩動函式 (Ease)", code: 'class="ease-in-out ease-linear"', desc: "ease-in-out (慢-快-慢), ease-out (快-慢)。控制動畫的速度曲線。" }
+                ],
+                do: ["讓變色變得平滑"], 
+                criteria: "動畫不生硬", 
+                tips: "加上 duration-300 讓變化過程有 0.3 秒的緩衝。" 
+              },
+              { 
+                day: 28, 
+                title: "Group Hover", 
+                learn: ["group", "group-hover:*"], 
+                syntax: [
+                    { title: "群組懸停", code: '<div class="group ...">\n  <h3 class="group-hover:text-blue-500">...</h3>\n</div>', desc: "當滑鼠移到父層 (group) 時，改變子層樣式。" }
+                ],
+                do: ["滑鼠移到卡片，標題跟著變色"], 
+                criteria: "能製作父子連動效果", 
+                tips: "在父層加 group，子層加 group-hover:text-blue-500。" 
+              },
+              { 
+                day: 29, 
+                title: "互動卡片實作", 
+                learn: ["transform", "scale (縮放)", "translate (位移)"], 
+                syntax: [
+                    { title: "Transform", code: 'class="transform hover:scale-110"', desc: "啟用變形功能。雖然現代 Tailwind 經常自動啟用，但加上 transform 是好習慣。搭配 scale (縮放), translate (位移), rotate (旋轉) 使用。" },
+                    { title: "上浮效果", code: 'class="hover:-translate-y-2 transition"', desc: "滑鼠移入時，卡片往上浮動。" }
+                ],
+                do: ["製作 hover 時微微上浮的卡片"], 
+                criteria: "互動感強烈且精緻", 
+                tips: "hover:-translate-y-1 可以讓卡片有浮起來的感覺。" 
+              },
+              { 
+                day: 30, 
+                title: "整理與複習", 
+                learn: ["檢查所有互動狀態"], 
+                syntax: [
+                    { title: "按鈕互動", code: 'class="active:scale-95"', desc: "點擊按鈕時有按下去的縮小效果。" }
+                ],
+                do: ["優化本週的互動效果"], 
+                criteria: "所有可點擊元素都有回饋", 
+                tips: "好的 UI 應該要讓使用者知道哪些東西是可以點的。" 
+              }
+            ]
+          },
+          {
+            id: 7,
+            title: "Week 7: RWD 響應式",
+            subtitle: "適應所有螢幕",
+            icon: <Icons.Smartphone className="w-6 h-6" />,
+            description: "學習行動優先 (Mobile First) 策略，讓網頁在手機上也能完美呈現。",
+            days: [
+              { 
+                day: 31, 
+                title: "行動優先策略", 
+                learn: ["Mobile First 概念", "預設即手機"], 
+                syntax: [
+                    { title: "Mobile First 概念", code: 'class="w-full md:w-1/2"', desc: "Mobile First 意味著你寫的 CSS 預設就是給手機看的。`w-full` 作用於手機（和所有尺寸），`md:w-1/2` 僅在平板 (md) 以上覆蓋前者。不要反過來寫桌機樣式然後用 `max-width` 修手機版。" },
+                    { title: "斷點覆寫", code: 'class="block md:flex"', desc: "手機版是 block，中型螢幕以上變成 flex。" }
+                ],
+                do: ["先寫手機版樣式，再寫桌機版"], 
+                criteria: "改變開發習慣", 
+                tips: "Tailwind 是 Mobile First 的，不加前綴就是手機樣式。" 
+              },
+              { 
+                day: 32, 
+                title: "斷點系統", 
+                learn: ["sm:", "md:", "lg:", "xl:"], 
+                syntax: [
+                    { title: "常用斷點", code: "sm: 640px\nmd: 768px (平板)\nlg: 1024px (筆電)\nxl: 1280px (桌機)", desc: "Tailwind 的預設斷點寬度。" }
+                ],
+                do: ["設定不同螢幕下的欄位數量"], 
+                criteria: "手機單欄，桌機多欄", 
+                tips: "md:flex 意思是「在中型螢幕以上才變成 flex」。" 
+              },
+              { 
+                day: 33, 
+                title: "手機版調整", 
+                learn: ["hidden", "block (顯示控制)"], 
+                syntax: [
+                    { title: "隱藏/顯示", code: 'class="hidden md:block"', desc: "手機版隱藏 (hidden)，中型螢幕以上顯示 (block)。常用於導覽列選單。" }
+                ],
+                do: ["手機版隱藏次要資訊，桌機版顯示"], 
+                criteria: "手機版面乾淨不擁擠", 
+                tips: "善用 hidden md:block 來控制導覽列選單的顯示。" 
+              },
+              { 
+                day: 34, 
+                title: "跨裝置測試", 
+                learn: ["Chrome DevTools 模擬"], 
+                syntax: [
+                    { title: "Grid RWD", code: 'class="grid grid-cols-1 md:grid-cols-3"', desc: "手機 1 欄，桌機 3 欄的格線佈局。" }
+                ],
+                do: ["檢查各種常見尺寸 (iPhone, iPad, Desktop)"], 
+                criteria: "在各種寬度下都沒有破版 (X軸捲軸)", 
+                tips: "只要出現水平捲軸通常就是有元素寬度爆掉了。" 
+              },
+              { 
+                day: 35, 
+                title: "完成 RWD 頁面", 
+                learn: ["綜合響應式技巧"], 
+                syntax: [
+                    { title: "Container", code: 'class="container mx-auto px-4"', desc: "讓內容居中並保持兩側有間距的標準寫法。" }
+                ],
+                do: ["完成一個全響應式網頁"], 
+                criteria: "縮放視窗時內容流暢流動", 
+                tips: "這是一個重要的里程碑，你的網頁現在專業多了。" 
+              }
+            ]
+          },
+          {
+            id: 8,
+            title: "Week 8: JavaScript 入門",
+            subtitle: "賦予網頁靈魂",
+            icon: <Icons.Code className="w-6 h-6" />,
+            description: "開始撰寫 JavaScript，處理點擊事件與樣式切換。",
+            days: [
+              { 
+                day: 36, 
+                title: "JS 是什麼", 
+                learn: ["變數", "函式", "DOM"], 
+                syntax: [
+                    { title: "選取元素", code: "const btn = document.querySelector('#myBtn');", desc: "抓取 HTML 中的元素。" },
+                    { title: "列印訊息", code: "console.log('Hello');", desc: "在開發者工具主控台顯示訊息。" }
+                ],
+                do: ["在 Console 印出 Hello World"], 
+                criteria: "理解 JS 運作環境", 
+                tips: "F12 打開 Console 是你的好朋友。" 
+              },
+              { 
+                day: 37, 
+                title: "點擊事件", 
+                learn: ["addEventListener", "click event"], 
+                syntax: [
+                    { title: "監聽點擊", code: "btn.addEventListener('click', function() {\n  alert('點到了！');\n});", desc: "當按鈕被點擊時，執行函式內的程式碼。" }
+                ],
+                do: ["點擊按鈕跳出 Alert"], 
+                criteria: "成功觸發事件", 
+                tips: "querySelector 抓元素，addEventListener 監聽行為。" 
+              },
+              { 
+                day: 38, 
+                title: "Class 切換", 
+                learn: ["classList.add", "classList.remove", "classList.toggle"], 
+                syntax: [
+                    { title: "新增/移除 Class", code: "el.classList.add('bg-red-500');\nel.classList.remove('hidden');", desc: "動態控制元素的 class。`add` 是新增，`remove` 是移除。" },
+                    { title: "切換樣式 (Toggle)", code: "menu.classList.toggle('hidden');", desc: "如果 hidden 存在就移除，不存在就加上。這是做開關選單最常用的語法。" }
+                ],
+                do: ["點擊按鈕切換夜間模式 (切換 class)"], 
+                criteria: "能動態改變樣式", 
+                tips: "這是操作 Tailwind 最核心的 JS 技巧。" 
+              },
+              { 
+                day: 39, 
+                title: "Modal 實作", 
+                learn: ["DOM 操作綜合練習"], 
+                syntax: [
+                    { title: "移除/新增", code: "modal.classList.remove('hidden');\nmodal.classList.add('flex');", desc: "顯示 Modal 視窗。" }
+                ],
+                do: ["點擊按鈕開啟視窗，點遮罩關閉"], 
+                criteria: "互動邏輯正確", 
+                tips: "控制 hidden class 的有無就可以控制顯示/隱藏。" 
+              },
+              { 
+                day: 40, 
+                title: "互動完成", 
+                learn: ["整合 HTML/CSS/JS"], 
+                syntax: [
+                    { title: "條件判斷", code: "if (isOpen) { ... } else { ... }", desc: "控制互動邏輯。" }
+                ],
+                do: ["完成一個有功能的小區塊"], 
+                criteria: "程式碼邏輯清晰", 
+                tips: "將 Week 6 的 CSS 互動與 Week 8 的 JS 邏輯結合。" 
+              }
+            ]
+          },
+          {
+            id: 9,
+            title: "Week 9: 常見 UI 元件",
+            subtitle: "元件庫思維",
+            icon: <Icons.Box className="w-6 h-6" />,
+            description: "製作網頁常見的 UI 元件，如導覽列、頁籤、手風琴。",
+            days: [
+              { 
+                day: 41, 
+                title: "選單 (Navbar)", 
+                learn: ["RWD 選單", "漢堡按鈕"], 
+                syntax: [
+                    { title: "RWD 選單", code: '<nav class="flex justify-between items-center">...</nav>', desc: "桌機版橫排，手機版利用 JS 切換選單顯示/隱藏。" },
+                    { title: "漢堡按鈕", code: '<button id="menu-btn" class="md:hidden">☰</button>', desc: "只在手機版 (md:hidden) 顯示的開關按鈕。" },
+                    { title: "絕對定位", code: 'class="absolute top-full left-0 w-full"', desc: "手機版下拉選單通常使用 absolute 定位在 Header 下方。" }
+                ],
+                do: ["製作手機版可收合的選單"], 
+                criteria: "手機/桌機切換流暢", 
+                tips: "結合絕對定位 (absolute) 與 JS 切換 class。" 
+              },
+              { 
+                day: 42, 
+                title: "Tab 頁籤", 
+                learn: ["狀態管理 UI"], 
+                syntax: [
+                    { title: "邊框樣式", code: 'class="border-b-2 border-blue-500"', desc: "使用底部邊框來標示目前選中的 Tab。" }
+                ],
+                do: ["製作可切換內容的 Tab"], 
+                criteria: "點擊切換正確內容", 
+                tips: "點擊某個 Tab 時，隱藏其他內容，顯示對應內容。" 
+              },
+              { 
+                day: 43, 
+                title: "Accordion (手風琴)", 
+                learn: ["展開/收合動畫"], 
+                syntax: [
+                    { title: "高度動畫", code: 'class="transition-all duration-300 overflow-hidden max-h-0"', desc: "預設最大高度為 0 (隱藏)，展開時設為 max-h-[500px]。" }
+                ],
+                do: ["製作問答集 (FAQ) 區塊"], 
+                criteria: "展開收合順暢", 
+                tips: "利用 max-height 做動畫會比 height: auto 更滑順。" 
+              },
+              { 
+                day: 44, 
+                title: "整合元件", 
+                learn: ["元件組合"], 
+                syntax: [
+                    { title: "元件組合", code: '<Header />\n<Hero />\n<Features />\n<Footer />', desc: "將獨立開發的 Navbar、Hero 區塊、卡片列表等組合在同一個 HTML 檔案中，注意區塊間的間距 (margin)。" },
+                    { title: "間距", code: "class='mb-12'", desc: "區塊間距" }
+                ],
+                do: ["將上述元件組合成一個頁面"], 
+                criteria: "版面協調", 
+                tips: "注意元件之間的間距 (margin-bottom)。" 
+              },
+              { 
+                day: 45, 
+                title: "完成 UI 庫", 
+                learn: ["複用性"], 
+                syntax: [
+                    { title: "複用性", code: '<!-- Button Component -->\n<a class="btn-primary">...</a>', desc: "將常用的 UI (如按鈕、卡片) 寫成固定的 HTML 結構與 Class 組合，下次直接複製貼上即可，保持全站風格一致。" },
+                    { title: "註解", code: "<!-- Navbar Start -->", desc: "區分代碼區塊" }
+                ],
+                do: ["整理自己的元件程式碼"], 
+                criteria: "下次要用可以快速複製", 
+                tips: "建立自己的程式碼片段 (Snippet) 庫。" 
+              }
+            ]
+          },
+          {
+            id: 10,
+            title: "Week 10: 專案結構",
+            subtitle: "專業開發流程",
+            icon: <Icons.Layers className="w-6 h-6" />,
+            description: "學習如何規劃專案目錄、命名與程式碼可讀性。",
+            days: [
+              { 
+                day: 46, 
+                title: "資料夾規劃", 
+                learn: ["assets", "components", "pages"], 
+                syntax: [
+                    { title: "Components & Pages", code: "/components (放 Navbar, Footer)\n/pages (放 index.html, about.html)", desc: "Components 是可重複使用的小元件；Pages 是完整的頁面檔案。" },
+                    { title: "目錄結構", code: "/assets\n/css\n/js\nindex.html", desc: "標準結構" }
+                ],
+                do: ["建立標準專案結構"], 
+                criteria: "檔案分類清楚", 
+                tips: "圖片放 assets，頁面放 pages，共用放 components。" 
+              },
+              { 
+                day: 47, 
+                title: "命名規則", 
+                learn: ["語意化命名", "註解習慣"], 
+                syntax: [
+                    { title: "註解習慣", code: "<!-- Hero Section Start -->\n...\n<!-- Hero Section End -->", desc: "在每個主要區塊的開始與結束加上註解，方便在落落長的 HTML 中快速找到位置。" },
+                    { title: "變數命名", code: "const mobileMenuBtn = ...", desc: "駝峰式命名" }
+                ],
+                do: ["替 class 或 ID 取有意義的名字 (如果不用 Tailwind 的話)"], 
+                criteria: "別人看得懂你的程式碼", 
+                tips: "Tailwind 減少了取名的痛苦，但 JS 變數還是要好好取名。" 
+              },
+              { 
+                day: 48, 
+                title: "可讀性", 
+                learn: ["排版縮排", "Prettier"], 
+                syntax: [
+                    { title: "排版縮排", code: "<div>\n  <p>縮排兩格或四格</p>\n</div>", desc: "保持巢狀結構的縮排一致，這對 HTML 可讀性至關重要。" },
+                    { title: "Prettier", code: "安裝 VS Code Prettier 套件", desc: "設定 'Format On Save'，讓編輯器自動幫你整理程式碼格式。" }
+                ],
+                do: ["設定編輯器自動格式化"], 
+                criteria: "程式碼整齊劃一", 
+                tips: "安裝 Prettier 套件，存檔自動排版。" 
+              },
+              { 
+                day: 49, 
+                title: "小重構", 
+                learn: ["Refactoring"], 
+                syntax: [
+                    { title: "Refactoring (重構)", code: "優化現有程式碼而不改變功能", desc: "例如：發現三個按鈕的 class 都一樣，可以考慮用多重游標一次修改，或是檢查有無多餘的 div 包裝。" }
+                ],
+                do: ["優化之前的程式碼"], 
+                criteria: "功能不變，程式碼更精簡", 
+                tips: "消除重複的程式碼 (DRY 原則)。" 
+              },
+              { 
+                day: 50, 
+                title: "整理", 
+                learn: ["專案總結"], 
+                syntax: [],
+                do: ["準備進入最終專案"], 
+                criteria: "環境與心態都準備好", 
+                tips: "回顧前 9 週的筆記。" 
+              }
+            ]
+          },
+          {
+            id: 11,
+            title: "Week 11: 完整專案製作",
+            subtitle: "從 0 到 1",
+            icon: <Icons.Layout className="w-6 h-6" />,
+            description: "整合所有技能，製作一個完整的多頁面形象網站。",
+            days: [
+              { day: 51, title: "專案規劃", learn: ["Wireframe", "功能列點"], do: ["畫出草圖"], criteria: "知道要做什麼頁面", tips: "不需精美，紙筆畫也可以。", syntax: [] },
+              { 
+                day: 52, 
+                title: "切版 - Header/Footer", 
+                learn: ["共用區塊"], 
+                syntax: [
+                    { title: "Header & Footer", code: "<header>...</header>\n<footer>...</footer>", desc: "這兩個區塊在網站的每一頁通常都是一樣的（共用區塊），先做完這兩個，其他頁面就可以直接複製骨架。" },
+                    { title: "Sticky Header", code: "class='sticky top-0 z-50 bg-white'", desc: "固定導覽列" }
+                ],
+                do: ["完成全站共用部分"], 
+                criteria: "RWD 正常", 
+                tips: "Header 和 Footer 是網站的門面。" 
+              },
+              { 
+                day: 53, 
+                title: "切版 - 首頁", 
+                learn: ["Hero Section", "Features"], 
+                syntax: [
+                    { title: "Features 區塊", code: '<section id="features" class="grid md:grid-cols-3 gap-8">', desc: "通常指「產品特色」或「服務項目」區塊，常用 Grid 或 Flexbox 製作三欄式排版。" },
+                    { title: "Hero", code: "h-screen flex items-center justify-center", desc: "滿版主視覺" }
+                ],
+                do: ["完成首頁主視覺"], 
+                criteria: "吸引人的第一印象", 
+                tips: "大標題、大圖片、明確的行動呼籲 (CTA)。" 
+              },
+              { day: 54, title: "切版 - 內頁", learn: ["關於我們", "聯絡我們"], do: ["完成其他頁面"], criteria: "風格統一", tips: "複製貼上首頁的 Layout 結構來修改。", syntax: [] },
+              { day: 55, title: "互動與微調", learn: ["細節修飾"], do: ["加上 JS 互動與檢查 RWD"], criteria: "像個真正的線上產品", tips: "檢查所有連結、按鈕、RWD。", syntax: [] }
+            ]
+          },
+          {
+            id: 12,
+            title: "Week 12: 作品集與下一步",
+            subtitle: "邁向工程師",
+            icon: <Icons.Trophy className="w-6 h-6" />,
+            description: "優化作品集，學習 Git 與部署，準備求職或接案。",
+            days: [
+              { 
+                day: 56, 
+                title: "優化 Performance", 
+                learn: ["圖片壓縮", "Lighthouse"], 
+                syntax: [
+                    { title: "Lighthouse", code: "Chrome DevTools -> Lighthouse Tab -> Analyze page load", desc: "Google 內建的網站效能檢測工具，可以針對效能、無障礙、SEO 給出評分與建議。" },
+                    { title: "WebP", code: "<img src='img.webp' />", desc: "新一代圖片格式" }
+                ],
+                do: ["跑分測試並優化"], 
+                criteria: "分數盡量綠燈", 
+                tips: "圖片通常是拖慢網站的主因，使用 webp 格式。" 
+              },
+              { day: 57, title: "RWD 終極檢查", learn: ["QA 測試"], do: ["請朋友幫忙測試"], criteria: "修復所有破版 bug", tips: "使用者總是會用你意想不到的方式操作網站。", syntax: [] },
+              { day: 58, title: "專案說明 (README)", learn: ["Markdown 寫作"], do: ["寫一份漂亮的 README"], criteria: "清楚說明專案功能與技術", tips: "這是面試官看你程式碼前的第一印象。", syntax: [{title: "Markdown", code: "# 專案標題\n## 功能介紹", desc: "MD 語法"}] },
+              { day: 59, title: "放上 GitHub", learn: ["Git init", "Git push", "GitHub Pages/Vercel"], do: ["將網站部署上線"], criteria: "有可公開訪問的網址", tips: "Vercel 是部署前端靜態網頁的神器，支援 GitHub 連動。", syntax: [{title: "Git", code: "git add .\ngit commit -m 'init'\ngit push", desc: "上傳指令"}] },
+              { day: 60, title: "回顧與進階", learn: ["未來路線"], do: ["慶祝完賽！"], criteria: "你已經是前端工程師了", tips: "下一步：React, Vue 或更深入的 JS。", syntax: [] }
+            ]
+          }
+        ];
+
+        // --- 3. 工具連結 (移至外部) ---
+        const toolLinks = [
+          { title: "Tailwind CSS 安裝指南 (Vite)", url: "https://tailwindcss.com/docs/installation/using-vite", desc: "官方推薦的現代化安裝方式，快速啟動專案。", tags: ["官方", "安裝"] },
+          { title: "裝飾圖示設計指南", url: "https://clitclassroom.github.io/tools/fontawesome.html", desc: "最流行的圖標字型庫，輕鬆為網站加入圖示。", tags: ["Icons", "資源"] },
+          { title: "Tailwind 究極助理", url: "https://clitclassroom.github.io/tools/tailwindkits.html", desc: "豐富的 Tailwind 元件庫與工具集合。", tags: ["元件", "工具"] },
+          { title: "Tailwind Cheat Sheet", url: "https://nerdcave.com/tailwind-cheat-sheet", desc: "快速查找所有 Tailwind class 的互動式小抄，新手必備。", tags: ["速查", "工具"] },
+          { title: "Tailwind Components", url: "https://tailwindcomponents.com/", desc: "開源的 Tailwind 元件社群，可以找到各種別人寫好的區塊。", tags: ["元件", "社群"] },
+          { title: "Tailwind Gradient Generator", url: "https://hypercolor.dev/", desc: "超美的漸層色產生器，直接複製 Tailwind class。", tags: ["設計", "色彩"] },
+          { title: "Heroicons", url: "https://heroicons.com/", desc: "Tailwind 官方製作的 SVG 圖標集，風格完美契合。", tags: ["Icons", "官方"] },
+          { title: "DaisyUI", url: "https://daisyui.com/", desc: "最受歡迎的 Tailwind 元件庫插件，類似 Bootstrap 的使用體驗。", tags: ["元件庫", "插件"] },
+          { title: "Tailwind Play", url: "https://play.tailwindcss.com/", desc: "官方線上編輯器，免安裝直接練習與測試語法。", tags: ["練習", "官方"] }
+        ];
+
+        // --- 4. 輔助組件 (移至外部) ---
+        const ProgressBar = ({ completed, total }) => {
+          const percentage = Math.round((completed / total) * 100) || 0;
+          return (
+            <div className="w-full">
+              <div className="flex justify-between mb-1">
+                <span className="text-sm font-medium text-blue-400">總學習進度</span>
+                <span className="text-sm font-medium text-blue-400">{percentage}%</span>
+              </div>
+              <div className="w-full bg-slate-700 rounded-full h-2.5">
+                <div 
+                  className="bg-blue-500 h-2.5 rounded-full transition-all duration-500 ease-out" 
+                  style={{ width: `${percentage}%` }}
+                ></div>
+              </div>
+              <div className="text-xs text-slate-400 mt-1 text-right">
+                已完成 {completed} / {total} 個單元
+              </div>
+            </div>
+          );
+        };
+
+        const ToolCard = ({ tool }) => (
+          <a 
+            href={tool.url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="block p-6 bg-slate-800 rounded-xl border border-slate-700 hover:border-blue-500 hover:bg-slate-750 transition-all group"
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-2 bg-slate-700 rounded-lg group-hover:bg-blue-500/20 group-hover:text-blue-400 transition-colors">
+                <Icons.ExternalLink size={20} />
+              </div>
+              <div className="flex gap-2">
+                {tool.tags.map(tag => (
+                  <span key={tag} className="px-2 py-1 text-xs rounded-full bg-slate-700 text-slate-300">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
+              {tool.title}
+            </h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              {tool.desc}
+            </p>
+          </a>
+        );
+
+        // --- 5. 主應用組件 (結構簡化) ---
+        function TailwindLearningApp() {
+          const [currentView, setCurrentView] = useState('home'); 
+          const [activeWeekId, setActiveWeekId] = useState(null);
+          const [activeDayId, setActiveDayId] = useState(null);
+          const [completedDays, setCompletedDays] = useState([]);
+          const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+          // 初始化讀取進度
+          useEffect(() => {
+            try {
+              const saved = localStorage.getItem('tailwind-course-progress');
+              if (saved) setCompletedDays(JSON.parse(saved));
+            } catch (error) {
+              localStorage.removeItem('tailwind-course-progress');
+            }
+          }, []);
+
+          // 儲存進度
+          useEffect(() => {
+            localStorage.setItem('tailwind-course-progress', JSON.stringify(completedDays));
+          }, [completedDays]);
+
+          const totalDays = 60;
+          
+          const toggleDayCompletion = (dayId) => {
+            setCompletedDays(prev => prev.includes(dayId) ? prev.filter(id => id !== dayId) : [...prev, dayId]);
+          };
+
+          const handleWeekClick = (weekId) => {
+            setActiveWeekId(weekId);
+            setCurrentView('week');
+            window.scrollTo(0, 0);
+          };
+
+          const handleDayClick = (dayId) => {
+            const foundWeek = curriculumData.find(w => w.days.some(d => d.day === dayId));
+            if (foundWeek) {
+              setActiveWeekId(foundWeek.id);
+              setActiveDayId(dayId);
+              setCurrentView('day');
+              window.scrollTo(0, 0);
+            }
+          };
+
+          const activeWeekData = curriculumData.find(w => w.id === activeWeekId);
+          const activeDayData = activeWeekData?.days.find(d => d.day === activeDayId);
+
+          // Render Helpers
+          const renderHome = () => (
+            <div className="space-y-8 animate-fade-in">
+              <div className="text-center py-10 bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-2xl border border-slate-700 mb-8">
+                <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
+                  Tailwind CSS <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">前端特訓班</span>
+                </h1>
+                <p className="text-slate-400 max-w-2xl mx-auto text-lg">
+                  從零基礎到能夠獨立切版，為期 12 週的紮實修煉。跟隨每日任務，打造你的前端工程師之路。
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {curriculumData.map((week) => {
+                  const weekCompletedCount = week.days.filter(d => completedDays.includes(d.day)).length;
+                  const isWeekComplete = weekCompletedCount === week.days.length;
+                  return (
+                    <div 
+                      key={week.id}
+                      onClick={() => handleWeekClick(week.id)}
+                      className={`group cursor-pointer rounded-xl p-6 border transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${isWeekComplete ? 'bg-slate-800/50 border-green-900/50' : 'bg-slate-800 border-slate-700 hover:border-blue-500'}`}
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div className={`p-3 rounded-lg ${isWeekComplete ? 'bg-green-900/30 text-green-400' : 'bg-slate-700 text-blue-400 group-hover:bg-blue-500 group-hover:text-white'} transition-colors`}>
+                          {week.icon}
+                        </div>
+                        {isWeekComplete && <Icons.CheckCircle className="text-green-500 w-6 h-6" />}
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-1">{week.title}</h3>
+                      <div className="text-sm font-medium text-blue-400 mb-3 uppercase tracking-wider">{week.subtitle}</div>
+                      <p className="text-slate-400 text-sm mb-4 h-10 overflow-hidden text-ellipsis line-clamp-2">{week.description}</p>
+                      <div className="w-full bg-slate-700 rounded-full h-1.5 mt-auto">
+                        <div className={`h-1.5 rounded-full ${isWeekComplete ? 'bg-green-500' : 'bg-blue-500'}`} style={{ width: `${(weekCompletedCount / 5) * 100}%` }}></div>
+                      </div>
+                      <div className="text-xs text-slate-500 mt-2 text-right">進度: {weekCompletedCount}/5</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+
+          const renderWeekDetail = () => {
+            if (!activeWeekData) return null;
+            return (
+              <div className="animate-fade-in">
+                <button onClick={() => setCurrentView('home')} className="flex items-center text-slate-400 hover:text-white mb-6 transition-colors group">
+                  <Icons.ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                  返回課程總覽
+                </button>
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 pb-8 border-b border-slate-700">
+                  <div>
+                    <h2 className="text-3xl font-bold text-white mb-2">{activeWeekData.title}</h2>
+                    <p className="text-xl text-blue-400">{activeWeekData.subtitle}</p>
+                  </div>
+                  <div className="mt-4 md:mt-0 p-4 bg-slate-800 rounded-lg border border-slate-700 max-w-sm">
+                     <p className="text-slate-300 text-sm">{activeWeekData.description}</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {activeWeekData.days.map((day) => {
+                    const isCompleted = completedDays.includes(day.day);
+                    return (
+                      <div key={day.day} onClick={() => handleDayClick(day.day)} className={`flex items-center justify-between p-5 rounded-xl border cursor-pointer transition-all ${isCompleted ? 'bg-slate-800/40 border-green-900/30 hover:bg-slate-800/60' : 'bg-slate-800 border-slate-700 hover:border-blue-500 hover:bg-slate-750'}`}>
+                        <div className="flex items-center gap-4">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${isCompleted ? 'bg-green-900/30 text-green-400' : 'bg-slate-700 text-slate-300'}`}>D{day.day}</div>
+                          <div>
+                            <h3 className={`text-lg font-semibold ${isCompleted ? 'text-slate-300 line-through decoration-slate-500' : 'text-white'}`}>{day.title}</h3>
+                            <div className="text-sm text-slate-500 flex gap-2 mt-1"><span className="hidden sm:inline">目標：</span><span className="truncate max-w-[200px] sm:max-w-none">{day.learn.join('、')}</span></div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {isCompleted && <span className="text-xs px-2 py-1 bg-green-900/30 text-green-400 rounded-full border border-green-900/50">已完成</span>}
+                          <Icons.ChevronRight className={`w-5 h-5 ${isCompleted ? 'text-green-700' : 'text-slate-500'}`} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          };
+
+          const renderDayDetail = () => {
+            if (!activeDayData) return null;
+            const isCompleted = completedDays.includes(activeDayData.day);
+            const hasSyntax = activeDayData.syntax && activeDayData.syntax.length > 0;
+            return (
+              <div className="animate-fade-in max-w-4xl mx-auto">
+                <div className="flex items-center justify-between mb-6">
+                  <button onClick={() => setCurrentView('week')} className="flex items-center text-slate-400 hover:text-white transition-colors group">
+                    <Icons.ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                    返回 {activeWeekData?.title || '週次列表'}
+                  </button>
+                  <div className="text-slate-500 font-mono">Day {activeDayData.day}</div>
+                </div>
+                <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
+                  <div className="p-8 border-b border-slate-700 bg-gradient-to-r from-slate-800 to-slate-900">
+                    <h1 className="text-3xl font-bold text-white mb-4">{activeDayData.title}</h1>
+                    <div className="flex flex-wrap gap-2">
+                      {activeDayData.learn.map((item, idx) => (<span key={idx} className="px-3 py-1 bg-blue-900/30 text-blue-300 rounded-full text-sm border border-blue-900/50">{item}</span>))}
+                    </div>
+                  </div>
+                  <div className="p-8 space-y-8">
+                    {hasSyntax && (
+                        <section>
+                            <h3 className="flex items-center text-xl font-bold text-white mb-4"><Icons.Terminal className="w-6 h-6 mr-2 text-pink-400" />核心語法與範例 (Syntax)</h3>
+                            <div className="grid gap-4">
+                                {activeDayData.syntax.map((item, idx) => (
+                                    <div key={idx} className="bg-slate-900 rounded-xl border border-slate-700 overflow-hidden">
+                                        <div className="px-4 py-2 bg-slate-950/50 border-b border-slate-800 flex justify-between items-center"><span className="text-sm font-bold text-pink-400">{item.title}</span></div>
+                                        <div className="p-4"><pre className="text-sm font-mono text-slate-300 overflow-x-auto whitespace-pre-wrap"><code>{item.code}</code></pre><p className="text-sm text-slate-500 mt-2 border-t border-slate-800 pt-2">{item.desc}</p></div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+                    <section>
+                      <h3 className="flex items-center text-xl font-bold text-white mb-4"><Icons.Code className="w-6 h-6 mr-2 text-purple-400" />實作任務 (Do)</h3>
+                      <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/50">
+                        <ul className="space-y-4">
+                          {activeDayData.do.map((item, idx) => (
+                            <li key={idx} className="flex items-start"><span className="inline-block w-6 h-6 bg-purple-900/30 text-purple-400 rounded-full text-center text-sm leading-6 mr-3 mt-0.5 flex-shrink-0">{idx + 1}</span><span className="text-slate-300 text-lg">{item}</span></li>
+                          ))}
+                        </ul>
+                      </div>
+                    </section>
+                    <section>
+                      <h3 className="flex items-center text-xl font-bold text-white mb-4"><Icons.Award className="w-6 h-6 mr-2 text-yellow-400" />過關標準 (Check)</h3>
+                      <div className="bg-yellow-900/10 rounded-xl p-6 border border-yellow-900/20">
+                        <div className="flex items-start"><Icons.CheckCircle className="w-6 h-6 text-yellow-500 mr-3 mt-1 flex-shrink-0" /><p className="text-yellow-100 text-lg">{activeDayData.criteria}</p></div>
+                      </div>
+                    </section>
+                    <section>
+                      <h3 className="flex items-center text-xl font-bold text-white mb-4"><Icons.Zap className="w-6 h-6 mr-2 text-orange-400" />小撇步 (Tips)</h3>
+                      <div className="bg-slate-700/30 rounded-xl p-6 border-l-4 border-orange-400"><p className="text-slate-300 italic">"{activeDayData.tips}"</p></div>
+                    </section>
+                    <div className="pt-8 border-t border-slate-700 mt-8">
+                      <div className="flex flex-col items-center justify-center space-y-4">
+                        <p className="text-slate-400 mb-2">完成今日的所有學習目標了嗎？</p>
+                        <button onClick={() => toggleDayCompletion(activeDayData.day)} className={`group relative px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 transform hover:scale-105 active:scale-95 ${isCompleted ? 'bg-green-600 text-white shadow-[0_0_20px_rgba(34,197,94,0.4)] hover:bg-green-700' : 'bg-slate-700 text-slate-300 hover:bg-blue-600 hover:text-white hover:shadow-[0_0_20px_rgba(37,99,235,0.4)]'}`}>
+                          <span className="flex items-center gap-2">{isCompleted ? <Icons.CheckSquare className="w-6 h-6" /> : <Icons.Box className="w-6 h-6" />}{isCompleted ? "已完成任務" : "標記為已完成"}</span>
+                          {isCompleted && <span className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full animate-ping"></span>}
+                        </button>
+                        {isCompleted && <p className="text-green-400 animate-bounce text-sm mt-2">太棒了！繼續保持！</p>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-between mt-8 text-sm text-slate-500">
+                  <button disabled={activeDayData.day === 1} onClick={() => handleDayClick(activeDayData.day - 1)} className="flex items-center hover:text-white disabled:opacity-30 disabled:hover:text-slate-500 transition-colors"><Icons.ChevronRight className="w-4 h-4 mr-1 rotate-180" /> 上一天</button>
+                  <button disabled={activeDayData.day === 60} onClick={() => handleDayClick(activeDayData.day + 1)} className="flex items-center hover:text-white disabled:opacity-30 disabled:hover:text-slate-500 transition-colors">下一天 <Icons.ChevronRight className="w-4 h-4 ml-1" /></button>
+                </div>
+              </div>
+            );
+          };
+
+          const renderTools = () => (
+            <div className="animate-fade-in">
+              <div className="mb-10 text-center">
+                <h2 className="text-3xl font-bold text-white mb-3">Tailwind 開發軍火庫</h2>
+                <p className="text-slate-400">工欲善其事，必先利其器。這裡整理了學習與開發過程中必備的工具。</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {toolLinks.map((tool, index) => (<ToolCard key={index} tool={tool} />))}
+              </div>
+            </div>
+          );
+
+          return (
+            <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-blue-500/30">
+              <div className={`fixed inset-0 bg-black/50 z-40 transition-opacity md:hidden ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsSidebarOpen(false)} />
+              <aside className={`fixed top-0 left-0 h-full w-64 bg-slate-900 border-r border-slate-800 z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="p-6 h-full flex flex-col">
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-2 text-blue-400 font-bold text-xl"><Icons.Code className="w-8 h-8" /><span>DevCamp</span></div>
+                    <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-slate-400"><Icons.X size={24} /></button>
+                  </div>
+                  <nav className="flex-1 space-y-2 overflow-y-auto pr-2 custom-scrollbar">
+                    <button onClick={() => { setCurrentView('home'); setIsSidebarOpen(false); }} className={`w-full flex items-center p-3 rounded-lg transition-colors ${currentView === 'home' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}><Icons.Layout className="w-5 h-5 mr-3" />課程總覽</button>
+                    <button onClick={() => { setCurrentView('tools'); setIsSidebarOpen(false); }} className={`w-full flex items-center p-3 rounded-lg transition-colors ${currentView === 'tools' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`}><Icons.Box className="w-5 h-5 mr-3" />工具箱</button>
+                    <div className="mt-8 pt-8 border-t border-slate-800">
+                       <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">快速跳轉</h4>
+                       {curriculumData.map(week => (
+                         <button key={week.id} onClick={() => { handleWeekClick(week.id); setIsSidebarOpen(false); }} className={`w-full text-left py-2 px-3 text-sm rounded transition-colors truncate ${activeWeekId === week.id && currentView !== 'tools' && currentView !== 'home' ? 'text-blue-400 bg-blue-900/20' : 'text-slate-500 hover:text-slate-300'}`}>{week.title}</button>
+                       ))}
+                    </div>
+                  </nav>
+                  <div className="mt-auto pt-6 border-t border-slate-800"><ProgressBar completed={completedDays.length} total={totalDays} /></div>
+                </div>
+              </aside>
+              <main className="md:ml-64 min-h-screen flex flex-col">
+                <header className="md:hidden flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900 sticky top-0 z-30">
+                  <div className="flex items-center gap-2 text-blue-400 font-bold text-lg"><Icons.Code className="w-6 h-6" /><span>DevCamp</span></div>
+                  <button onClick={() => setIsSidebarOpen(true)} className="text-slate-400"><Icons.Menu size={24} /></button>
+                </header>
+                <div className="flex-1 p-6 md:p-12 max-w-7xl mx-auto w-full">
+                  {currentView === 'home' && renderHome()}
+                  {currentView === 'week' && renderWeekDetail()}
+                  {currentView === 'day' && renderDayDetail()}
+                  {currentView === 'tools' && renderTools()}
+                </div>
+                <footer className="p-6 text-center text-slate-600 text-sm border-t border-slate-800 mt-auto"><p>© 2025 Tailwind 前端特訓班 | Designed for Learning</p></footer>
+              </main>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TailwindLearningApp />);
+    </script>
+</body>
+</html>
