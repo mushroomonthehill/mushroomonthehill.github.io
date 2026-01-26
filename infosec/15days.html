@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資安新手村 | 15天修煉手札 (進階版)</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #F2F0E9;
+            color: #3E3C38;
+            overflow-x: hidden;
+            cursor: none; /* Custom cursor handling */
+        }
+
+        h1, h2, h3, h4, .serif {
+            font-family: 'Noto Serif TC', serif;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D1CDC0;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #A8A499;
+        }
+
+        /* Paper Texture Effect */
+        .bg-paper {
+            background-color: #FFFCF5;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239C92AC' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Mouse Follower */
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #748B6F;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s;
+        }
+        .cursor-outline {
+            width: 32px;
+            height: 32px;
+            border: 1px solid rgba(116, 139, 111, 0.5);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.15s ease-out;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Radio */
+        .custom-radio:checked + div {
+            border-color: #748B6F;
+            background-color: #F0F5F0;
+        }
+        
+        .nav-item.active {
+            background-color: #E8E6DF;
+            border-left: 3px solid #748B6F;
+            font-weight: 600;
+        }
+
+        .stamp {
+             mask-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40"/></svg>');
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <div class="cursor-dot" id="cursor-dot"></div>
+    <div class="cursor-outline" id="cursor-outline"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- Custom Icons (Replaces lucide-react dependency) ---
+        const IconBase = ({ children, size = 24, className = "" }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width={size} 
+                height={size} 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className={className}
+            >
+                {children}
+            </svg>
+        );
+
+        const Shield = (props) => (
+            <IconBase {...props}>
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </IconBase>
+        );
+        
+        const BookOpen = (props) => (
+            <IconBase {...props}>
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+            </IconBase>
+        );
+
+        const AlertCircle = (props) => (
+            <IconBase {...props}>
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+            </IconBase>
+        );
+
+        const User = (props) => (
+            <IconBase {...props}>
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+            </IconBase>
+        );
+
+        const Lock = (props) => (
+            <IconBase {...props}>
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </IconBase>
+        );
+
+        const CheckCircle = (props) => (
+            <IconBase {...props}>
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+            </IconBase>
+        );
+        
+        const BookMarked = (props) => (
+            <IconBase {...props}>
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </IconBase>
+        );
+
+        const Award = (props) => (
+            <IconBase {...props}>
+                <circle cx="12" cy="8" r="7" />
+                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+            </IconBase>
+        );
+
+        const Feather = (props) => (
+            <IconBase {...props}>
+                <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z" />
+                <line x1="16" y1="8" x2="2" y2="22" />
+                <line x1="17.5" y1="15" x2="9" y2="15" />
+            </IconBase>
+        );
+
+        const ChevronRight = (props) => (
+            <IconBase {...props}>
+                <polyline points="9 18 15 12 9 6" />
+            </IconBase>
+        );
+
+
+        // --- Data: 15 Days Curriculum (Updated with enriched content) ---
+        const curriculumData = [
+            // 第一篇
+            {
+                day: 1,
+                module: "第一篇：資訊安全認知與風險識別",
+                title: "資訊安全的基石",
+                icon: Shield,
+                content: [
+                    { title: "資安治理與風險觀念", text: "資訊安全不僅僅是技術問題，更是管理議題。這是一個「取捨 (Trade-off)」的藝術：安全性越高，通常便利性越低，成本越高。\n\n核心公式：風險 (Risk) = 資產 (Asset) x 威脅 (Threat) x 弱點 (Vulnerability)。如果不了解要保護什麼資產，花再多錢買設備都是徒勞。" },
+                    { title: "CIA 三元素 + 1", text: "資安考試的核心支柱，缺一不可：\n• 機密性 (Confidentiality)：確保資料「不給看」。手段：加密、存取控制。\n• 完整性 (Integrity)：確保資料「不被改」。手段：雜湊 (Hashing)、數位簽章。\n• 可用性 (Availability)：確保資料「隨時用」。手段：備援、備份、防 DDoS。\n• 加分題 - 不可否認性 (Non-repudiation)：做過的事不能抵賴，通常透過數位簽章達成。" },
+                    { title: "縱深防禦 (Defense in Depth) 架構", text: "單點防禦一定會失敗，必須像剝洋蔥一樣建立多層防禦：\n1. 實體層：警衛、門禁卡、監視器。\n2. 網路層：防火牆、VPN、入侵防禦系統 (IPS)。\n3. 主機層：作業系統更新、防毒軟體。\n4. 應用層：輸入驗證、程式碼掃描。\n5. 資料層：檔案加密、資料庫權限控管。" }
+                ],
+                quiz: [
+                    { q: "關於風險的組成，下列公式何者最為正確？", options: ["風險 = 防火牆數量 x 預算", "風險 = 資產 x 威脅 x 弱點", "風險 = 員工數 x 電腦數"], ans: 1 },
+                    { q: "使用者宣稱他沒有傳送某封電子郵件，但數位簽章證明是他發的。這涉及到資安的什麼特性？", options: ["機密性", "可用性", "不可否認性"], ans: 2 }
+                ]
+            },
+            {
+                day: 2,
+                module: "第一篇：資訊安全認知與風險識別",
+                title: "法律規範與事件處理",
+                icon: BookOpen,
+                content: [
+                    { title: "電腦犯罪與刑法", text: "常見的電腦犯罪類型：\n• 妨害電腦使用罪 (刑法 358-362條)：無故輸入他人帳密入侵電腦、無故取得刪除變更電磁紀錄、利用程式干擾電腦運作 (如 DDoS)。\n• 詐欺罪：利用電腦設備詐欺 (如修改銀行餘額)。" },
+                    { title: "個人資料保護法 (PDPA) 深究", text: "企業在處理個資時的黃金原則：\n1. 目的特定：不能說「為了未來可能用到」就先蒐集。\n2. 告知義務：必須告訴當事人你蒐集什麼、用多久、誰會用。\n3. 最小化原則：只需蒐集達成目的所需的「最少」資料。\n\n當發生個資外洩時，企業有義務在查明後通知當事人。" },
+                    { title: "資安事件處理 (Incident Response) 與鑑識", text: "當發生駭客入侵，處理流程至關重要：\n1. 準備 (Preparation)：平時就要備份、演練。\n2. 偵測與分析 (Detection)：確認這是不是真的攻擊？範圍多大？\n3. 圍堵、根除與復原 (Containment, Eradication, Recovery)：這是重點。發現中毒第一件事通常是「拔網路線 (隔離)」，保留記憶體證據 (鑑識)，清除病毒後再復原備份。\n4. 檢討 (Lessons Learned)：PDCA 的 Act，修正漏洞。" }
+                ],
+                quiz: [
+                    { q: "當發現伺服器正在被駭客竊取資料，第一步標準應變動作通常是什麼？", options: ["立即格式化硬碟", "切斷網路連線進行隔離", "打電話報警"], ans: 1 },
+                    { q: "無故取得、刪除或變更他人電腦或相關設備之電磁紀錄，觸犯了什麼罪？", options: ["毀損罪", "妨害電腦使用罪", "竊盜罪"], ans: 1 }
+                ]
+            },
+            {
+                day: 3,
+                module: "第一篇：資訊安全認知與風險識別",
+                title: "常見攻擊手法解析",
+                icon: AlertCircle,
+                content: [
+                    { title: "社交工程 (Social Engineering) 全貌", text: "攻擊「人」比攻擊系統容易。常見手法：\n• Phishing (網路釣魚)：偽造 Email 或網站。\n• Vishing (語音釣魚)：假冒電話 (如假客服、假檢警)。\n• Smishing (簡訊釣魚)：假冒快遞簽收簡訊。\n• Pretexting (假託)：編造一個情境 (劇本) 來騙取信任。" },
+                    { title: "偽裝與攔截", text: "• IP Spoofing (IP 偽造)：將封包的來源 IP 改成信任的內部 IP，以繞過防火牆。\n• Email Spoofing：修改寄件人欄位。\n• 中間人攻擊 (MitM)：攻擊者偷偷介入通訊雙方之間 (如在免費 Wi-Fi 竊聽)，雙方以為在私聊，其實都被監聽。" },
+                    { title: "後門與緩衝區溢位", text: "• 後門 (Backdoor)：程式開發者留下的除錯通道，或駭客植入的秘密入口。\n• 緩衝區溢位 (Buffer Overflow)：向程式輸入超過其預期長度的資料，導致記憶體崩潰或執行惡意程式碼。這是許多軟體漏洞的根源。" }
+                ],
+                quiz: [
+                    { q: "駭客利用公共 Wi-Fi 監聽你與網銀之間的傳輸內容，這屬於什麼攻擊？", options: ["中間人攻擊 (MitM)", "SQL Injection", "DDoS"], ans: 0 },
+                    { q: "透過發送帶有惡意連結的簡訊來騙取個資，稱為什麼？", options: ["Phishing", "Smishing", "Vishing"], ans: 1 }
+                ]
+            },
+            {
+                day: 4,
+                module: "第一篇：資訊安全認知與風險識別",
+                title: "惡意程式與網路攻擊",
+                icon: Shield,
+                content: [
+                    { title: "惡意軟體家族 (Malware)", text: "• 病毒 (Virus)：需宿主檔案，人為觸發。\n• 蠕蟲 (Worm)：獨立運作，利用漏洞自動在網路擴散 (如 WannaCry)。\n• 特洛伊木馬 (Trojan)：偽裝成正常軟體，開後門，不自我複製。\n• 間諜軟體 (Spyware)：偷偷蒐集用戶習慣、側錄鍵盤 (Keylogger)。\n• 邏輯炸彈 (Logic Bomb)：潛伏在系統中，滿足特定條件 (如時間、薪水沒入帳) 才會引爆。" },
+                    { title: "殭屍網路 (Botnet)", text: "駭客透過惡意軟體控制成千上萬台電腦 (肉雞)，組成殭屍大軍。駭客 (Bot Herder) 發號施令，這些電腦就會同時攻擊同一個目標 (DDoS) 或發送垃圾郵件。" },
+                    { title: "DoS 與 DDoS 攻擊原理", text: "• DoS (阻斷服務)：一對一攻擊，耗盡對方資源。\n• DDoS (分散式阻斷服務)：多對一攻擊，利用 Botnet。\n• 攻擊層次：\n  - L3/L4 攻擊：SYN Flood (發一堆半開連線請求)、UDP Flood (塞滿頻寬)。\n  - L7 攻擊：HTTP Flood (瘋狂按 F5 重新整理網頁)。" }
+                ],
+                quiz: [
+                    { q: "哪一種惡意程式會潛伏在系統中，直到特定條件達成才發作？", options: ["蠕蟲", "邏輯炸彈", "廣告軟體"], ans: 1 },
+                    { q: "大量受感染的電腦被駭客統一指揮進行攻擊，這些電腦被稱為什麼？", options: ["超級電腦", "殭屍網路 (Botnet)", "雲端伺服器"], ans: 1 }
+                ]
+            },
+            // 第二篇
+            {
+                day: 5,
+                module: "第二篇：信任與安全架構",
+                title: "身分認證與管理架構",
+                icon: User,
+                content: [
+                    { title: "AAA 框架詳細解析", text: "資安管理的基石：\n1. Authentication (認證)：你是誰？ (驗證 ID/密碼)\n2. Authorization (授權)：你能做什麼？ (給予讀寫權限)\n3. Accounting (紀錄/稽核)：你做了什麼？ (Log 紀錄、使用時間、流量)" },
+                    { title: "生物特徵認證的指標", text: "指紋、臉部辨識雖然方便，但有誤判可能：\n• FRR (錯誤拒絕率)：你是本人但系統不讓你進 (太嚴格)。\n• FAR (錯誤接受率)：你不是本人但系統讓你進 (太寬鬆，資安大忌)。\n• CER (交錯錯誤率)：FRR 與 FAR 的交叉點，越低代表系統越準確。" },
+                    { title: "零信任 (Zero Trust) 三大原則", text: "1. 顯式驗證 (Verify Explicitly)：不論來自內網外網，都要驗證。\n2. 最小權限 (Least Privilege)：只給剛好夠用的權限，不多給。\n3. 假設已遭入侵 (Assume Breach)：隨時假設駭客已經在內網了，要限制橫向移動。" }
+                ],
+                quiz: [
+                    { q: "在生物辨識中，哪一個指標越低代表系統準確度越高？", options: ["CER", "CPU", "FPS"], ans: 0 },
+                    { q: "AAA 框架中，決定使用者可以存取哪些檔案是屬於哪一項？", options: ["認證", "授權", "稽核"], ans: 1 }
+                ]
+            },
+            {
+                day: 6,
+                module: "第二篇：信任與安全架構",
+                title: "基礎密碼學",
+                icon: Lock,
+                content: [
+                    { title: "密碼學演進", text: "• 凱薩密碼：位移法 (A->C)，容易被頻率分析破解。\n• 恩尼格瑪 (Enigma)：二戰德軍使用的轉子加密機，被圖靈破解。\n• 現代密碼學原則 (Kerckhoffs's principle)：系統的安全性應建立在「金鑰」的保密，而非演算法的保密 (演算法應公開受檢驗)。" },
+                    { title: "對稱式加密 (Symmetric)", text: "• 原理：加解密用同一把鑰匙 (Shared Secret)。\n• 優點：速度快，適合大檔案 (硬碟加密)。\n• 缺點：金鑰交換困難、無法做數位簽章。\n• 演算法：DES (56bit，已遭破解)、3DES (過渡期)、AES (目前標準，推薦 256bit)。\n• 運作模式：ECB (不安全，相同明文產出相同密文)、CBC (較安全，引入初始向量 IV)。" }
+                ],
+                quiz: [
+                    { q: "關於 AES 加密，下列敘述何者正確？", options: ["是非對稱式加密", "目前已被破解不建議使用", "是對稱式加密，為目前主流標準"], ans: 2 },
+                    { q: "現代密碼學認為，系統的安全性應該依賴於什麼？", options: ["演算法的保密", "金鑰的保密", "電腦的運算速度"], ans: 1 }
+                ]
+            },
+            {
+                day: 7,
+                module: "第二篇：信任與安全架構",
+                title: "進階密碼學",
+                icon: Lock,
+                content: [
+                    { title: "非對稱式加密 (Asymmetric)", text: "• 原理：一對鑰匙 (公鑰/私鑰)，數學上相關但無法推導。\n• 應用情境 1 (保密)：用對方的「公鑰」加密，只有對方的「私鑰」能解。\n• 應用情境 2 (認證/簽章)：用自己的「私鑰」加密，大家用我的「公鑰」解。\n• 演算法：RSA (基於大質數因數分解)、ECC (橢圓曲線，金鑰短效能好，適合手機)。" },
+                    { title: "雜湊 (Hashing) 與碰撞", text: "• 特性：單向 (不可逆)、雪崩效應 (改一點點就全變)、固定長度。\n• 用途：驗證完整性 (如下載檔案驗證碼)、儲存密碼 (資料庫不存明碼，存 Hash)。\n• 演算法：MD5 (有碰撞風險，不建議)、SHA-1 (已淘汰)、SHA-256 (目前主流)。\n• 鹽 (Salt)：為了防範彩虹表攻擊，在密碼後加一串隨機亂碼再 Hash。" }
+                ],
+                quiz: [
+                    { q: "小明要傳送機密文件給小華，不希望被別人看到，應使用何種方式加密？", options: ["小明的私鑰", "小華的公鑰", "小華的私鑰"], ans: 1 },
+                    { q: "為了防止駭客利用「彩虹表」破解資料庫中的密碼 Hash，應採取什麼措施？", options: ["使用 AES 加密", "加鹽 (Salting)", "使用 MD5"], ans: 1 }
+                ]
+            },
+            {
+                day: 8,
+                module: "第二篇：信任與安全架構",
+                title: "憑證與網路傳輸安全",
+                icon: CheckCircle,
+                content: [
+                    { title: "PKI 公鑰基礎建設", text: "解決「公鑰歸屬」問題的架構。\n• CA (憑證機構)：數位世界的戶政事務所，發憑證。\n• RA (註冊機構)：負責審核身分 (櫃台人員)。\n• CRL (憑證撤銷清單)：列出遺失或被盜的無效憑證黑名單。\n• OCSP：線上即時查詢憑證狀態的協定。" },
+                    { title: "HTTPS (SSL/TLS) 運作原理", text: "結合對稱與非對稱的優點：\n1. 握手階段 (Handshake)：瀏覽器與伺服器用「非對稱加密 (RSA)」交換一把「臨時的對稱金鑰 (Session Key)」。\n2. 傳輸階段：使用這把 Session Key 進行「對稱加密 (AES)」傳輸資料 (因為 AES 快)。\n3. 憑證驗證：瀏覽器會檢查伺服器的憑證是否由受信任 CA 發放、是否過期。" }
+                ],
+                quiz: [
+                    { q: "瀏覽器如何確認網站的數位憑證是否已被撤銷？", options: ["查詢 DNS", "檢查 CRL 或使用 OCSP", "詢問使用者"], ans: 1 },
+                    { q: "HTTPS 在傳輸大量資料時，實際使用的是哪種加密方式？", options: ["對稱式加密 (如 AES)", "非對稱式加密 (如 RSA)", "雜湊函數"], ans: 0 }
+                ]
+            },
+            {
+                day: 9,
+                module: "第二篇：信任與安全架構",
+                title: "電腦網路模型",
+                icon: BookMarked,
+                content: [
+                    { title: "OSI 七層模型深度解析", text: "封包的旅行過程 (封裝/解封裝)：\n7. 應用層 (Data)：HTTP, FTP, SMTP。\n4. 傳輸層 (Segment)：TCP/UDP，負責 Port 對 Port 傳輸。\n3. 網路層 (Packet)：IP，負責路由選擇 (Router)。\n2. 資料連結層 (Frame)：MAC，負責相鄰設備傳輸 (Switch)。\n1. 實體層 (Bit)：網線、光纖。" },
+                    { title: "TCP 三向交握 (Three-way Handshake)", text: "建立可靠連線的過程：\n1. SYN：你好，我想連線。\n2. SYN-ACK：好的，我收到了，我也想連線。\n3. ACK：好的，那我們開始吧。\n(攻擊點：SYN Flood 就是一直發第一步，不回第三步，耗盡伺服器資源)。" },
+                    { title: "常用 Port 號記憶", text: "• FTP: 21 (檔案傳輸)\n• SSH: 22 (加密遠端登入)\n• Telnet: 23 (明文遠端登入，危險)\n• SMTP: 25 (寄信)\n• DNS: 53 (網址轉 IP)\n• HTTP: 80, HTTPS: 443" }
+                ],
+                quiz: [
+                    { q: "負責路由選擇與 IP 定址的是 OSI 哪一層？", options: ["資料連結層", "網路層", "傳輸層"], ans: 1 },
+                    { q: "駭客利用 SYN Flood 攻擊，是針對 TCP 連線建立中的哪一個步驟進行濫用？", options: ["第一步 SYN", "第二步 SYN-ACK", "第三步 ACK"], ans: 0 }
+                ]
+            },
+            // 第三篇
+            {
+                day: 10,
+                module: "第三篇：數位邊界與防禦部署",
+                title: "防火牆與網路區域",
+                icon: Shield,
+                content: [
+                    { title: "防火牆技術演進", text: "1. 封包過濾 (L3/L4)：只看 IP 和 Port，速度快但笨 (無法防範偽裝連線)。\n2. 狀態檢查 (Stateful Inspection)：記得連線狀態 (如：這是剛才發出去的回應)，較聰明。\n3. 代理伺服器 (Proxy)：代表你去連線，可快取、過濾內容 (L7)，但效能較差。\n4. 次世代防火牆 (NGFW)：結合 IPS、應用層辨識 (看得懂這是 Facebook 還是 YouTube)。" },
+                    { title: "網路區域劃分", text: "• 內部網路 (Trust)：放資料庫、員工電腦。\n• 外部網路 (Untrust)：網際網路。\n• DMZ (非軍事區)：放「對外服務」的伺服器 (Web, Email)。\n規則：外網可連 DMZ，DMZ 不可連內網 (或嚴格限制)，內網可連 DMZ 與外網。" },
+                    { title: "VPN 種類", text: "• Site-to-Site：公司分部連總部 (路由器對路由器)。\n• Remote Access：員工在家連公司 (筆電裝軟體)。\n• 通訊協定：IPSec (L3)、SSL/TLS VPN (L7, 免安裝客戶端，瀏覽器即可)。" }
+                ],
+                quiz: [
+                    { q: "為了安全，Web Server 應該放在網路架構中的哪個區域？", options: ["內部網路 (Intranet)", "DMZ", "外部網路"], ans: 1 },
+                    { q: "哪一種防火牆技術可以理解應用層協定 (如分辨 Facebook 遊戲或貼文)？", options: ["封包過濾", "狀態檢查", "次世代防火牆 (NGFW)"], ans: 2 }
+                ]
+            },
+            {
+                day: 11,
+                module: "第三篇：數位邊界與防禦部署",
+                title: "入侵偵測與防禦系統",
+                icon: AlertCircle,
+                content: [
+                    { title: "IDS/IPS 深入比較", text: "• IDS (偵測)：旁路監聽 (Promiscuous mode)，不影響網速，只能告警。\n• IPS (防禦)：串接在線路中 (Inline)，會影響網速，可即時阻斷 (Drop)。\n• 偵測盲點：如果流量被加密 (HTTPS)，傳統 IDS/IPS 什麼都看不到 (需配合 SSL 解密設備)。" },
+                    { title: "偵測技術分類", text: "1. 特徵碼 (Signature)：比對已知攻擊資料庫 (像指紋)。優點準確，缺點防不了未知攻擊 (Zero-day)。\n2. 異常行為 (Anomaly/Heuristic)：建立基準線 (Baseline)。優點可抓未知攻擊，缺點誤判率 (False Positive) 高。\n(誤判：把正常當惡意；漏判：把惡意當正常，漏判較嚴重)。" },
+                    { title: "蜜罐 (Honeypot)", text: "故意設置一台充滿漏洞的假伺服器，引誘駭客攻擊。目的：延緩攻擊、蒐集駭客手法、轉移目標。" }
+                ],
+                quiz: [
+                    { q: "依靠「基準線」來判斷是否異常的偵測技術稱為？", options: ["特徵碼偵測", "異常行為偵測", "規則庫偵測"], ans: 1 },
+                    { q: "將正常流量誤判為攻擊流量，在術語上稱為什麼？", options: ["False Positive (誤判)", "False Negative (漏判)", "True Positive"], ans: 0 }
+                ]
+            },
+            {
+                day: 12,
+                module: "第三篇：數位邊界與防禦部署",
+                title: "系統強化與防毒",
+                icon: Shield,
+                content: [
+                    { title: "零時差攻擊 (Zero-day Exploit)", text: "指漏洞剛被發現，原廠還沒發布修補程式 (Patch) 之前的空窗期。這是最危險的時刻，防毒軟體通常抓不到，需靠行為分析或虛擬補丁防禦。" },
+                    { title: "系統強化 (System Hardening) 實務", text: "1. 移除不必要的軟體與服務 (減少攻擊面)。\n2. 關閉不必要的 Port (如 23, 445)。\n3. 修改預設帳密 (admin/1234)。\n4. 啟用稽核紀錄 (Logging)。\n5. 定期修補 (Patch Management)：這是最有效但也最常被忽略的防禦。" },
+                    { title: "端點偵測與回應 (EDR)", text: "傳統防毒只擋病毒，EDR 像是安裝在電腦上的監視器，記錄所有行為 (執行緒、網路連線)。即使病毒沒被防毒抓到，EDR 也能透過行為軌跡發現並遠端隔離電腦。" }
+                ],
+                quiz: [
+                    { q: "漏洞已被發現但原廠尚未釋出更新檔的攻擊稱為？", options: ["DDoS", "零時差攻擊 (Zero-day)", "釣魚攻擊"], ans: 1 },
+                    { q: "除了安裝防毒軟體，最基礎且有效的系統防護措施是什麼？", options: ["每天重灌", "定期更新修補程式 (Patch)", "更換鍵盤"], ans: 1 }
+                ]
+            },
+            // 第四篇
+            {
+                day: 13,
+                module: "第四篇：資訊安全管理與未來挑戰",
+                title: "營運持續與風險管理",
+                icon: Award,
+                content: [
+                    { title: "風險評估方法", text: "• 定量分析 (Quantitative)：用錢算。SLE (單次損失) x ARO (年發生率) = ALE (年預期損失)。\n• 定性分析 (Qualitative)：用等級算 (高/中/低)。使用「風險矩陣 (Risk Matrix)」(衝擊 x 機率)。" },
+                    { title: "備援站點策略", text: "當主機房失火，要去哪裡上班？\n• 冷站 (Cold Site)：只有空房子和水電，設備要自己搬，復原最慢，最便宜。\n• 溫站 (Warm Site)：有設備但資料不新，需回存備份，復原中等。\n• 熱站 (Hot Site)：設備資料同步，可即時切換，最貴。" },
+                    { title: "營運持續計畫 (BCP)", text: "不只是 IT 的事，包含人員安全、辦公地點、核心業務流程的維持。DRP (災難復原) 只是 BCP 的一部分，專注於 IT 系統的恢復。" }
+                ],
+                quiz: [
+                    { q: "哪一種備援站點擁有即時同步的資料，可最快恢復運作？", options: ["冷站", "溫站", "熱站"], ans: 2 },
+                    { q: "計算風險的「年預期損失 (ALE)」屬於哪種分析法？", options: ["定性分析", "定量分析", "混合分析"], ans: 1 }
+                ]
+            },
+            {
+                day: 14,
+                module: "第四篇：資訊安全管理與未來挑戰",
+                title: "網頁與應用程式安全",
+                icon: BookOpen,
+                content: [
+                    { title: "OWASP Top 10 進階", text: "• SQL Injection：輸入 `' OR 1=1 --` 竊取資料庫。\n• XSS (跨站腳本)：在網頁留言板植入惡意 JavaScript，竊取別人的 Cookie (身分證)。\n• Broken Access Control：沒檢查權限，讓一般使用者能看到後台管理頁面。\n• SSRF (伺服器端請求偽造)：騙伺服器去連內網的其他機器。" },
+                    { title: "安全軟體開發 (SSDLC)", text: "資安不能等寫完程式才做 (那是滲透測試)。要「左移 (Shift Left)」，從需求分析、設計階段就加入資安考量。\n• SAST (靜態分析)：掃描原始碼 (Source Code)。\n• DAST (動態分析)：掃描執行中的網頁 (黑箱)。" },
+                    { title: "CSRF (跨站請求偽造)", text: "利用使用者的身分 (Cookie)，偷偷幫他發出請求 (如：偷偷幫你轉帳、發文)。防禦：使用 CSRF Token。" }
+                ],
+                quiz: [
+                    { q: "攻擊者在論壇留言中植入惡意 JavaScript，導致讀取者瀏覽時被竊取 Cookie，這是？", options: ["SQL Injection", "XSS", "DDoS"], ans: 1 },
+                    { q: "在軟體開發生命週期越早階段發現漏洞，修復成本會？", options: ["越低", "越高", "不變"], ans: 0 }
+                ]
+            },
+            {
+                day: 15,
+                module: "第四篇：資訊安全管理與未來挑戰",
+                title: "新興威脅與總結",
+                icon: Feather,
+                content: [
+                    { title: "供應鏈攻擊 (Supply Chain Attack)", text: "駭客發現大公司很難攻破，於是改攻它的軟體供應商或外包商。案例：SolarWinds 事件，駭客在官方更新檔中植入後門，導致下載更新的客戶全部中招。" },
+                    { title: "進階持續性威脅 (APT)", text: "國家級駭客的特徵：\n1. 針對性強 (鎖定特定目標)。\n2. 長期潛伏 (低調，慢慢偷)。\n3. 手法複雜 (結合社交工程、零時差漏洞)。\n防禦極難，需依賴威脅情資 (Threat Intelligence) 與異常行為分析。" },
+                    { title: "雲端安全責任共擔", text: "• IaaS (如 AWS EC2)：廠商管硬體，你管 OS、App、Data (責任最大)。\n• PaaS (如 Heroku)：廠商管 OS，你管 App、Data。\n• SaaS (如 Gmail)：廠商管幾乎所有，你管帳號權限與設定 (責任最小)。" }
+                ],
+                quiz: [
+                    { q: "駭客攻擊軟體更新伺服器，導致所有下載更新的用戶受駭，這是？", options: ["供應鏈攻擊", "勒索軟體", "社交工程"], ans: 0 },
+                    { q: "使用 SaaS 服務 (如 Google Drive) 時，使用者主要需負責什麼安全？", options: ["實體機房安全", "作業系統更新", "帳號權限與資料設定"], ans: 2 }
+                ]
+            }
+        ];
+
+        // --- Components ---
+
+        const MouseEffect = () => {
+            useEffect(() => {
+                const dot = document.getElementById("cursor-dot");
+                const outline = document.getElementById("cursor-outline");
+
+                const moveCursor = (e) => {
+                    const posX = e.clientX;
+                    const posY = e.clientY;
+
+                    dot.style.left = `${posX}px`;
+                    dot.style.top = `${posY}px`;
+
+                    // Simple delay effect for outline
+                    outline.animate({
+                        left: `${posX}px`,
+                        top: `${posY}px`
+                    }, { duration: 500, fill: "forwards" });
+                };
+
+                window.addEventListener("mousemove", moveCursor);
+                return () => window.removeEventListener("mousemove", moveCursor);
+            }, []);
+            return null; // Logic only
+        };
+
+        const ProgressBar = ({ completed, total }) => {
+            const percentage = Math.round((completed / total) * 100);
+            return (
+                <div className="w-full mb-8">
+                    <div className="flex justify-between mb-2 text-sm text-[#748B6F] font-serif font-bold">
+                        <span>修煉進度</span>
+                        <span>{percentage}%</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-[#E0E0E0] rounded-full overflow-hidden">
+                        <div 
+                            className="h-full bg-[#748B6F] transition-all duration-1000 ease-out"
+                            style={{ width: `${percentage}%` }}
+                        ></div>
+                    </div>
+                </div>
+            );
+        };
+
+        const Quiz = ({ data, onPass }) => {
+            const [answers, setAnswers] = useState({});
+            const [submitted, setSubmitted] = useState(false);
+            const [score, setScore] = useState(0);
+
+            const handleSelect = (qIdx, optIdx) => {
+                if (submitted) return;
+                setAnswers(prev => ({ ...prev, [qIdx]: optIdx }));
+            };
+
+            const handleSubmit = () => {
+                let correctCount = 0;
+                data.forEach((q, idx) => {
+                    if (answers[idx] === q.ans) correctCount++;
+                });
+                setScore(correctCount);
+                setSubmitted(true);
+                if (correctCount === data.length) {
+                    onPass();
+                }
+            };
+
+            return (
+                <div className="mt-8 p-6 bg-[#F9F7F2] border-t-2 border-[#E8E6DF] rounded-sm">
+                    <h3 className="text-xl font-serif text-[#748B6F] mb-6 flex items-center gap-2">
+                        <Feather size={20} /> 自我修煉檢測
+                    </h3>
+                    
+                    {data.map((q, idx) => (
+                        <div key={idx} className="mb-6">
+                            <p className="font-medium text-[#3E3C38] mb-3">{idx + 1}. {q.q}</p>
+                            <div className="space-y-2">
+                                {q.options.map((opt, optIdx) => {
+                                    let itemClass = "flex items-center p-3 rounded-lg border cursor-pointer transition-all ";
+                                    if (submitted) {
+                                        if (optIdx === q.ans) itemClass += "border-[#748B6F] bg-[#E8F5E9] text-[#2E7D32]"; // Correct
+                                        else if (answers[idx] === optIdx && optIdx !== q.ans) itemClass += "border-red-300 bg-red-50 text-red-700"; // Wrong
+                                        else itemClass += "border-gray-200 opacity-50";
+                                    } else {
+                                        itemClass += answers[idx] === optIdx 
+                                            ? "border-[#748B6F] bg-[#F0F5F0]" 
+                                            : "border-gray-200 hover:bg-white hover:border-gray-300";
+                                    }
+
+                                    return (
+                                        <div key={optIdx} 
+                                             onClick={() => handleSelect(idx, optIdx)}
+                                             className={itemClass}>
+                                            <div className={`w-4 h-4 rounded-full border mr-3 flex items-center justify-center
+                                                ${answers[idx] === optIdx ? 'border-[#748B6F]' : 'border-gray-400'}`}>
+                                                {answers[idx] === optIdx && <div className="w-2 h-2 rounded-full bg-[#748B6F]"></div>}
+                                            </div>
+                                            <span className="text-sm">{opt}</span>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    ))}
+
+                    {!submitted ? (
+                        <button 
+                            onClick={handleSubmit}
+                            disabled={Object.keys(answers).length !== data.length}
+                            className={`w-full py-3 rounded text-white font-serif tracking-widest transition-all
+                                ${Object.keys(answers).length === data.length 
+                                ? 'bg-[#748B6F] hover:bg-[#5D7059] shadow-md' 
+                                : 'bg-gray-300 cursor-not-allowed'}`}
+                        >
+                            提交卷軸
+                        </button>
+                    ) : (
+                        <div className="text-center fade-in">
+                            {score === data.length ? (
+                                <div className="p-4 bg-[#F0F5F0] border border-[#748B6F] text-[#2E7D32] rounded">
+                                    <p className="font-bold text-lg mb-1">修煉成功！</p>
+                                    <p className="text-sm">您已掌握今日精髓，獲得完課印章。</p>
+                                </div>
+                            ) : (
+                                <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded">
+                                    <p className="font-bold mb-1">修煉未成</p>
+                                    <p className="text-sm">請重新複習重點後，再次挑戰 (刷新頁面重試)。</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [user, setUser] = useState(null);
+            const [currentDay, setCurrentDay] = useState(1);
+            const [completedDays, setCompletedDays] = useState([]);
+            const [nicknameInput, setNicknameInput] = useState("");
+
+            useEffect(() => {
+                const savedUser = localStorage.getItem("sec_user");
+                if (savedUser) {
+                    const parsed = JSON.parse(savedUser);
+                    setUser(parsed);
+                    setCompletedDays(parsed.completedDays || []);
+                    // Find first incomplete day or stay at 1
+                    const nextDay = (parsed.completedDays?.length || 0) + 1;
+                    setCurrentDay(nextDay > 15 ? 15 : nextDay);
+                }
+            }, []);
+
+            const handleLogin = () => {
+                if (!nicknameInput.trim()) return;
+                const newUser = { name: nicknameInput, completedDays: [] };
+                // Check if user exists in local storage logic could be here, but simpler to just overwrite or load if match
+                // For this demo, let's just create session
+                localStorage.setItem("sec_user", JSON.stringify(newUser));
+                setUser(newUser);
+            };
+
+            const markComplete = (day) => {
+                if (!completedDays.includes(day)) {
+                    const newCompleted = [...completedDays, day];
+                    setCompletedDays(newCompleted);
+                    const updatedUser = { ...user, completedDays: newCompleted };
+                    setUser(updatedUser);
+                    localStorage.setItem("sec_user", JSON.stringify(updatedUser));
+                }
+            };
+
+            // Calculate active content
+            const activeContent = curriculumData.find(d => d.day === currentDay);
+
+            if (!user) {
+                return (
+                    <div className="min-h-screen flex items-center justify-center bg-paper p-4">
+                        <MouseEffect />
+                        <div className="max-w-md w-full bg-white p-10 shadow-xl border-t-4 border-[#748B6F] rounded-sm text-center fade-in">
+                            <Shield className="w-16 h-16 text-[#748B6F] mx-auto mb-6" strokeWidth={1.5} />
+                            <h1 className="text-3xl font-serif font-bold text-[#3E3C38] mb-2">資安新手村</h1>
+                            <p className="text-gray-500 mb-8 font-serif italic">十五日修煉．從零打造防禦壁壘</p>
+                            
+                            <div className="space-y-4">
+                                <input 
+                                    type="text" 
+                                    placeholder="請留下您的修煉代號 (暱稱)" 
+                                    className="w-full p-3 border-b-2 border-gray-200 focus:border-[#748B6F] outline-none bg-transparent text-center text-lg transition-colors placeholder:text-gray-300"
+                                    value={nicknameInput}
+                                    onChange={(e) => setNicknameInput(e.target.value)}
+                                />
+                                <button 
+                                    onClick={handleLogin}
+                                    className="w-full bg-[#3E3C38] text-[#F2F0E9] py-3 rounded hover:bg-[#5C5A55] transition-colors font-serif tracking-widest"
+                                >
+                                    開啟卷軸
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen flex flex-col md:flex-row bg-[#F2F0E9]">
+                    <MouseEffect />
+                    
+                    {/* Sidebar / Navigation */}
+                    <aside className="w-full md:w-80 bg-[#EBE9E1] border-r border-[#D1CDC0] flex flex-col h-screen sticky top-0 overflow-y-auto">
+                        <div className="p-8 border-b border-[#D1CDC0]">
+                            <h2 className="text-2xl font-serif font-bold text-[#3E3C38] mb-2">資安修煉錄</h2>
+                            <div className="flex items-center text-sm text-gray-500 gap-2 mb-4">
+                                <User size={14} /> <span>{user.name}</span>
+                            </div>
+                            <ProgressBar completed={completedDays.length} total={15} />
+                        </div>
+                        
+                        <div className="flex-1 py-4">
+                            {curriculumData.map((item) => {
+                                const isCompleted = completedDays.includes(item.day);
+                                const isActive = currentDay === item.day;
+                                const isLocked = !isCompleted && item.day > (Math.max(...completedDays, 0) + 1);
+
+                                return (
+                                    <div 
+                                        key={item.day}
+                                        onClick={() => !isLocked && setCurrentDay(item.day)}
+                                        className={`px-6 py-4 cursor-pointer flex items-center justify-between transition-all border-b border-transparent hover:bg-[#E0DED5]
+                                            ${isActive ? 'bg-[#FFFCF5] border-l-4 border-l-[#748B6F] shadow-sm' : ''}
+                                            ${isLocked ? 'opacity-40 cursor-not-allowed' : ''}
+                                        `}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-serif
+                                                ${isCompleted ? 'bg-[#748B6F] text-white' : isActive ? 'bg-[#3E3C38] text-white' : 'bg-[#D1CDC0] text-gray-600'}
+                                            `}>
+                                                {isCompleted ? <CheckCircle size={14} /> : item.day}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] uppercase tracking-wider text-gray-400 font-serif">Day {item.day}</span>
+                                                <span className={`text-sm font-medium ${isActive ? 'text-[#3E3C38]' : 'text-gray-600'}`}>{item.title}</span>
+                                            </div>
+                                        </div>
+                                        {isLocked && <Lock size={14} className="text-gray-400" />}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </aside>
+
+                    {/* Main Content Area */}
+                    <main className="flex-1 overflow-y-auto bg-paper relative">
+                        <div className="max-w-3xl mx-auto p-8 md:p-16 min-h-screen flex flex-col">
+                            
+                            {/* Header */}
+                            <header className="mb-12 text-center border-b pb-8 border-gray-200">
+                                <span className="inline-block px-3 py-1 bg-[#F0F5F0] text-[#748B6F] text-xs tracking-widest rounded-full mb-4 font-serif">
+                                    {activeContent.module}
+                                </span>
+                                <h1 className="text-4xl md:text-5xl font-serif text-[#3E3C38] mb-6 leading-tight">
+                                    {activeContent.title}
+                                </h1>
+                                <div className="flex justify-center items-center gap-2 text-gray-400">
+                                    <activeContent.icon size={20} strokeWidth={1.5} />
+                                    <span className="text-sm font-serif italic">Day {activeContent.day}</span>
+                                </div>
+                            </header>
+
+                            {/* Content Body */}
+                            <div className="flex-1 space-y-12">
+                                {activeContent.content.map((block, idx) => (
+                                    <section key={idx} className="group">
+                                        <h3 className="text-xl font-serif font-bold text-[#3E3C38] mb-4 pl-4 border-l-2 border-[#D2B48C] group-hover:border-[#748B6F] transition-colors">
+                                            {block.title}
+                                        </h3>
+                                        <p className="text-gray-600 leading-8 text-justify whitespace-pre-line">
+                                            {block.text}
+                                        </p>
+                                    </section>
+                                ))}
+                            </div>
+
+                            {/* Quiz / Completion */}
+                            <div className="mt-16">
+                                {completedDays.includes(activeContent.day) ? (
+                                    <div className="p-8 bg-[#F0F5F0] border border-[#748B6F] rounded-lg text-center relative overflow-hidden">
+                                        <div className="absolute -right-4 -bottom-4 opacity-10 text-[#748B6F]">
+                                            <Award size={120} />
+                                        </div>
+                                        <h3 className="text-2xl font-serif text-[#2E7D32] mb-2 flex items-center justify-center gap-2">
+                                            <Award /> 修煉完成
+                                        </h3>
+                                        <p className="text-gray-600 mb-6">您已通過本日的試煉。</p>
+                                        {activeContent.day < 15 && (
+                                            <button 
+                                                onClick={() => setCurrentDay(activeContent.day + 1)}
+                                                className="px-6 py-2 bg-[#748B6F] text-white rounded hover:bg-[#5D7059] transition-colors flex items-center gap-2 mx-auto"
+                                            >
+                                                進入下一章 <ChevronRight size={16} />
+                                            </button>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <Quiz 
+                                        data={activeContent.quiz} 
+                                        onPass={() => markComplete(activeContent.day)} 
+                                    />
+                                )}
+                            </div>
+                            
+                            {/* Footer decoration */}
+                            <div className="mt-20 text-center">
+                                <div className="inline-block w-2 h-2 rounded-full bg-[#D1CDC0] mx-1"></div>
+                                <div className="inline-block w-2 h-2 rounded-full bg-[#D1CDC0] mx-1"></div>
+                                <div className="inline-block w-2 h-2 rounded-full bg-[#D1CDC0] mx-1"></div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
