@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資通安全 14天進階訓練營</title>
+    
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 設定 ES Modules 的 Import Map -->
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18",
+          "react-dom/client": "https://esm.sh/react-dom@18/client",
+          "firebase/app": "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js",
+          "firebase/auth": "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js",
+          "firebase/firestore": "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"
+        }
+      }
+    </script>
+    
+    <!-- 引入 Babel (讓瀏覽器直接編譯 JSX) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body { background-color: #F8FAF9; }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .prose p { margin-bottom: 1em; line-height: 1.7; }
+        .prose ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        .prose strong { color: #065f46; }
+        /* 隱藏滾動條但保留功能 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="font-sans text-stone-800 selection:bg-emerald-200 selection:text-emerald-900">
+
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { initializeApp } from 'firebase/app';
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+        import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+
+        // --- 安全的 Firebase 初始化 (防白畫面處理) ---
+        let isFirebaseReady = false;
+        let app, auth, db;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'cyber-security-camp-01';
+
+        try {
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                const config = JSON.parse(__firebase_config);
+                // 檢查是否有設定檔，避免空物件造成崩潰
+                if (Object.keys(config).length > 0) {
+                    app = initializeApp(config);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+                    isFirebaseReady = true;
+                }
+            }
+        } catch (error) {
+            console.warn("未偵測到雲端設定，已自動切換為單機閱讀模式");
+        }
+
+        // --- SVG 圖示元件 ---
+        const ShieldCheck = ({ className }) => (<svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>);
+        const BookOpen = ({ className }) => (<svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>);
+        const CheckCircle = ({ className }) => (<svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>);
+        const ChevronRight = ({ className }) => (<svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>);
+        const ChevronDown = ({ className }) => (<svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>);
+        const MenuIcon = ({ className }) => (<svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>);
+        const XIcon = ({ className }) => (<svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>);
+        const Award = ({ className }) => (<svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>);
+        const AlertCircle = ({ className }) => (<svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>);
+        const SaveIcon = ({ className }) => (<svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>);
+        const HardDriveIcon = ({ className }) => (<svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="12" x2="2" y2="12"></line><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path><line x1="6" y1="16" x2="6.01" y2="16"></line><line x1="10" y1="16" x2="10.01" y2="16"></line></svg>);
+
+        // --- 深度進階課程資料庫 ---
+        const courseData = [
+          {
+            day: 1,
+            title: "資通安全基本觀念",
+            sections: [
+              {
+                title: "1. 資通系統之組成五大要素",
+                content: `
+                  <p>在資安防護中，我們防護的對象不僅僅是「電腦」，而是一個完整的「資通系統」。資通系統主要由五個核心要素組成，缺一不可：</p>
+                  <ul>
+                    <li><strong>人員 (People)：</strong>系統的設計者、管理者與使用者。這是最關鍵也是最脆弱的一環。再堅固的防火牆也防不住將密碼貼在螢幕上的員工。</li>
+                    <li><strong>硬體 (Hardware)：</strong>包含伺服器、個人電腦、行動裝置、網路設備（如路由器、交換器）及儲存媒體。實體安全的防護（如門禁管制）主要針對此項。</li>
+                    <li><strong>軟體 (Software)：</strong>分為系統軟體（如 Windows, Linux）與應用軟體（如 ERP, 網頁系統）。軟體漏洞往往是駭客入侵最常利用的破口。</li>
+                    <li><strong>資料 / 資訊 (Data / Information)：</strong>儲存在硬體或透過網路傳輸的數位資產。保護資料的機密與完整，是資安的核心目的。</li>
+                    <li><strong>網路 (Network)：</strong>連接各設備的通道。網路的存在大幅提升了便利性，但也將風險延伸至全球各地。</li>
+                  </ul>
+                  <p><strong>實務重點：</strong>在進行資安盤點時，必須這五個面向同步考量，不能僅偏重軟硬體而忽略了人員訓練與資料管理。</p>
+                `
+              },
+              {
+                title: "2. 核心防護目標 (CIA Triad)",
+                content: `
+                  <p>無論是何種資安設備或管理政策，最終目標都是為了維持資訊安全的三大核心基石（CIA）：</p>
+                  <ul>
+                    <li><strong>機密性 (Confidentiality)：</strong>確保只有經過授權的人或系統，才能存取特定的資訊。
+                      <br/><em>實務作法：</em>設定帳號密碼、實施多因子鑑別(MFA)、將硬碟資料加密、傳輸時使用 HTTPS。
+                    </li>
+                    <li><strong>完整性 (Integrity)：</strong>確保資訊在儲存或傳輸的過程中，不會遭到未經授權的竄改、破壞或遺失。
+                      <br/><em>實務作法：</em>使用雜湊函數 (Hash) 檢查檔案指紋、數位簽章、資料庫異動稽核紀錄。
+                    </li>
+                    <li><strong>可用性 (Availability)：</strong>確保獲得授權的使用者在需要存取資訊與系統時，能夠順利且無延遲地取得。
+                      <br/><em>實務作法：</em>建置不斷電系統(UPS)、異地備援機房、負載平衡器、防範 DDoS 攻擊的流量清洗服務。
+                    </li>
+                  </ul>
+                `
+              },
+              {
+                title: "3. 進階防護目標：鑑別性與不可否認性",
+                content: `
+                  <p>隨著數位交易與電子化政府的發展，除了 CIA 之外，還有兩個重要的延伸目標：</p>
+                  <ul>
+                    <li><strong>鑑別性 (Authentication)：</strong>證明使用者宣稱的身分是真實的。例如，除了輸入帳號，還需確認密碼與手機簡訊。</li>
+                    <li><strong>不可否認性 (Non-repudiation)：</strong>確保通訊的雙方無法否認曾經參與過該次通訊或交易。這在電子商務或公文簽核中極為重要。
+                      <br/><em>實務作法：</em>最常見的技術是結合 PKI（公開金鑰基礎建設）的「數位簽章」，例如使用自然人憑證進行報稅，事後無法否認該筆申報。
+                    </li>
+                  </ul>
+                `
+              }
+            ],
+            quiz: [
+              { q: "資通系統組成的五大要素中，哪一項通常被認為是最容易受到社交工程攻擊的脆弱環節？", options: ["硬體", "軟體", "人員", "網路"], ans: 2 },
+              { q: "資通安全防護的「CIA」核心目標不包含下列何者？", options: ["機密性", "完整性", "可用性", "不可否認性"], ans: 3 },
+              { q: "建置異地備援機房，當主機房斷電時能立刻接手，是為了維持系統的？", options: ["機密性", "完整性", "可用性", "可歸責性"], ans: 2 },
+              { q: "自然人憑證報稅系統使用數位簽章技術，讓報稅者事後無法抵賴，這實現了哪項資安目標？", options: ["鑑別性", "不可否認性", "可用性", "機密性"], ans: 1 },
+              { q: "確保資料在傳輸過程中沒有被駭客偷偷竄改，是為了達成哪一項資安目標？", options: ["機密性", "完整性", "可用性", "鑑別性"], ans: 1 }
+            ]
+          },
+          {
+            day: 2,
+            title: "我國資安管理體系與法規 (上)",
+            sections: [
+              {
+                title: "1. 國家資通安全管理體系",
+                content: `
+                  <p>為了建立安全可信賴的國家數位環境，我國建立了完善的權責體系：</p>
+                  <ul>
+                    <li><strong>決策單位：行政院國家資通安全會報。</strong>負責國家整體資通安全政策之決策、跨部會協調與資源分配。由行政院副院長擔任召集人。</li>
+                    <li><strong>中央主管機關：數位發展部 (moda)。</strong>負責統籌規劃國家資安政策。</li>
+                    <li><strong>專責機關：數位發展部資通安全署。</strong>為實際執行與推動國家資通安全業務的核心機關。</li>
+                    <li><strong>各目的事業主管機關：</strong>例如金管會負責督導金融業、衛福部負責督導醫療體系的資安防護與事件通報。</li>
+                  </ul>
+                `
+              },
+              {
+                title: "2. 《資通安全管理法》適用對象",
+                content: `
+                  <p>資安法並非規範全體國民，而是針對掌握重要資料或國家運作核心的機關。適用對象分為兩大類：</p>
+                  <ul>
+                    <li><strong>公務機關：</strong>依法行使公權力之中央、地方機關及公立學校。</li>
+                    <li><strong>特定非公務機關：</strong>包含三類：
+                      <ol class="list-decimal pl-6 mt-2 mb-2">
+                        <li><strong>關鍵基礎設施提供者 (CI)：</strong>如台電、中油、高鐵、大型醫院。若其系統停擺，將嚴重影響國家安全與社會運作。</li>
+                        <li><strong>公營事業：</strong>如台糖、台水。</li>
+                        <li><strong>政府捐助比例達50%之財團法人：</strong>如工研院、資策會。</li>
+                      </ol>
+                    </li>
+                  </ul>
+                  <p><em>注意：一般純民營企業（如網購平台、私立學校）不受資安法直接規範，而是受個資法或其目的事業主管機關之規定約束。</em></p>
+                `
+              }
+            ],
+            quiz: [
+              { q: "我國負責國家整體資安政策「決策與跨部會協調」的最高層級組織是？", options: ["數位發展部", "國家安全局", "行政院國家資通安全會報", "內政部警政署"], ans: 2 },
+              { q: "目前我國《資通安全管理法》的中央主管機關是？", options: ["數位發展部", "經濟部", "行政院", "國家科學及技術委員會"], ans: 0 },
+              { q: "下列何者「非屬」《資通安全管理法》所規範的「特定非公務機關」？", options: ["關鍵基礎設施提供者 (如高鐵)", "公營事業 (如台水)", "政府捐助比例達50%之財團法人", "純民營之大型連鎖百貨公司"], ans: 3 },
+              { q: "醫療體系醫院若發生重大資安事件，其「中央目的事業主管機關」是哪個單位？", options: ["數位發展部", "衛生福利部", "內政部", "教育部"], ans: 1 },
+              { q: "《資通安全管理法》的立法精神主要在於？", options: ["監控民眾上網行為", "建立安全可信賴之國家資通環境", "處罰寫錯程式的工程師", "強制推廣國產軟體"], ans: 1 }
+            ]
+          },
+          {
+            day: 3,
+            title: "我國資安管理體系與法規 (下)",
+            sections: [
+              {
+                title: "1. 資安法重要子法概覽",
+                content: `
+                  <p>資安法母法僅訂定大原則，具體執行細節規範在六部子法中，其中最關鍵的包含：</p>
+                  <ul>
+                    <li><strong>《資通安全責任等級分級辦法》：</strong>將各機關依據業務重要性、機敏資料量，分為 A、B、C、D、E 五個等級。等級越高（如 A 級），需要落實的資安防護基準與稽核頻率越嚴格。</li>
+                    <li><strong>《資通安全事件通報及應變辦法》：</strong>明確規範當系統被駭或資料外洩時，必須在「知悉後 1 小時內」完成通報，並依事件等級（1~4級）於規定時間內完成損害控制與復原。</li>
+                    <li><strong>《資通安全情資分享辦法》：</strong>推動國家級資安聯防，建立情資分享機制（如 TWCERT/CC），讓某個機關遭受的新型態攻擊特徵，能迅速分享給其他機關預先防範。</li>
+                  </ul>
+                `
+              },
+              {
+                title: "2. 橫向配合法規 (個資法與刑法)",
+                content: `
+                  <p>資安防護不僅僅是遵守資安法，還會牽涉到其他法律：</p>
+                  <ul>
+                    <li><strong>《個人資料保護法》：</strong>資安法保護「系統設備與整體資料」，個資法則專注於保護「自然人的隱私」。若機關系統被駭導致民眾個資外洩，不僅違反資安法，更會面臨個資法的民事求償與行政裁罰。</li>
+                    <li><strong>《刑法》妨害電腦使用罪章：</strong>針對駭客的惡意行為訂定刑罰。包含：
+                      <ul class="list-circle pl-6 mt-1 text-sm text-stone-600">
+                        <li>第 358 條：無故輸入他人帳號密碼、破解使用電腦之保護措施而入侵他人電腦。</li>
+                        <li>第 359 條：無故取得、刪除或變更他人電腦之電磁紀錄。</li>
+                        <li>第 360 條：無故以電腦程式干擾他人電腦（如 DDoS 攻擊）。</li>
+                      </ul>
+                    </li>
+                  </ul>
+                `
+              }
+            ],
+            quiz: [
+              { q: "規定公務機關需依據其重要程度(A到E級)實施不同資安防護基準的法規是？", options: ["資通安全事件通報及應變辦法", "資通安全責任等級分級辦法", "個人資料保護法", "刑法"], ans: 1 },
+              { q: "某駭客無故猜中並登入主管的電子信箱，此行為直接觸犯了？", options: ["著作權法", "個人資料保護法", "刑法(妨害電腦使用罪)", "民法"], ans: 2 },
+              { q: "《資通安全管理法》與《個人資料保護法》的關係，下列描述何者正確？", options: ["資安法已取代個資法", "兩者相輔相成，落實資安措施是保護個資的關鍵基礎", "遵守資安法就絕對不可能違反個資法", "兩者完全無關"], ans: 1 },
+              { q: "機關在收集民眾資料辦理活動時，若未善盡保管責任導致資料外洩，可能違反？", options: ["個人資料保護法", "國家機密保護法", "營業秘密法", "洗錢防制法"], ans: 0 },
+              { q: "《資通安全情資分享辦法》的目的主要是？", options: ["分享民眾個資給行銷公司", "促進威脅情資的交流，達成國家資安聯防", "公開政府機密文件", "販售資安軟體給民間"], ans: 1 }
+            ]
+          },
+          {
+            day: 4,
+            title: "資安風險管理 (上)",
+            sections: [
+              {
+                title: "1. 什麼是風險管理？",
+                content: `<p>資源是有限的，我們不可能把所有的系統都加上最高等級的防護。風險管理的核心概念是：<strong>找出最致命的弱點與最有價值的資產，將有限的預算花在刀口上。</strong></p>
+                <p>風險管理包含四大階段：全景建立 ➔ 風險評鑑 ➔ 風險處理 ➔ 風險溝通與監控。</p>`
+              },
+              {
+                title: "2. 風險評鑑 (Risk Assessment) 的三元素",
+                content: `<p>要評估一個風險有多高，我們必須先辨識出三個元素：</p>
+                <ul>
+                  <li><strong>資產 (Asset)：</strong>對組織有價值的東西（如：客戶資料庫、對外官網）。</li>
+                  <li><strong>威脅 (Threat)：</strong>可能對資產造成傷害的外部或內部因素（如：勒索軟體、地震、心懷不滿的員工）。</li>
+                  <li><strong>脆弱性 / 弱點 (Vulnerability)：</strong>資產本身存在的缺陷（如：系統未更新修補程式、員工缺乏資安意識、機房沒有防水閘門）。</li>
+                </ul>
+                <p><strong>風險 = 威脅 × 脆弱性 × 衝擊程度。</strong> 當威脅利用了脆弱性，對資產造成傷害，風險就發生了。</p>`
+              }
+            ],
+            quiz: [
+              { q: "在風險評鑑中，找出可能對資產造成傷害的來源（如：駭客、地震），稱之為識別？", options: ["脆弱性", "威脅", "控制措施", "衝擊"], ans: 1 },
+              { q: "系統未更新修補程式（Patch）而存在漏洞，在風險管理中屬於哪一種要素？", options: ["威脅", "資產", "脆弱性 (弱點)", "風險處理"], ans: 2 },
+              { q: "風險管理的最終目的為何？", options: ["將所有風險降到零", "將風險控制在組織可接受的水準，並將資源最佳化配置", "買最多的資安設備", "開除犯錯的員工"], ans: 1 },
+              { q: "風險值的計算通常考慮哪兩個主要維度？", options: ["時間與空間", "機率(可能性)與衝擊(嚴重度)", "成本與硬體", "軟體與網路"], ans: 1 },
+              { q: "資安風險管理流程的第一步通常是？", options: ["風險處理", "風險溝通", "全景建立 (確定範圍與環境)", "風險保留"], ans: 2 }
+            ]
+          },
+          {
+            day: 5,
+            title: "資安風險管理 (下)",
+            sections: [
+              {
+                title: "1. 風險處理的四大策略",
+                content: `<p>當我們計算出風險值，並發現它高於組織「可接受的標準」時，就必須採取行動。常見的四種策略為：</p>
+                <ul>
+                  <li><strong>風險降低 / 修改 (Mitigate)：</strong>最常見的做法。透過實施控制措施來降低發生機率或減輕衝擊。例如：為防止資料遺失，建置自動備份系統。</li>
+                  <li><strong>風險避免 (Avoid)：</strong>直接停止產生該風險的業務活動。例如：發現某個舊版 App 漏洞太多無法修補，決定直接下架停用。</li>
+                  <li><strong>風險分擔 / 轉移 (Transfer)：</strong>將風險的財務損失或管理責任轉嫁給第三方。例如：購買「資安險」，或將系統委外給專業的雲端機房代管。</li>
+                  <li><strong>風險接受 / 留存 (Accept)：</strong>當處理風險的成本遠大於可能造成的損失，或風險已降至極低時，經「高階主管」簽核同意後，決定不採取額外行動，與風險共存。</li>
+                </ul>`
+              },
+              {
+                title: "2. 殘餘風險 (Residual Risk)",
+                content: `<p>實施了風險降低措施（如安裝防火牆）後，風險通常會下降，但極少會降到「零」。<strong>控制措施實施後依然存在的風險，稱為「殘餘風險」。</strong> 組織必須確認這個殘餘風險是否落在可接受的範圍內。</p>`
+              }
+            ],
+            quiz: [
+              { q: "為防止資料遺失而添購備份設備並定期備份，屬於哪一種風險處理策略？", options: ["風險轉移", "風險降低 (修改)", "風險避免", "風險接受"], ans: 1 },
+              { q: "機關決定購買「資安險」來應對潛在的駭客勒索損失，屬於哪一種策略？", options: ["風險降低", "風險避免", "風險轉移 (分擔)", "風險接受"], ans: 2 },
+              { q: "因為某舊系統漏洞太多無法修補，機關決定直接「將該系統永久關機並停用」，屬於哪一種策略？", options: ["風險轉移", "風險接受", "風險降低", "風險避免"], ans: 3 },
+              { q: "實施所有控制措施後，依然存在的風險稱為什麼？", options: ["絕對風險", "殘餘風險", "初始風險", "不可控風險"], ans: 1 },
+              { q: "「風險接受」這個決策，因為牽涉到潛在損失，通常必須由誰來簽核同意？", options: ["基層IT人員", "委外廠商", "高階管理階層 (如首長或資安長)", "一般使用者"], ans: 2 }
+            ]
+          },
+          {
+            day: 6,
+            title: "管理面與營運持續 (ISMS & BCP)",
+            sections: [
+              {
+                title: "1. 資訊安全管理系統 (ISMS)",
+                content: `<p>資安不是裝幾台機器就結束了，它是一個持續的管理過程。國際上最通用的標準是 <strong>ISO/IEC 27001</strong>。</p>
+                <p>ISMS 核心採用 <strong>PDCA 循環</strong> 確保管理體系能與時俱進：</p>
+                <ul>
+                  <li><strong>P (Plan) 計畫：</strong>評估風險、制定資安政策與目標。</li>
+                  <li><strong>D (Do) 執行：</strong>導入防火牆、實施教育訓練、落實控制措施。</li>
+                  <li><strong>C (Check) 查核：</strong>進行內部稽核、監控日常日誌，確認政策是否被落實。</li>
+                  <li><strong>A (Act) 改善：</strong>針對查核發現的缺失，進行矯正與預防措施，並調整下一輪的 Plan。</li>
+                </ul>`
+              },
+              {
+                title: "2. 營運持續計畫 (BCP) 兩大指標",
+                content: `<p>當遭遇火災、大停電或嚴重勒索軟體攻擊時，系統必須有能力在短時間內恢復運作。制定復原計畫時，有兩個必須由業務單位決定的關鍵指標：</p>
+                <ul>
+                  <li><strong>RTO (Recovery Time Objective, 復原時間目標)：</strong>災難發生後，系統「必須在多少時間內」恢復服務。例如網銀的 RTO 可能只有 1 小時。<br/><em>影響：決定備援架構的成本（冷備援 vs 熱備援）。</em></li>
+                  <li><strong>RPO (Recovery Point Objective, 復原點目標)：</strong>災難發生時，業務「最多能容忍流失多少時間」的資料。例如 RPO 為 1 天，代表最多只能接受遺失過去 24 小時的資料。<br/><em>影響：決定資料備份的頻率。</em></li>
+                </ul>`
+              }
+            ],
+            quiz: [
+              { q: "國際上最廣泛使用的資訊安全管理系統 (ISMS) 標準是？", options: ["ISO 9001", "ISO/IEC 27001", "ISO 14001", "ISO 45001"], ans: 1 },
+              { q: "ISMS 運作的核心精神是持續改善循環，簡稱為？", options: ["SDLC", "PDCA", "OODA", "SWOT"], ans: 1 },
+              { q: "PDCA 循環中，執行「內部稽核」來檢視資安成效是屬於哪一個階段？", options: ["Plan", "Do", "Check", "Act"], ans: 2 },
+              { q: "災難發生後，系統允許的最長停機時間，稱為？", options: ["RPO (復原點目標)", "RTO (復原時間目標)", "MTPD", "SLA"], ans: 1 },
+              { q: "若機關規定資料備份頻率為「每 4 小時備份一次」，這主要是在滿足哪項指標的業務需求？", options: ["RTO", "RPO", "ROI", "KPI"], ans: 1 }
+            ]
+          },
+          {
+            day: 7,
+            title: "認知與訓練 - 社交工程防範",
+            sections: [
+              {
+                title: "1. 社交工程的威脅",
+                content: `<p>駭客發現，與其花費數月去破解堅固的防火牆，不如發一封偽造的「中獎通知」或「長官緊急交辦事項」郵件，騙取員工點擊惡意連結或輸入密碼，這就是「社交工程 (Social Engineering)」。</p>
+                <p><strong>常見手法：</strong></p>
+                <ul>
+                  <li><strong>釣魚郵件 (Phishing)：</strong>偽裝成銀行、IT部門或長官，要求重置密碼或下載附件。</li>
+                  <li><strong>水坑攻擊 (Watering Hole)：</strong>駭客先攻陷特定群體經常訪問的正常網站，等待目標上鉤。</li>
+                  <li><strong>尾隨 (Tailgating)：</strong>假裝成送貨員或抱著重物，趁員工刷卡開門時跟著溜進管制區。</li>
+                </ul>`
+              },
+              {
+                title: "2. 教育訓練與實兵演練",
+                content: `<p>防範社交工程的最佳解藥，是提升「人員的資安意識」。</p>
+                <ul>
+                  <li><strong>法定訓練：</strong>依據資安法，機關內的所有人員（包含一般行政人員）每年都必須完成規定時數的資安通識教育訓練。</li>
+                  <li><strong>社交工程演練：</strong>機關會定期發送「模擬的」釣魚郵件測試員工。如果員工不慎點擊，系統會記錄並要求其接受補強訓練。重點在於培養「不輕信、不隨意點擊、先查證」的習慣。</li>
+                </ul>`
+              }
+            ],
+            quiz: [
+              { q: "針對機關內部員工發送模擬的駭客釣魚信件，測試員工是否會點擊，這種作法稱為？", options: ["弱點掃描", "社交工程演練", "滲透測試", "原始碼檢測"], ans: 1 },
+              { q: "收到主旨為「【緊急】首長指示：請立刻匯款至指定專案帳戶」的郵件時，最正確的處置是？", options: ["長官交辦應立刻匯款", "點擊信中附件查看匯款帳號", "直接轉寄給全公司詢問", "透過分機電話或其他管道向首長本人或秘書求證"], ans: 3 },
+              { q: "防範社交工程攻擊，最有效且治本的方法是？", options: ["購買最貴的防毒軟體", "切斷所有外部網路", "提升全體人員的資安認知與警覺性", "將業務全部委外"], ans: 2 },
+              { q: "駭客假裝成搬運重物的維修工，趁員工刷門禁卡時順勢跟著走入機房，這種攻擊手法稱為？", options: ["水坑攻擊", "阻斷服務攻擊", "尾隨 (Tailgating)", "零時差攻擊"], ans: 2 },
+              { q: "依據規定，公務機關的「一般公務人員(非IT人員)」是否需要接受資安教育訓練？", options: ["不需要", "只有主管需要", "需要，且有每年法定基本時數要求", "看個人意願"], ans: 2 }
+            ]
+          },
+          {
+            day: 8,
+            title: "防護控制措施：存取控制",
+            sections: [
+              {
+                title: "1. 最小權限原則 (Least Privilege)",
+                content: `<p>存取控制的核心在於「限制」。使用者在系統中，<strong>只能擁有完成其業務所必須的「最低權限」</strong>。例如：櫃台人員只需要「讀取」客戶資料的權限，不應該擁有「刪除」資料的權限。</p>
+                <p><strong>帳號生命週期管理：</strong></p>
+                <ul>
+                  <li>新進員工報到：依據職務配發對應權限。</li>
+                  <li>職務調動：必須「撤銷」舊部門權限，再給予新部門權限。</li>
+                  <li>員工離職：必須在離職生效當天「立即停用」帳號，防止前員工惡意登入破壞。</li>
+                </ul>`
+              },
+              {
+                title: "2. 身分鑑別與 MFA",
+                content: `<p>如何確認登入者真的是該員工本人？傳統只靠密碼已不夠安全。強烈建議實施 <strong>多因子鑑別 (MFA, Multi-Factor Authentication)</strong>，要求使用者提供至少兩種不同類型的證明：</p>
+                <ul>
+                  <li><strong>所知 (Something you know)：</strong>只有你知道的（密碼、圖形鎖、PIN碼）。</li>
+                  <li><strong>所有 (Something you have)：</strong>只有你擁有的實體物品（智慧型手機的 OTP 簡訊/App、自然人憑證 IC 卡、硬體 Token）。</li>
+                  <li><strong>所是 (Something you are)：</strong>你的生物特徵（指紋、臉部辨識、虹膜）。</li>
+                </ul>
+                <p><em>註：提款卡(所有) + 密碼(所知) 就是日常生活中最常見的 MFA 應用。</em></p>`
+              }
+            ],
+            quiz: [
+              { q: "系統管理員只給予員工執行其業務所必須的最低權限，這符合哪一項資安原則？", options: ["業務永續原則", "最小權限原則", "職務輪調原則", "密碼複雜度原則"], ans: 1 },
+              { q: "登入系統時，除了輸入密碼(所知)，還要求輸入手機收到的簡訊驗證碼(所有)，這稱為？", options: ["單一登入 (SSO)", "多因子鑑別 (MFA)", "生物辨識", "權限控管"], ans: 1 },
+              { q: "下列何者屬於身分鑑別中的「生物特徵 (Something you are)」因素？", options: ["IC健保卡", "提款卡密碼", "指紋", "手機OTP驗證碼"], ans: 2 },
+              { q: "部門內 5 個人共用一組 admin 帳號密碼來管理系統，最大的資安風險是？", options: ["浪費授權費用", "發生破壞時無法追溯是誰做的，喪失「可歸責性」", "密碼容易忘記", "登入速度變慢"], ans: 1 },
+              { q: "為防止離職員工繼續存取系統並竊取機密，最關鍵且首要的控制措施是？", options: ["安裝防毒軟體", "實體門禁管制", "帳號管理程序中落實「離職立即停權」", "每日資料備份"], ans: 2 }
+            ]
+          },
+          {
+            day: 9,
+            title: "防護控制措施：密碼學",
+            sections: [
+              {
+                title: "1. 加密技術的兩大派別",
+                content: `<p>為了保護資料的「機密性」，我們使用密碼學將明文轉換為亂碼。主要有兩種技術：</p>
+                <ul>
+                  <li><strong>對稱式加密 (Symmetric Encryption)：</strong>加密和解密使用「同一把鑰匙」。就像你用鑰匙鎖門，必須把同一把鑰匙交給家人，他才能開門。<br/><em>優點：速度極快，適合加密大量檔案 (如硬碟加密、AES演算法)。缺點：如何安全地把鑰匙交給對方是個大問題。</em></li>
+                  <li><strong>非對稱式加密 (Asymmetric Encryption)：</strong>每個人都有一對鑰匙：「公鑰(公開給所有人)」和「私鑰(自己藏好)」。用公鑰加密的東西，只有私鑰能解開。<br/><em>應用：你要寄機密信給銀行，就用銀行的公鑰加密。只有銀行擁有對應的私鑰能解密，中途被駭客攔截也打不開 (如 RSA 演算法)。</em></li>
+                </ul>`
+              },
+              {
+                title: "2. 雜湊 (Hash) 與通訊保護",
+                content: `<p><strong>雜湊函數 (Hash)</strong> 不是用來加密，而是用來確保「完整性」。它能把任何長度的檔案轉換成固定長度的字串（數位指紋）。檔案只要改動一個字，算出來的 Hash 值就會天差地遠。<br/><em>應用：網站下載檔案時提供 SHA-256 值供核對；系統儲存使用者密碼時，絕不能存明文，應儲存雜湊值。</em></p>
+                <p><strong>通訊保護：</strong>網際網路預設是明文傳輸（如 HTTP, FTP, Telnet），駭客可用封包側錄輕易看光內容。因此，網站應全面啟用 <strong>HTTPS (TLS加密)</strong>，遠端管理伺服器應使用 <strong>VPN</strong> 或 <strong>SSH</strong> 建立加密通道。</p>`
+              }
+            ],
+            quiz: [
+              { q: "加解密雙方必須持有「相同金鑰」的加密技術稱為？", options: ["雜湊函數", "非對稱式加密", "對稱式加密", "數位簽章"], ans: 2 },
+              { q: "用來確保資料「完整性」，一旦資料被竄改，計算出的結果就會不同的技術是？", options: ["對稱式加密", "雜湊函數 (Hash)", "防火牆", "非對稱式加密"], ans: 1 },
+              { q: "非對稱式加密中，若要將機密信件安全地寄給小明，應該用什麼鑰匙來加密？", options: ["小明的私鑰", "自己的公鑰", "自己的私鑰", "小明的公鑰"], ans: 3 },
+              { q: "資料庫中儲存使用者的密碼，最安全且標準的做法是？", options: ["明文直接儲存", "對稱式加密儲存", "經過雜湊 (Hash) 處理後儲存", "Base64編碼儲存"], ans: 2 },
+              { q: "為了保護網頁傳輸過程中的帳號密碼不被駭客側錄，網站應該全面導入何種通訊協定？", options: ["HTTP", "HTTPS", "FTP", "Telnet"], ans: 1 }
+            ]
+          },
+          {
+            day: 10,
+            title: "技術面：防護及偵測 (上)",
+            sections: [
+              {
+                title: "1. 網路層防護：從 FW 到 WAF",
+                content: `<p>網路安全強調「縱深防禦」，不能只靠單一設備。常見的閘道防護設備包含：</p>
+                <ul>
+                  <li><strong>傳統防火牆 (Firewall)：</strong>像是社區大門的警衛，只看「從哪裡來(IP)」、「要去哪個部門(Port)」。不符合白名單規則的封包一律丟棄。</li>
+                  <li><strong>入侵防禦系統 (IPS)：</strong>不僅看IP，還會拆開包裹檢查內容。如果發現包裹裡藏有已知的駭客攻擊特徵碼（如蠕蟲病毒），會立刻「主動阻斷」連線。</li>
+                  <li><strong>網頁應用程式防火牆 (WAF)：</strong>專門放置在網站伺服器前。傳統防火牆看不懂網頁語法，而 WAF 專精於阻擋針對應用層的攻擊，例如 SQL Injection (資料隱碼) 或 XSS (跨站指令碼) 攻擊。</li>
+                </ul>`
+              },
+              {
+                title: "2. 端點防護：防毒與 EDR",
+                content: `<p>當員工把感染病毒的隨身碟插上電腦，或是帶筆電回家上網中毒，網路閘道設備就無用武之地了。因此「端點防護」非常重要：</p>
+                <ul>
+                  <li><strong>傳統防毒軟體 (Anti-Virus)：</strong>比對已知病毒特徵碼，發現就刪除。但對於全新開發的惡意程式（零時差攻擊）防護力弱。</li>
+                  <li><strong>端點偵測與回應 (EDR)：</strong>進階版的防毒。它像電腦裡的監視器，持續記錄程式的所有「行為」（例如：Word 突然嘗試開啟 PowerShell 並連線到國外 IP）。當發現異常行為軌跡，立刻封鎖並通知管理員。</li>
+                </ul>`
+              }
+            ],
+            quiz: [
+              { q: "專門用來防護網站，能精準阻擋 SQL 資料隱碼攻擊的設備是？", options: ["傳統防火牆 (FW)", "防毒軟體", "網頁應用程式防火牆 (WAF)", "網路交換器"], ans: 2 },
+              { q: "能分析網路封包內容並比對攻擊特徵，即時「主動阻斷」惡意流量的設備是？", options: ["路由器", "入侵防禦系統 (IPS)", "負載平衡器", "虛擬私人網路 (VPN)"], ans: 1 },
+              { q: "有別於傳統防毒軟體僅依賴特徵碼，能記錄端點行為軌跡，主動獵捕進階威脅的軟體稱為？", options: ["WAF", "EDR (端點偵測與回應)", "SOC", "SSL"], ans: 1 },
+              { q: "不要把雞蛋放在同一個籃子裡，結合網路層、應用層、端點層等多層次的防護策略稱為？", options: ["單點防護", "雲端防護", "縱深防禦", "實體防護"], ans: 2 },
+              { q: "傳統防火牆(Firewall)主要的運作邏輯是基於什麼來決定是否放行封包？", options: ["檔案內容的有無病毒", "來源IP、目的IP與連接埠(Port)", "網頁是否含有惡意程式碼", "使用者的職稱"], ans: 1 }
+            ]
+          },
+          {
+            day: 11,
+            title: "技術面：防護及偵測 (下)",
+            sections: [
+              {
+                title: "1. 資安監控中心 (SOC) 與日誌分析",
+                content: `<p>機關內有防火牆、IPS、伺服器、資料庫，每天產生數以千萬計的登入日誌(Log)與警告。光靠人工看是看不完的。</p>
+                <p><strong>資安監控中心 (SOC, Security Operation Center)：</strong>結合人員、流程與技術（如 SIEM 平台），全天候 24 小時收集並關聯分析這些海量日誌。例如：SOC 發現某個帳號在晚上 10 點從台灣登入失敗 5 次，接著晚上 10 點 5 分卻從東歐國家登入成功。這明顯是帳號遭竊的異常行為，SOC 就會立刻發出紅色警報。</p>`
+              },
+              {
+                title: "2. 網路實體隔離與網段劃分",
+                content: `<p>為了減少駭客入侵後的橫向擴散（從一台電腦感染整個機關），網路架構必須進行劃分：</p>
+                <ul>
+                  <li><strong>DMZ 區 (非軍事區)：</strong>放置對外提供服務的伺服器（如官網、郵件主機）。即使這裡被攻陷，駭客也無法直接碰到位於內部網路的機密資料庫。</li>
+                  <li><strong>內部網段 (Intranet)：</strong>員工辦公用電腦與內部核心資料庫存放的位置，嚴格禁止從外部網際網路直接連入。</li>
+                </ul>`
+              }
+            ],
+            quiz: [
+              { q: "集中收集機關內各項網路與系統日誌，進行全天候關聯分析與監控異常的機制或單位是？", options: ["NOC", "SOC (資安監控中心)", "Helpdesk", "IDC"], ans: 1 },
+              { q: "將對外提供服務的網頁伺服器放置在特定的隔離網段，以保護內部網路安全，這個網段通常稱為？", options: ["LAN", "DMZ (非軍事區)", "WAN", "VPN"], ans: 1 },
+              { q: "為什麼系統與網路設備必須開啟並妥善保存「日誌 (Log)」？", options: ["為了讓硬碟裝滿", "為了讓系統跑得更快", "作為日後資安事件發生時的追查線索與數位證據", "為了讓防毒軟體運作"], ans: 2 },
+              { q: "某駭客入侵了放置在 DMZ 區的對外網站伺服器，若網路架構設定正確，他接下來「無法」輕易做到什麼事？", options: ["竄改網頁首頁", "導致網站首頁服務中斷", "直接暢通無阻地存取內部網路的核心人事資料庫", "在網頁上掛載惡意程式碼"], ans: 2 },
+              { q: "SOC 發現某帳號前一分鐘在台北登入，下一分鐘卻在倫敦登入，這種判斷駭客攻擊的邏輯稱為？", options: ["不可能的旅行 (關聯分析)", "零時差攻擊", "阻斷服務攻擊", "弱點掃描"], ans: 0 }
+            ]
+          },
+          {
+            day: 12,
+            title: "安全性檢測與資安健診",
+            sections: [
+              {
+                title: "1. 找出系統的漏洞：弱掃與滲透",
+                content: `<p>系統上線前或營運期間，必須主動出擊找出弱點：</p>
+                <ul>
+                  <li><strong>弱點掃描 (Vulnerability Scan)：</strong>利用自動化軟體工具，大範圍且快速地對網路設備或主機進行掃描，比對已知的漏洞資料庫（如 CVE）。這是一種「非侵入性」的廣度檢查，會產出厚厚的修補建議報告。</li>
+                  <li><strong>滲透測試 (Penetration Test, PT)：</strong>由專業的白帽駭客「模擬真實駭客的思維與手法」，嘗試攻破系統防線。這是一種「侵入性」的深度檢查，能找出工具掃不出來的「商業邏輯漏洞」（如：把購物車金額竄改為負數）。</li>
+                  <li><strong>源碼檢測 (Code Review)：</strong>直接針對程式原始碼進行安全掃描（白箱測試），找出潛藏的危險寫法。</li>
+                </ul>`
+              },
+              {
+                title: "2. 資安健診與 GCB",
+                content: `<p><strong>資安健診：</strong>像是由外部專家來給機關做健康檢查。包含檢視防火牆規則是否過於寬鬆（如設定了 Any to Any）、伺服器是否開啟了不必要的危險 Port、AD 網域是否有權限過大的幽靈帳號。</p>
+                <p><strong>GCB (政府組態基準)：</strong>政府推動的標準化安全設定。要求機關內所有的 Windows/Linux 電腦，都必須強制套用一套嚴格的登錄檔與群組原則設定（例如：強制密碼長度、關閉 USB 自動播放等），以縮小受攻擊面。</p>`
+              }
+            ],
+            quiz: [
+              { q: "利用自動化工具快速掃描系統，比對已知漏洞資料庫的非侵入性檢測方式稱為？", options: ["滲透測試", "弱點掃描", "源碼檢測", "社交工程"], ans: 1 },
+              { q: "由資安專家模擬真實駭客攻擊手法，嘗試突破系統防護的深度檢測稱為？", options: ["滲透測試", "弱點掃描", "資安健診", "壓力測試"], ans: 0 },
+              { q: "直接對開發中的「程式碼」進行白箱安全掃描，揪出安全缺陷，通常稱為什麼？", options: ["黑箱測試", "網路掃描", "源碼檢測 (Code Review)", "主機弱掃"], ans: 2 },
+              { q: "政府推動終端設備套用一致性的安全設定規範（如強制密碼複雜度、停用危險服務），此機制簡稱為？", options: ["ISMS", "GCB (政府組態基準)", "EDR", "SOC"], ans: 1 },
+              { q: "資安健診中檢視防火牆規則時，若發現來源與目的皆設定為「Any (任何)」，這代表？", options: ["設定非常安全", "設定過於寬鬆，等於沒防護，存在極高風險", "是標準的預設值", "能提升網路速度"], ans: 1 }
+            ]
+          },
+          {
+            day: 13,
+            title: "資訊委外安全管理",
+            sections: [
+              {
+                title: "1. 供應鏈風險與合約規範",
+                content: `<p>機關往往將系統開發或機房維運委由外部廠商處理。駭客常採取「供應鏈攻擊」，也就是先攻陷防護較弱的委外廠商，再利用合法的遠端連線通道入侵機關內部。</p>
+                <ul>
+                  <li><strong>合約(RFP/SLA)要求：</strong>資安要求必須在「招標文件與合約」中白紙黑字訂定。例如要求廠商人員簽署保密協議(NDA)、要求廠商具備 ISO 27001 證書。</li>
+                  <li><strong>設備限制：</strong>依據國家規定，公務機關及其委外案，全面「禁止採購與使用危害國家資通安全之產品（如大陸廠牌軟硬體設備）」。</li>
+                </ul>`
+              },
+              {
+                title: "2. 遠端維運管控與交付驗收",
+                content: `<p><strong>遠端維運管控原則：</strong></p>
+                <ul>
+                  <li>預設必須是<strong>「原則禁止、例外允許」</strong>。</li>
+                  <li>廠商若需遠端修復系統，必須事先提出申請。</li>
+                  <li>連線時必須使用 VPN 搭配 MFA 多因子鑑別。</li>
+                  <li>連線過程必須「全程錄影或記錄操作軌跡」，且時效一過立即關閉連線通道。</li>
+                </ul>
+                <p><strong>驗收階段：</strong>廠商交付的系統，必須附上「無中高風險漏洞」的弱點掃描與源碼檢測報告，確認安全無虞後才能上線撥款。</p>`
+              }
+            ],
+            quiz: [
+              { q: "為了確保委外廠商不會將機關的敏感資料外洩或用於其他商業用途，合約中必須要求簽署？", options: ["SLA (服務水準協議)", "NDA (保密協議)", "軟體授權書", "採購規格書"], ans: 1 },
+              { q: "關於委外廠商的「遠端連線維護」管理，下列何種做法最安全正確？", options: ["開一個固定帳號密碼給廠商隨時連入", "原則禁止，有需求時經申請核准開啟短暫時效，並全程錄影/記錄日誌", "讓廠商直接透過遠端桌面(RDP)連入內部伺服器", "不需要特別管理"], ans: 1 },
+              { q: "委外開發的系統在驗收上線前，機關應要求廠商提供何種證明以確保系統安全？", options: ["程式碼行數統計", "無中/高風險漏洞之安全性檢測報告", "伺服器硬體規格書", "辦公室平面圖"], ans: 1 },
+              { q: "依據我國規定，公務機關資訊委外時，得否採購危害國家資通安全產品(陸廠設備)？", options: ["只要便宜就可以", "嚴格禁止", "長官同意就可以", "視專案規模而定"], ans: 1 },
+              { q: "資安要求（如交付弱掃報告、違約罰則）應該在委外的哪一個階段就落實執行？", options: ["系統上線後", "系統開發中", "招標規格書與合約簽訂前", "發生資安事件時"], ans: 2 }
+            ]
+          },
+          {
+            day: 14,
+            title: "資安事件通報及應變",
+            sections: [
+              {
+                title: "1. 事件分級與黃金通報時效",
+                content: `<p>防線再堅固也有被突破的一天，重點在於被突破後能多快止血。資安法規對此有嚴格要求：</p>
+                <ul>
+                  <li><strong>1 小時內通報：</strong>機關任何人只要「知悉」或「疑似」發生資安事件（如網頁被置換、疑似中毒），必須立即向上級及中央通報，最遲不得超過 1 小時。（隱匿不報將受嚴重懲處）。</li>
+                  <li><strong>事件分級 (1~4級)：</strong>
+                    <br/>- <strong>第 1、2 級 (輕微至中度)：</strong>如一般設備中毒、非機密資料少量外洩。需在 72 小時內完成復原。
+                    <br/>- <strong>第 3、4 級 (嚴重至災難)：</strong>如「國家機密」或「敏感個資嚴重洩漏」、核心業務系統完全停擺無法運作。需在 36 小時內極力復原並啟動最高層級應變。
+                  </li>
+                </ul>`
+              },
+              {
+                title: "2. 應變六階段與數位鑑識",
+                content: `<p>標準的事件應變 (Incident Response) 包含六個階段：準備 ➔ 識別 (確認發生) ➔ <strong>封鎖/抑制 (Containment)</strong> ➔ 根除 (Eradication) ➔ 復原 (Recovery) ➔ 改善 (Lessons Learned)。</p>
+                <p><strong>第一時間的正確處置：</strong></p>
+                <ul>
+                  <li>發現電腦被駭客遠端操作時，<strong>最正確的封鎖動作是「拔掉網路線（斷網）」</strong>，切斷駭客的連線。</li>
+                  <li><strong>千萬不要立刻關機或重灌！</strong> 這會消滅記憶體中殘存的惡意程式與駭客連線痕跡。</li>
+                  <li><strong>數位鑑識：</strong>處理重大案件時，必須交由專家擷取證據，並維持「證據監管鏈 (Chain of Custody)」，確保證據沒有被竄改，未來才能在法庭上作為呈堂證供。</li>
+                </ul>`
+              }
+            ],
+            quiz: [
+              { q: "公務機關人員在「知悉」發生資安事件時，應於多久時間內完成內部與向上通報？", options: ["1 小時內", "4 小時內", "24 小時內", "72 小時內"], ans: 0 },
+              { q: "當機關發生「國家機密」資料遭駭客竊取洩漏，或核心系統完全停擺時，該事件應評估為哪一個等級？", options: ["第 1 級", "第 2 級", "第 3 或 4 級", "不用分級"], ans: 2 },
+              { q: "發現辦公室電腦滑鼠自己移動疑似遭遠端控制，最優先的「封鎖/抑制」處置動作通常是？", options: ["直接將電腦強制關機斷電", "立刻將電腦格式化重灌", "拔除網路線使其離線，但保持開機以保留記憶體證據", "當作沒看到趕快下班"], ans: 2 },
+              { q: "資安事件應變程序的最後一個階段，目的是檢討流程防範未來再次發生，這個階段稱為？", options: ["封鎖", "根除", "復原", "經驗學習 (改善)"], ans: 3 },
+              { q: "為確保駭客入侵的電腦日誌等數位證據在法庭上具備效力，處理過程中必須嚴格維持何種機制以證明證據未被污染？", options: ["數位簽章", "證據監管鏈 (Chain of Custody)", "資料加密", "備份還原"], ans: 1 }
+            ]
+          }
+        ];
+
+        function App() {
+          const [user, setUser] = useState(null);
+          const [currentDay, setCurrentDay] = useState(1);
+          const [view, setView] = useState('learning'); // learning, quiz, result
+          const [answers, setAnswers] = useState({});
+          const [score, setScore] = useState(0);
+          const [progress, setProgress] = useState(1);
+          const [expandedSections, setExpandedSections] = useState([0]); 
+          const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+          const [isSaving, setIsSaving] = useState(false);
+
+          // 1. 初始化登入機制 (判斷是否為雲端或單機模式)
+          useEffect(() => {
+            if (!isFirebaseReady) {
+              // 單機模式：給予虛擬使用者身分，使 UI 能順利渲染
+              setUser({ uid: 'local-offline-user', isLocal: true });
+              return;
+            }
+
+            const initAuth = async () => {
+              try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                  await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                  await signInAnonymously(auth);
+                }
+              } catch (error) {
+                console.warn("雲端登入失敗，降級為單機模式");
+                setUser({ uid: 'local-offline-user', isLocal: true });
+              }
+            };
+            initAuth();
+            
+            const unsubscribe = onAuthStateChanged(auth, (u) => {
+              if (u) setUser(u);
+            });
+            return () => unsubscribe();
+          }, []);
+
+          // 2. 獲取雲端進度 (僅限雲端模式)
+          useEffect(() => {
+            if (!user || user.isLocal || !isFirebaseReady) return;
+            const fetchProgress = async () => {
+              try {
+                const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'learning', 'progress');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists() && docSnap.data().level) {
+                  const savedLevel = docSnap.data().level;
+                  setProgress(savedLevel);
+                  setCurrentDay(savedLevel); 
+                }
+              } catch (error) {
+                console.error("讀取進度失敗", error);
+              }
+            };
+            fetchProgress();
+          }, [user]);
+
+          // 保存進度
+          const saveProgress = async (newProgress) => {
+            // 單機模式：只更新暫存狀態
+            if (!user || user.isLocal || !isFirebaseReady) {
+               setProgress(newProgress);
+               return;
+            }
+            
+            // 雲端模式：更新暫存並上傳
+            setProgress(newProgress);
+            setIsSaving(true);
+            try {
+              const docRef = doc(db, 'artifacts', appId, 'users', user.uid, 'learning', 'progress');
+              await setDoc(docRef, { level: newProgress, lastUpdated: new Date().toISOString() }, { merge: true });
+            } catch (error) {
+              console.error("儲存進度失敗", error);
+            } finally {
+              setIsSaving(false);
+            }
+          };
+
+          const dayData = courseData.find(d => d.day === currentDay);
+
+          const toggleSection = (index) => {
+            setExpandedSections(prev => 
+              prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
+            );
+          };
+
+          const handleStartQuiz = () => {
+            setAnswers({});
+            setView('quiz');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          };
+
+          const handleOptionSelect = (qIndex, optionIndex) => {
+            setAnswers(prev => ({ ...prev, [qIndex]: optionIndex }));
+          };
+
+          const handleSubmitQuiz = () => {
+            let currentScore = 0;
+            dayData.quiz.forEach((q, idx) => {
+              if (answers[idx] === q.ans) currentScore++;
+            });
+            setScore(currentScore);
+            setView('result');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (currentScore >= 3 && currentDay === progress && progress < 14) {
+              const newProgress = progress + 1;
+              saveProgress(newProgress);
+            }
+          };
+
+          const handleNextDay = () => {
+            if (currentDay < 14) {
+              setCurrentDay(currentDay + 1);
+              setView('learning');
+              setExpandedSections([0]); 
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          };
+
+          const handleNavClick = (day) => {
+            if (day <= progress) {
+              setCurrentDay(day);
+              setView('learning');
+              setExpandedSections([0]);
+              setIsMobileMenuOpen(false);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          };
+
+          const renderLearning = () => (
+            <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 md:p-10 animate-fade-in">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-stone-100">
+                <div className="flex items-center gap-3">
+                  <div className="bg-emerald-100 text-emerald-700 p-2 rounded-lg">
+                    <BookOpen className="w-8 h-8" />
+                  </div>
+                  <h2 className="text-2xl md:text-3xl font-bold text-stone-800">
+                    Day {dayData.day}: {dayData.title}
+                  </h2>
+                </div>
+              </div>
+
+              <div className="space-y-4 mb-10">
+                <p className="text-stone-500 text-sm mb-4 px-2 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4"/> 點擊下方章節標題可展開/收合詳細內容
+                </p>
+                {dayData.sections.map((sec, idx) => {
+                  const isExpanded = expandedSections.includes(idx);
+                  return (
+                    <div key={idx} className="border border-stone-200 rounded-xl overflow-hidden shadow-sm hover:border-emerald-300 transition-colors bg-white">
+                      <button 
+                        onClick={() => toggleSection(idx)}
+                        className={`w-full text-left px-6 py-4 flex items-center justify-between font-bold text-lg transition-colors ${
+                          isExpanded ? 'bg-emerald-50 text-emerald-800' : 'bg-white text-stone-700 hover:bg-stone-50'
+                        }`}
+                      >
+                        {sec.title}
+                        <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-emerald-600' : 'text-stone-400'}`} />
+                      </button>
+                      
+                      <div className={`transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                        <div 
+                          className="p-6 prose max-w-none text-stone-700 text-[15px] md:text-base border-t border-emerald-100/50 bg-[#FDFDFD]"
+                          dangerouslySetInnerHTML={{ __html: sec.content }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex justify-end pt-6 border-t border-stone-100">
+                <button 
+                  onClick={handleStartQuiz}
+                  className="w-full md:w-auto flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                >
+                  開始本節知識測驗 <ChevronRight className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+          );
+
+          const renderQuiz = () => {
+            const isAllAnswered = Object.keys(answers).length === dayData.quiz.length;
+            return (
+              <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 md:p-10 animate-fade-in">
+                <div className="flex items-center gap-3 mb-8">
+                  <ShieldCheck className="text-emerald-600 w-8 h-8" />
+                  <h2 className="text-2xl font-bold text-stone-800">Day {dayData.day} - 隨堂測驗</h2>
+                </div>
+                <div className="space-y-8">
+                  {dayData.quiz.map((q, qIndex) => (
+                    <div key={qIndex} className="bg-[#FDFDFD] p-6 rounded-xl border border-stone-200 shadow-sm">
+                      <h4 className="text-[17px] md:text-lg font-bold text-stone-800 mb-5 flex gap-2 leading-relaxed">
+                        <span className="text-emerald-600">{qIndex + 1}.</span> {q.q}
+                      </h4>
+                      <div className="space-y-3 pl-2 md:pl-6">
+                        {q.options.map((opt, oIndex) => (
+                          <label key={oIndex} className={`flex items-start gap-3 cursor-pointer p-3 rounded-lg border transition-all ${
+                            answers[qIndex] === oIndex ? 'border-emerald-500 bg-emerald-50' : 'border-transparent hover:bg-stone-50'
+                          }`}>
+                            <input 
+                              type="radio" 
+                              name={`q-${qIndex}`} 
+                              className="mt-1 w-4 h-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                              checked={answers[qIndex] === oIndex}
+                              onChange={() => handleOptionSelect(qIndex, oIndex)}
+                            />
+                            <span className={`text-[15px] md:text-[17px] ${answers[qIndex] === oIndex ? 'text-emerald-900 font-medium' : 'text-stone-700'}`}>
+                              {opt}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-10 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-stone-100 pt-6">
+                  {!isAllAnswered && (
+                    <p className="text-amber-600 flex items-center gap-2 text-sm md:text-base font-medium">
+                      <AlertCircle className="w-5 h-5"/> 請回答所有問題以送出答案
+                    </p>
+                  )}
+                  <div className="flex-grow"></div>
+                  <button 
+                    onClick={handleSubmitQuiz}
+                    disabled={!isAllAnswered}
+                    className={`w-full md:w-auto px-10 py-4 rounded-xl font-bold text-lg transition-all ${
+                      isAllAnswered 
+                      ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transform hover:-translate-y-0.5" 
+                      : "bg-stone-200 text-stone-400 cursor-not-allowed"
+                    }`}
+                  >
+                    送出批改
+                  </button>
+                </div>
+              </div>
+            );
+          };
+
+          const renderResult = () => {
+            const isPass = score >= 3;
+            return (
+              <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-8 md:p-12 text-center animate-fade-in">
+                <div className={`mx-auto w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-inner ${isPass ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                  {isPass ? <Award className="w-12 h-12" /> : <AlertCircle className="w-12 h-12" />}
+                </div>
+                <h2 className="text-3xl font-bold text-stone-800 mb-2">
+                  {isPass ? '測驗通過！' : '需要再接再厲'}
+                </h2>
+                <p className="text-stone-500 mb-4 text-lg">
+                  您答對了 <span className={`font-bold text-2xl ${isPass ? 'text-emerald-600' : 'text-rose-600'}`}>{score}</span> / 5 題 (及格標準：3題)
+                </p>
+
+                {/* 狀態提示 */}
+                {isPass && isSaving && isFirebaseReady && (
+                  <p className="text-emerald-600 text-sm flex items-center justify-center gap-2 mb-6">
+                    <SaveIcon className="w-4 h-4 animate-pulse" /> 進度雲端存檔中...
+                  </p>
+                )}
+                {isPass && !isSaving && isFirebaseReady && progress > currentDay && (
+                  <p className="text-emerald-700 bg-emerald-50 py-2 px-4 rounded-lg inline-flex text-sm flex items-center justify-center gap-2 mb-6 font-medium">
+                    <SaveIcon className="w-4 h-4" /> 進度已自動儲存至雲端，下次可接續閱讀
+                  </p>
+                )}
+                {isPass && !isFirebaseReady && progress > currentDay && (
+                  <p className="text-amber-700 bg-amber-50 py-2 px-4 rounded-lg inline-flex text-sm flex items-center justify-center gap-2 mb-6 font-medium border border-amber-200">
+                    <HardDriveIcon className="w-4 h-4" /> 恭喜解鎖下一章！(單機模式：關閉網頁後進度將重置)
+                  </p>
+                )}
+
+                <div className="text-left bg-stone-50 p-6 md:p-8 rounded-2xl mb-10 border border-stone-200 shadow-sm">
+                  <h3 className="font-bold text-stone-800 text-xl mb-6 border-b border-stone-200 pb-3 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-stone-500" /> 測驗檢討
+                  </h3>
+                  <div className="space-y-6">
+                    {dayData.quiz.map((q, idx) => {
+                      const userAns = answers[idx];
+                      const correctAns = q.ans;
+                      const isCorrect = userAns === correctAns;
+                      return (
+                        <div key={idx} className="text-[15px] md:text-[16px] bg-white p-4 rounded-xl border border-stone-100">
+                          <p className="font-bold text-stone-800 mb-3 leading-relaxed">Q{idx+1}: {q.q}</p>
+                          <p className={`${isCorrect ? 'text-emerald-600' : 'text-rose-600'} font-medium mb-1 flex items-center gap-2`}>
+                            您的答案：{q.options[userAns]} {isCorrect ? '✓' : '✗'}
+                          </p>
+                          {!isCorrect && (
+                            <p className="text-emerald-700 font-bold mt-2 bg-emerald-50 p-2 rounded-lg inline-block border border-emerald-100">
+                              正確答案：{q.options[correctAns]}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="flex flex-col md:flex-row gap-4 justify-center">
+                  <button 
+                    onClick={handleStartQuiz}
+                    className="px-8 py-3.5 rounded-xl font-bold border-2 border-stone-300 text-stone-600 hover:border-emerald-600 hover:text-emerald-600 hover:bg-emerald-50 transition-all"
+                  >
+                    重新測驗
+                  </button>
+                  {isPass && currentDay < 14 && (
+                    <button 
+                      onClick={handleNextDay}
+                      className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-md transform hover:-translate-y-0.5"
+                    >
+                      進入下一天 <ChevronRight className="w-5 h-5" />
+                    </button>
+                  )}
+                  {isPass && currentDay === 14 && (
+                    <div className="px-8 py-4 rounded-xl font-bold bg-amber-100 text-amber-800 border-2 border-amber-300 flex items-center justify-center gap-3 text-lg shadow-sm">
+                      <Award className="w-6 h-6 text-amber-600" /> 恭喜！您已完成 14 天完整進階訓練！
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          };
+
+          return (
+            <div className="min-h-screen flex flex-col">
+              <header className="bg-white border-b border-stone-200 sticky top-0 z-30 shadow-sm">
+                <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                      className="lg:hidden p-2 -ml-2 text-stone-500 hover:text-emerald-600 focus:outline-none"
+                    >
+                      {isMobileMenuOpen ? <XIcon className="w-7 h-7" /> : <MenuIcon className="w-7 h-7" />}
+                    </button>
+                    <div className="bg-emerald-600 p-1.5 rounded-lg">
+                      <ShieldCheck className="w-6 h-6 text-white" />
+                    </div>
+                    <h1 className="text-lg md:text-xl font-bold text-stone-800 tracking-wide hidden sm:block">資安 14天進階訓練營</h1>
+                    <h1 className="text-lg font-bold text-stone-800 sm:hidden">資安訓練營</h1>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 md:gap-4">
+                    {/* 狀態指示器 */}
+                    {isFirebaseReady ? (
+                      <div className="text-[10px] md:text-sm font-bold text-emerald-700 whitespace-nowrap bg-emerald-50 px-2 md:px-3 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
+                        <SaveIcon className="w-3 h-3 md:w-4 md:h-4"/> <span className="hidden sm:inline">雲端記憶已啟用</span><span className="sm:hidden">雲端儲存</span>
+                      </div>
+                    ) : (
+                      <div className="text-[10px] md:text-sm font-bold text-stone-500 whitespace-nowrap bg-stone-100 px-2 md:px-3 py-1 rounded-full border border-stone-200 flex items-center gap-1">
+                        <HardDriveIcon className="w-3 h-3 md:w-4 md:h-4"/> <span className="hidden sm:inline">單機模式 (不保留進度)</span><span className="sm:hidden">單機模式</span>
+                      </div>
+                    )}
+                    
+                    <div className="text-sm font-bold text-stone-600 whitespace-nowrap bg-stone-100 px-3 py-1 rounded-lg">
+                      進度 {progress}/14
+                    </div>
+                  </div>
+                </div>
+              </header>
+
+              <div className="max-w-[1400px] mx-auto w-full px-4 sm:px-6 py-8 flex gap-8 flex-1">
+                <aside className={`
+                  fixed lg:sticky top-16 lg:top-24 left-0 h-[calc(100vh-4rem)] lg:h-[calc(100vh-8rem)]
+                  w-72 bg-white lg:bg-transparent z-20 overflow-y-auto no-scrollbar transition-transform duration-300
+                  ${isMobileMenuOpen ? 'translate-x-0 border-r border-stone-200 shadow-2xl p-4' : '-translate-x-full lg:translate-x-0 lg:border-0 lg:shadow-none lg:p-0'}
+                `}>
+                  <div className="space-y-1.5">
+                    <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4 px-3">課程總覽</h3>
+                    {courseData.map((d) => {
+                      const isLocked = d.day > progress;
+                      const isActive = d.day === currentDay;
+                      const isCompleted = d.day < progress;
+
+                      return (
+                        <button
+                          key={d.day}
+                          onClick={() => handleNavClick(d.day)}
+                          disabled={isLocked}
+                          className={`
+                            w-full text-left px-4 py-3.5 rounded-xl flex items-center gap-3 transition-all border
+                            ${isActive ? 'bg-emerald-600 border-emerald-600 text-white shadow-md' : 'bg-white border-transparent text-stone-600 hover:bg-stone-100 hover:border-stone-200'}
+                            ${isLocked ? 'opacity-40 cursor-not-allowed bg-stone-50' : 'cursor-pointer'}
+                          `}
+                        >
+                          <div className={`
+                            w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors
+                            ${isActive ? 'bg-white/20 text-white shadow-inner' : isCompleted ? 'bg-emerald-100 text-emerald-600' : 'bg-stone-200 text-stone-500'}
+                          `}>
+                            {isCompleted ? <CheckCircle className="w-5 h-5" /> : d.day}
+                          </div>
+                          <span className={`text-[15px] font-bold leading-tight ${isActive ? 'text-white' : 'text-stone-700'}`}>
+                            {d.title}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </aside>
+
+                {isMobileMenuOpen && (
+                  <div 
+                    className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-10 lg:hidden" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  ></div>
+                )}
+
+                <main className="flex-1 w-full max-w-[850px] mx-auto pb-16">
+                  {!user && (
+                    <div className="flex items-center justify-center h-64 bg-white rounded-2xl shadow-sm border border-stone-200 animate-pulse">
+                      <p className="text-stone-500 font-medium flex items-center gap-2">
+                        <SaveIcon className="w-5 h-5" /> 系統初始化中...
+                      </p>
+                    </div>
+                  )}
+                  {user && view === 'learning' && renderLearning()}
+                  {user && view === 'quiz' && renderQuiz()}
+                  {user && view === 'result' && renderResult()}
+                </main>
+              </div>
+            </div>
+          );
+        }
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
