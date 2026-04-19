@@ -72,27 +72,43 @@
     <!-- ==================== 首頁視圖 ==================== -->
     <div id="view-home" class="view-section active p-6 space-y-8 pb-32">
       <header class="pt-8">
-        <!-- 移除死板的卡片，讓總結餘直接融入背景，更有現代 App 的呼吸感 -->
-        <div class="text-center mb-8 relative">
-          <!-- 裝飾光暈 -->
-          <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-[#90C86D]/10 rounded-full mix-blend-multiply filter blur-3xl z-0 pointer-events-none"></div>
+        <div class="text-center mb-8 relative px-2">
+          <!-- 雙重裝飾光暈，增加背景豐富度與層次 -->
+          <div class="absolute left-[10%] top-[10%] w-40 h-40 bg-[#90C86D]/15 rounded-full mix-blend-multiply filter blur-3xl z-0 pointer-events-none"></div>
+          <div class="absolute right-[10%] bottom-[10%] w-40 h-40 bg-[#C7B5F8]/15 rounded-full mix-blend-multiply filter blur-3xl z-0 pointer-events-none"></div>
           
-          <div class="relative z-10">
-            <div class="inline-block bg-white/60 backdrop-blur-md px-4 py-1.5 rounded-full mb-4 border border-white">
+          <div class="relative z-10 flex flex-col items-center">
+            <!-- 帶有小圖示的日期膠囊 -->
+            <div class="inline-flex items-center gap-2 bg-white/70 backdrop-blur-md px-4 py-1.5 rounded-full mb-6 border border-white shadow-sm">
+              <i data-lucide="sun" class="w-3.5 h-3.5 text-[#F5C249]"></i>
               <p id="home-date" class="text-xs font-bold text-[#AFAFAF] font-num tracking-wider"></p>
             </div>
-            <p class="text-[#AFAFAF] text-[13px] font-bold mb-1 tracking-widest">本月結餘</p>
-            <h2 id="home-balance" class="font-num text-5xl font-black text-[#4A4A4A] tracking-tight mb-8 drop-shadow-sm">$0</h2>
             
-            <div class="flex justify-center items-center gap-6">
-              <div class="flex flex-col items-center">
-                <p class="text-[11px] text-[#B0B0B0] font-bold mb-1 tracking-widest">收入</p>
-                <p id="home-income" class="font-num font-bold text-[#83BA61] text-xl">$0</p>
+            <div class="flex items-center justify-center gap-1.5 mb-2 text-[#AFAFAF]">
+               <i data-lucide="wallet" class="w-[14px] h-[14px]"></i>
+               <span class="text-[12px] font-bold tracking-widest">本月結餘</span>
+            </div>
+            <h2 id="home-balance" class="font-num text-[56px] font-black text-[#4A4A4A] tracking-tighter mb-8 drop-shadow-sm leading-none">$0</h2>
+            
+            <!-- 精緻化的收支膠囊，打破傳統方塊卡片感 -->
+            <div class="flex w-full max-w-[320px] mx-auto justify-between gap-3">
+              <div class="flex-1 flex items-center gap-3 bg-white/60 backdrop-blur-sm border border-white/80 p-3 rounded-[24px] shadow-[0_4px_15px_rgba(0,0,0,0.02)]">
+                <div class="w-[34px] h-[34px] rounded-full bg-[#E4F9E9] flex items-center justify-center shrink-0">
+                  <i data-lucide="arrow-down-left" class="w-[18px] h-[18px] text-[#83BA61] stroke-[2.5]"></i>
+                </div>
+                <div class="text-left flex-1 overflow-hidden">
+                  <p class="text-[10px] text-[#AFAFAF] font-bold tracking-widest mb-0.5">收入</p>
+                  <p id="home-income" class="font-num font-bold text-[#83BA61] text-[15px] truncate">$0</p>
+                </div>
               </div>
-              <div class="w-[1px] h-8 bg-[#E5E5E5] rounded-full"></div>
-              <div class="flex flex-col items-center">
-                <p class="text-[11px] text-[#B0B0B0] font-bold mb-1 tracking-widest">支出</p>
-                <p id="home-expense" class="font-num font-bold text-[#FF8B8B] text-xl">$0</p>
+              <div class="flex-1 flex items-center gap-3 bg-white/60 backdrop-blur-sm border border-white/80 p-3 rounded-[24px] shadow-[0_4px_15px_rgba(0,0,0,0.02)]">
+                <div class="w-[34px] h-[34px] rounded-full bg-[#FFE4DE] flex items-center justify-center shrink-0">
+                  <i data-lucide="arrow-up-right" class="w-[18px] h-[18px] text-[#FF8B8B] stroke-[2.5]"></i>
+                </div>
+                <div class="text-left flex-1 overflow-hidden">
+                  <p class="text-[10px] text-[#AFAFAF] font-bold tracking-widest mb-0.5">支出</p>
+                  <p id="home-expense" class="font-num font-bold text-[#FF8B8B] text-[15px] truncate">$0</p>
+                </div>
               </div>
             </div>
           </div>
@@ -236,20 +252,22 @@
           </div>
         </div>
 
-        <div class="space-y-4 pt-4">
-          <div class="relative">
-             <i data-lucide="calendar" class="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D1D1D6]"></i>
+        <!-- 修正寬度破版問題，加入 w-full 與 box-border -->
+        <div class="space-y-4 pt-4 w-full">
+          <div class="relative w-full">
+             <i data-lucide="calendar" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D1D1D6]"></i>
              <input type="date" id="input-date" required
-              class="w-full bg-white pl-14 pr-6 py-4 rounded-[20px] shadow-sm border border-[#F0F0F0] text-[#5A5A5A] font-num font-bold outline-none focus:border-[#C7B5F8] focus:ring-2 focus:ring-[#EAE1FB] transition-all">
+              class="w-full box-border bg-white pl-11 pr-4 py-4 rounded-[20px] shadow-sm border border-[#F0F0F0] text-[#5A5A5A] font-num font-bold outline-none focus:border-[#C7B5F8] focus:ring-2 focus:ring-[#EAE1FB] transition-all appearance-none">
           </div>
-          <div class="relative">
-             <i data-lucide="file-text" class="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D1D1D6]"></i>
+          <div class="relative w-full">
+             <i data-lucide="file-text" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D1D1D6]"></i>
              <input type="text" id="input-note" placeholder="備註..."
-              class="w-full bg-white pl-14 pr-6 py-4 rounded-[20px] shadow-sm border border-[#F0F0F0] text-[#5A5A5A] font-bold outline-none focus:border-[#C7B5F8] focus:ring-2 focus:ring-[#EAE1FB] transition-all placeholder-[#D1D1D6]">
+              class="w-full box-border bg-white pl-11 pr-4 py-4 rounded-[20px] shadow-sm border border-[#F0F0F0] text-[#5A5A5A] font-bold outline-none focus:border-[#C7B5F8] focus:ring-2 focus:ring-[#EAE1FB] transition-all placeholder-[#D1D1D6]">
           </div>
         </div>
 
-        <button type="submit" class="w-full bg-[#4A4A4A] hover:bg-[#333333] text-white font-bold text-lg py-4 rounded-[20px] shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2 mt-auto tracking-wider">
+        <!-- 恢復成與整體視覺一致的清新草綠色按鈕 -->
+        <button type="submit" class="w-full bg-[#90C86D] hover:bg-[#82BA5F] text-white font-bold text-lg py-4 rounded-[20px] shadow-[0_8px_20px_rgba(144,200,109,0.3)] transition-transform active:scale-95 flex justify-center items-center gap-2 mt-auto tracking-wider">
           完成
         </button>
       </form>
