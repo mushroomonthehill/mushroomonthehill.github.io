@@ -219,55 +219,56 @@
   <div id="add-modal" class="fixed inset-0 z-50 bg-[#FAFAF8]/95 backdrop-blur-xl overflow-y-auto hidden max-w-md mx-auto">
     <div class="bg-grid opacity-20"></div>
     
-    <div class="p-6 relative z-10 pb-20 min-h-screen flex flex-col animate-in slide-in-from-bottom-8 duration-300">
-      <div class="flex justify-between items-center mb-10 pt-4">
+    <div class="p-6 relative z-10 pb-6 min-h-screen flex flex-col animate-in slide-in-from-bottom-8 duration-300">
+      <div class="flex justify-between items-center mb-6 pt-2">
         <button onclick="closeModal()" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#AFAFAF] shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:bg-[#F4F5F7] transition-colors border border-[#F0F0F0]">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
         
         <!-- 更精緻的切換開關 -->
         <div class="bg-[#F0F0F0]/80 p-1 rounded-full flex font-bold text-sm shadow-inner backdrop-blur-sm">
-          <button id="tab-expense" onclick="switchType('expense')" class="px-8 py-2 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm">支出</button>
-          <button id="tab-income" onclick="switchType('income')" class="px-8 py-2 rounded-full transition-all duration-300 text-[#AFAFAF]">收入</button>
+          <button id="tab-expense" onclick="switchType('expense')" class="px-8 py-2 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]">支出</button>
+          <button id="tab-income" onclick="switchType('income')" class="px-8 py-2 rounded-full transition-all duration-300 text-[#AFAFAF] border border-transparent">收入</button>
         </div>
         <div class="w-10"></div>
       </div>
 
-      <form id="add-form" class="space-y-8 flex-1">
+      <form id="add-form" class="space-y-5 flex-1 flex flex-col">
         
-        <!-- 簡化的無框輸入區域 -->
-        <div class="flex flex-col items-center py-6">
-          <div class="flex items-center text-6xl font-black text-[#4A4A4A] font-num">
-            <span class="text-3xl mr-2 text-[#D1D1D6]">$</span>
+        <!-- 簡化的無框輸入區域 (縮減垂直留白與字體大小) -->
+        <div class="flex flex-col items-center py-2">
+          <div class="flex items-center text-[44px] font-black text-[#4A4A4A] font-num leading-none">
+            <span class="text-3xl mr-1 text-[#D1D1D6] -mt-1">$</span>
             <input type="number" id="input-amount" placeholder="0" required
-              class="w-full max-w-[200px] text-center bg-transparent outline-none placeholder-[#E5E5E5]">
+              class="w-full max-w-[180px] text-center bg-transparent outline-none placeholder-[#E5E5E5]">
           </div>
-          <div class="w-16 h-[2px] bg-[#EAE1FB] mt-4 rounded-full"></div>
+          <div class="w-12 h-[2px] bg-[#EAE1FB] mt-2 rounded-full"></div>
         </div>
 
         <div>
-          <h3 class="text-[11px] font-bold text-[#AFAFAF] mb-5 ml-2 tracking-widest uppercase">分類</h3>
-          <div id="category-grid" class="grid grid-cols-4 gap-y-6 gap-x-2">
+          <h3 class="text-[11px] font-bold text-[#AFAFAF] mb-3 ml-2 tracking-widest uppercase">分類</h3>
+          <!-- 縮小分類網格的垂直間距 (gap-y-6 改為 gap-y-3) -->
+          <div id="category-grid" class="grid grid-cols-4 gap-y-3 gap-x-2">
             <!-- 分類按鈕由 JS 生成 -->
           </div>
         </div>
 
-        <!-- 修正寬度破版問題，加入 w-full 與 box-border -->
-        <div class="space-y-4 pt-4 w-full">
+        <!-- 修正寬度破版問題，加入 w-full 與 box-border，並略微縮減 padding -->
+        <div class="space-y-3 pt-1 w-full">
           <div class="relative w-full">
              <i data-lucide="calendar" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D1D1D6]"></i>
              <input type="date" id="input-date" required
-              class="w-full box-border bg-white pl-11 pr-4 py-4 rounded-[20px] shadow-sm border border-[#F0F0F0] text-[#5A5A5A] font-num font-bold outline-none focus:border-[#C7B5F8] focus:ring-2 focus:ring-[#EAE1FB] transition-all appearance-none">
+              class="w-full box-border bg-white pl-11 pr-4 py-3.5 rounded-[20px] shadow-sm border border-[#F0F0F0] text-[#5A5A5A] font-num font-bold outline-none focus:border-[#C7B5F8] focus:ring-2 focus:ring-[#EAE1FB] transition-all appearance-none">
           </div>
           <div class="relative w-full">
              <i data-lucide="file-text" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D1D1D6]"></i>
              <input type="text" id="input-note" placeholder="備註..."
-              class="w-full box-border bg-white pl-11 pr-4 py-4 rounded-[20px] shadow-sm border border-[#F0F0F0] text-[#5A5A5A] font-bold outline-none focus:border-[#C7B5F8] focus:ring-2 focus:ring-[#EAE1FB] transition-all placeholder-[#D1D1D6]">
+              class="w-full box-border bg-white pl-11 pr-4 py-3.5 rounded-[20px] shadow-sm border border-[#F0F0F0] text-[#5A5A5A] font-bold outline-none focus:border-[#C7B5F8] focus:ring-2 focus:ring-[#EAE1FB] transition-all placeholder-[#D1D1D6]">
           </div>
         </div>
 
         <!-- 恢復成與整體視覺一致的清新草綠色按鈕 -->
-        <button type="submit" class="w-full bg-[#90C86D] hover:bg-[#82BA5F] text-white font-bold text-lg py-4 rounded-[20px] shadow-[0_8px_20px_rgba(144,200,109,0.3)] transition-transform active:scale-95 flex justify-center items-center gap-2 mt-auto tracking-wider">
+        <button type="submit" class="w-full bg-[#90C86D] hover:bg-[#82BA5F] text-white font-bold text-lg py-3.5 rounded-[20px] shadow-[0_8px_20px_rgba(144,200,109,0.3)] transition-transform active:scale-95 flex justify-center items-center gap-2 mt-auto tracking-wider shrink-0">
           完成
         </button>
       </form>
