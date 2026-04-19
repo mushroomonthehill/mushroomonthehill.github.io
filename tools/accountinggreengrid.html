@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>青春風記帳 App</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* 引入中文無襯線與英文圓潤字型，增加精緻感 */
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Nunito:wght@600;700;800;900&display=swap');
+    
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      /* 乾淨明亮的微暖白背景 */
+      background-color: #FAFAF8;
+      min-height: 100vh;
+      color: #4A4A4A;
+      margin: 0;
+      overflow-x: hidden;
+    }
+
+    /* 針對數字與英文字母使用特別的圓潤字型，這是打破公版感的秘訣 */
+    .font-num {
+      font-family: 'Nunito', sans-serif;
+    }
+
+    /* 春日野餐格紋底圖 (Gingham Pattern) */
+    .bg-gingham {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-color: #F0F7EB; /* 最底層的淺綠色 */
+      /* 利用兩個半透明的漸層條紋交疊，產生完美的深淺格子效果 */
+      background-image:
+        linear-gradient(90deg, rgba(162, 212, 137, 0.25) 50%, transparent 50%),
+        linear-gradient(rgba(162, 212, 137, 0.25) 50%, transparent 50%);
+      background-size: 32px 32px;
+    }
+
+    /* 手繪風小雛菊裝飾 (使用內嵌 SVG，清晰又可愛) */
+    .daisy {
+      position: fixed;
+      width: 26px;
+      height: 26px;
+      z-index: 0;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23FFF'%3E%3Ccircle cx='12' cy='5' r='4'/%3E%3Ccircle cx='12' cy='19' r='4'/%3E%3Ccircle cx='5' cy='12' r='4'/%3E%3Ccircle cx='19' cy='12' r='4'/%3E%3Ccircle cx='7' cy='7' r='4'/%3E%3Ccircle cx='17' cy='17' r='4'/%3E%3Ccircle cx='17' cy='7' r='4'/%3E%3Ccircle cx='7' cy='17' r='4'/%3E%3C/g%3E%3Ccircle cx='12' cy='12' r='4.5' fill='%23F5C249'/%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.06));
+    }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    .view-section {
+      display: none;
+      animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .view-section.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* 毛玻璃效果 class */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+  </style>
+</head>
+<body class="pb-36 relative overflow-x-hidden bg-[#F0F7EB]">
+
+  <!-- 春日野餐格紋底層 -->
+  <div class="bg-gingham"></div>
+
+  <!-- 散落的小雛菊裝飾 -->
+  <div class="daisy top-[12%] right-[15%] rotate-12 scale-110"></div>
+  <div class="daisy top-[35%] left-[8%] -rotate-12 scale-90 opacity-90"></div>
+  <div class="daisy top-[60%] right-[10%] rotate-45 scale-75 opacity-80"></div>
+  <div class="daisy bottom-[20%] left-[12%] rotate-12 scale-100"></div>
+  <div class="daisy top-[6%] left-[30%] rotate-[20deg] scale-[0.65] opacity-70"></div>
+
+  <!-- App 內容容器 -->
+  <div id="app-container" class="relative z-10 min-h-screen max-w-md mx-auto">
+    
+    <!-- ==================== 首頁視圖 ==================== -->
+    <div id="view-home" class="view-section active p-6 space-y-8 pb-32">
+      <header class="pt-8">
+        <div class="text-center mb-8 relative px-2">
+          <!-- 雙重裝飾光暈，增加背景豐富度與層次 -->
+          <div class="absolute left-[10%] top-[10%] w-40 h-40 bg-[#90C86D]/15 rounded-full mix-blend-multiply filter blur-3xl z-0 pointer-events-none"></div>
+          <div class="absolute right-[10%] bottom-[10%] w-40 h-40 bg-[#C7B5F8]/15 rounded-full mix-blend-multiply filter blur-3xl z-0 pointer-events-none"></div>
+          
+          <div class="relative z-10 flex flex-col items-center">
+            <!-- 帶有小圖示的日期膠囊 -->
+            <div class="inline-flex items-center gap-2 bg-white/70 backdrop-blur-md px-4 py-1.5 rounded-full mb-6 border border-white shadow-sm">
+              <i data-lucide="sun" class="w-3.5 h-3.5 text-[#F5C249]"></i>
+              <p id="home-date" class="text-xs font-bold text-[#AFAFAF] font-num tracking-wider"></p>
+            </div>
+            
+            <div class="flex items-center justify-center gap-1.5 mb-2 text-[#AFAFAF]">
+               <i data-lucide="wallet" class="w-[14px] h-[14px]"></i>
+               <span class="text-[12px] font-bold tracking-widest">本月結餘</span>
+            </div>
+            <h2 id="home-balance" class="font-num text-[56px] font-black text-[#4A4A4A] tracking-tighter mb-8 drop-shadow-sm leading-none">$0</h2>
+            
+            <!-- 精緻化的收支膠囊，打破傳統方塊卡片感 -->
+            <div class="flex w-full max-w-[320px] mx-auto justify-between gap-3">
+              <div class="flex-1 flex items-center gap-3 bg-white/60 backdrop-blur-sm border border-white/80 p-3 rounded-[24px] shadow-[0_4px_15px_rgba(0,0,0,0.02)]">
+                <div class="w-[34px] h-[34px] rounded-full bg-[#E4F9E9] flex items-center justify-center shrink-0">
+                  <i data-lucide="arrow-down-left" class="w-[18px] h-[18px] text-[#83BA61] stroke-[2.5]"></i>
+                </div>
+                <div class="text-left flex-1 overflow-hidden">
+                  <p class="text-[10px] text-[#AFAFAF] font-bold tracking-widest mb-0.5">收入</p>
+                  <p id="home-income" class="font-num font-bold text-[#83BA61] text-[15px] truncate">$0</p>
+                </div>
+              </div>
+              <div class="flex-1 flex items-center gap-3 bg-white/60 backdrop-blur-sm border border-white/80 p-3 rounded-[24px] shadow-[0_4px_15px_rgba(0,0,0,0.02)]">
+                <div class="w-[34px] h-[34px] rounded-full bg-[#FFE4DE] flex items-center justify-center shrink-0">
+                  <i data-lucide="arrow-up-right" class="w-[18px] h-[18px] text-[#FF8B8B] stroke-[2.5]"></i>
+                </div>
+                <div class="text-left flex-1 overflow-hidden">
+                  <p class="text-[10px] text-[#AFAFAF] font-bold tracking-widest mb-0.5">支出</p>
+                  <p id="home-expense" class="font-num font-bold text-[#FF8B8B] text-[15px] truncate">$0</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div>
+        <h3 class="text-sm font-bold text-[#AFAFAF] mb-4 ml-1 tracking-widest">近期紀錄</h3>
+        <!-- 紀錄列表 -->
+        <div id="home-transactions" class="space-y-6">
+          <!-- JS 動態生成 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 日曆視圖 ==================== -->
+    <div id="view-calendar" class="view-section p-6 h-full pb-32">
+      <header class="flex justify-between items-center mb-6 pt-8 px-2">
+        <h2 class="text-[22px] font-bold text-[#4A4A4A]">月曆</h2>
+        <div class="flex items-center gap-2 bg-white/60 backdrop-blur-md p-1 rounded-2xl border border-white">
+          <button class="p-1.5 text-[#AFAFAF] hover:text-[#4A4A4A] transition-colors"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+          <div class="px-2">
+            <span class="font-num font-bold text-[#7D5AE0] text-sm tracking-wide">2026.04</span>
+          </div>
+          <button class="p-1.5 text-[#AFAFAF] hover:text-[#4A4A4A] transition-colors"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+        </div>
+      </header>
+
+      <!-- 捨棄濃厚陰影，改用純淨白底與細微邊框 -->
+      <div class="bg-white rounded-[32px] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-[#F0F0F0] pb-8">
+        <div class="grid grid-cols-7 gap-y-6 text-center" id="calendar-grid">
+          <!-- JS 動態生成 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 圖表視圖 ==================== -->
+    <div id="view-chart" class="view-section p-6 pb-32">
+      <header class="flex justify-between items-center mb-6 pt-8 px-2">
+        <h2 class="text-[22px] font-bold text-[#4A4A4A]">分析</h2>
+        <div class="bg-[#EAE1FB]/50 px-4 py-1.5 rounded-full">
+            <span class="font-num font-bold text-[#7D5AE0] text-sm tracking-wide">April</span>
+        </div>
+      </header>
+
+      <div class="bg-white rounded-[32px] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-[#F0F0F0] flex flex-col items-center mb-6">
+        
+        <div id="chart-donut" class="w-48 h-48 rounded-full relative mb-10 transition-transform duration-700 hover:scale-105 flex items-center justify-center">
+          <div class="absolute inset-4 bg-white rounded-full flex flex-col items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.04)] z-10">
+            <span class="text-[11px] text-[#AFAFAF] font-bold mb-0.5 tracking-widest">總支出</span>
+            <span id="chart-total" class="font-num text-2xl font-black text-[#5A5A5A]">$0</span>
+          </div>
+          <div id="chart-empty" class="hidden absolute inset-0 rounded-full border-[4px] border-dashed border-[#F4F5F7] flex items-center justify-center z-20 bg-white">
+            <span class="text-[#AFAFAF] font-bold text-sm">無資料</span>
+          </div>
+        </div>
+
+        <div id="chart-list" class="w-full space-y-5">
+          <!-- JS 動態生成 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 設定視圖 ==================== -->
+    <div id="view-settings" class="view-section p-8 text-center text-[#B0B0B0] mt-32">
+      <div class="w-16 h-16 bg-white rounded-[20px] flex items-center justify-center mx-auto mb-4 shadow-sm border border-[#F0F0F0]">
+        <i data-lucide="wrench" class="w-6 h-6 opacity-50"></i>
+      </div>
+      <p class="font-bold">更多功能準備中...</p>
+    </div>
+
+  </div> <!-- End App Container -->
+
+  <!-- ==================== 懸浮式底部導覽列 (打破公版感的關鍵) ==================== -->
+  <div class="fixed bottom-6 left-6 right-6 max-w-[380px] mx-auto z-40">
+    <div class="glass-panel rounded-[32px] px-6 py-4 flex justify-between items-center shadow-[0_8px_32px_rgba(0,0,0,0.06)] relative">
+      
+      <button onclick="switchView('home')" id="nav-home" class="nav-btn p-2 text-[#A888F9] scale-110 transition-all duration-300 relative">
+        <i data-lucide="home" class="w-6 h-6"></i>
+        <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#A888F9] rounded-full active-dot"></span>
+      </button>
+      
+      <button onclick="switchView('calendar')" id="nav-calendar" class="nav-btn p-2 text-[#D1D1D6] hover:text-[#BCAEE8] transition-all duration-300 relative">
+        <i data-lucide="calendar" class="w-6 h-6"></i>
+        <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-transparent rounded-full active-dot transition-colors duration-300"></span>
+      </button>
+      
+      <div class="w-14"></div> <!-- 給懸浮按鈕的空間 -->
+      
+      <button onclick="switchView('chart')" id="nav-chart" class="nav-btn p-2 text-[#D1D1D6] hover:text-[#BCAEE8] transition-all duration-300 relative">
+        <i data-lucide="pie-chart" class="w-6 h-6"></i>
+        <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-transparent rounded-full active-dot transition-colors duration-300"></span>
+      </button>
+      
+      <button onclick="switchView('settings')" id="nav-settings" class="nav-btn p-2 text-[#D1D1D6] hover:text-[#BCAEE8] transition-all duration-300 relative">
+        <i data-lucide="settings" class="w-6 h-6"></i>
+        <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-transparent rounded-full active-dot transition-colors duration-300"></span>
+      </button>
+
+      <!-- 完全懸浮的打底按鈕，模仿圖3的樣式 -->
+      <button onclick="openModal()" class="absolute -top-7 left-1/2 -translate-x-1/2 bg-[#90C86D] hover:bg-[#82BA5F] text-white w-[60px] h-[60px] rounded-full shadow-[0_8px_20px_rgba(144,200,109,0.4)] flex items-center justify-center transition-transform hover:scale-105 active:scale-95 border-[4px] border-white z-50">
+        <i data-lucide="plus" class="w-7 h-7"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== 新增記帳彈窗 ==================== -->
+  <div id="add-modal" class="fixed inset-0 z-50 bg-[#FAFAF8]/95 backdrop-blur-xl overflow-y-auto hidden max-w-md mx-auto">
+    <!-- 彈窗內的背景格紋，調淡一點才不會影響輸入視線 -->
+    <div class="bg-gingham opacity-40"></div>
+    
+    <div class="p-6 relative z-10 pb-6 min-h-screen flex flex-col animate-in slide-in-from-bottom-8 duration-300">
+      <div class="flex justify-between items-center mb-6 pt-2">
+        <button onclick="closeModal()" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#AFAFAF] shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:bg-[#F4F5F7] transition-colors border border-[#F0F0F0]">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        
+        <!-- 更精緻的切換開關 -->
+        <div class="bg-[#F0F0F0]/80 p-1 rounded-full flex font-bold text-sm shadow-inner backdrop-blur-sm">
+          <button id="tab-expense" onclick="switchType('expense')" class="px-8 py-2 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]">支出</button>
+          <button id="tab-income" onclick="switchType('income')" class="px-8 py-2 rounded-full transition-all duration-300 text-[#AFAFAF] border border-transparent">收入</button>
+        </div>
+        <div class="w-10"></div>
+      </div>
+
+      <form id="add-form" class="space-y-5 flex-1 flex flex-col">
+        
+        <!-- 簡化的無框輸入區域 (縮減垂直留白與字體大小) -->
+        <div class="flex flex-col items-center py-2">
+          <div class="flex items-center text-[44px] font-black text-[#4A4A4A] font-num leading-none">
+            <span class="text-3xl mr-1 text-[#D1D1D6] -mt-1">$</span>
+            <input type="number" id="input-amount" placeholder="0" required
+              class="w-full max-w-[180px] text-center bg-transparent outline-none placeholder-[#E5E5E5]">
+          </div>
+          <div class="w-12 h-[2px] bg-[#EAE1FB] mt-2 rounded-full"></div>
+        </div>
+
+        <div>
+          <h3 class="text-[11px] font-bold text-[#AFAFAF] mb-3 ml-2 tracking-widest uppercase">分類</h3>
+          <!-- 縮小分類網格的垂直間距 (gap-y-6 改為 gap-y-3) -->
+          <div id="category-grid" class="grid grid-cols-4 gap-y-3 gap-x-2">
+            <!-- 分類按鈕由 JS 生成 -->
+          </div>
+        </div>
+
+        <!-- 修正寬度破版問題，加入 w-full 與 box-border，並略微縮減 padding -->
+        <div class="space-y-3 pt-1 w-full">
+          <div class="relative w-full">
+             <i data-lucide="calendar" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D1D1D6]"></i>
+             <input type="date" id="input-date" required
+              class="w-full box-border bg-white pl-11 pr-4 py-3.5 rounded-[20px] shadow-sm border border-[#F0F0F0] text-[#5A5A5A] font-num font-bold outline-none focus:border-[#C7B5F8] focus:ring-2 focus:ring-[#EAE1FB] transition-all appearance-none">
+          </div>
+          <div class="relative w-full">
+             <i data-lucide="file-text" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D1D1D6]"></i>
+             <input type="text" id="input-note" placeholder="備註..."
+              class="w-full box-border bg-white pl-11 pr-4 py-3.5 rounded-[20px] shadow-sm border border-[#F0F0F0] text-[#5A5A5A] font-bold outline-none focus:border-[#C7B5F8] focus:ring-2 focus:ring-[#EAE1FB] transition-all placeholder-[#D1D1D6]">
+          </div>
+        </div>
+
+        <!-- 恢復成與整體視覺一致的清新草綠色按鈕 -->
+        <button type="submit" class="w-full bg-[#90C86D] hover:bg-[#82BA5F] text-white font-bold text-lg py-3.5 rounded-[20px] shadow-[0_8px_20px_rgba(144,200,109,0.3)] transition-transform active:scale-95 flex justify-center items-center gap-2 mt-auto tracking-wider shrink-0">
+          完成
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // 基礎資料設定，顏色調得更柔和粉彩，配合無陰影扁平風
+    const EXPENSE_CATS = [
+      { id: 'e1', name: '餐飲', icon: 'utensils', color: '#FFE4DE' },
+      { id: 'e2', name: '交通', icon: 'bus', color: '#E4EEFF' },
+      { id: 'e3', name: '購物', icon: 'shopping-bag', color: '#F8E8FA' },
+      { id: 'e4', name: '娛樂', icon: 'film', color: '#E4F9E9' },
+      { id: 'e5', name: '居住', icon: 'home', color: '#FFF8E1' },
+      { id: 'e6', name: '零食', icon: 'coffee', color: '#F1E8DF' },
+      { id: 'e7', name: '醫療', icon: 'pill', color: '#E3F9F6' },
+      { id: 'e8', name: '其他', icon: 'sparkles', color: '#F2EBFC' },
+    ];
+
+    const INCOME_CATS = [
+      { id: 'i1', name: '薪水', icon: 'briefcase', color: '#E4F9E9' },
+      { id: 'i2', name: '零用錢', icon: 'coins', color: '#FFF8E1' },
+      { id: 'i3', name: '獎金', icon: 'gift', color: '#F2EBFC' },
+      { id: 'i4', name: '其他', icon: 'sparkles', color: '#E4EEFF' },
+    ];
+
+    let currentView = 'home';
+    let modalType = 'expense';
+    let selectedCategory = EXPENSE_CATS[0];
+    
+    // 假資料
+    let transactions = [
+      { id: 1, type: 'expense', amount: 150, category: '餐飲', date: '2026-04-18', note: '早午餐', icon: 'utensils', color: '#FFE4DE' },
+      { id: 2, type: 'income', amount: 2000, category: '零用錢', date: '2026-04-18', note: '媽媽給的', icon: 'coins', color: '#FFF8E1' },
+      { id: 3, type: 'expense', amount: 65, category: '交通', date: '2026-04-17', note: '搭公車', icon: 'bus', color: '#E4EEFF' },
+      { id: 4, type: 'expense', amount: 890, category: '購物', date: '2026-04-15', note: '買衣服', icon: 'shopping-bag', color: '#F8E8FA' },
+      { id: 5, type: 'expense', amount: 320, category: '娛樂', date: '2026-04-12', note: '看電影', icon: 'film', color: '#E4F9E9' },
+      { id: 6, type: 'income', amount: 8000, category: '薪水', date: '2026-04-05', note: '打工薪資', icon: 'briefcase', color: '#E4F9E9' },
+    ];
+
+    const currentMonthPrefix = '2026-04';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initDate();
+      renderAll();
+      switchType('expense');
+      document.getElementById('add-form').addEventListener('submit', handleAddSubmit);
+    });
+
+    function formatMoney(num) {
+      return num.toLocaleString('en-US');
+    }
+
+    function initDate() {
+      const today = new Date();
+      // 使用更簡潔的日期格式
+      const dateStr = `${today.getFullYear()} . ${String(today.getMonth() + 1).padStart(2,'0')} . ${String(today.getDate()).padStart(2,'0')}`;
+      document.getElementById('home-date').innerText = dateStr;
+      document.getElementById('input-date').value = '2026-04-18'; 
+    }
+
+    function renderAll() {
+      renderHome();
+      renderCalendar();
+      renderChart();
+      lucide.createIcons();
+    }
+
+    function renderHome() {
+      let income = 0; let expense = 0;
+      transactions.filter(t => t.date.startsWith(currentMonthPrefix)).forEach(t => {
+        if (t.type === 'income') income += t.amount;
+        else expense += t.amount;
+      });
+
+      document.getElementById('home-income').innerText = `$${formatMoney(income)}`;
+      document.getElementById('home-expense').innerText = `$${formatMoney(expense)}`;
+      document.getElementById('home-balance').innerText = `$${formatMoney(income - expense)}`;
+
+      const sorted = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+      const grouped = sorted.reduce((acc, t) => {
+        if (!acc[t.date]) acc[t.date] = [];
+        acc[t.date].push(t);
+        return acc;
+      }, {});
+
+      const container = document.getElementById('home-transactions');
+      container.innerHTML = '';
+
+      Object.keys(grouped).forEach(date => {
+        // 復刻截圖3：乾淨的圓角白底卡片，內部為扁平化列表
+        const dateHtml = `
+          <div class="mb-6">
+            <div class="inline-block bg-white border border-[#F0F0F0] px-3 py-1 rounded-full mb-3 ml-1">
+               <span class="text-[11px] font-bold text-[#A888F9] font-num">${date.substring(5).replace('-', '/')}</span>
+            </div>
+            <div class="bg-white rounded-[24px] shadow-[0_2px_15px_rgba(0,0,0,0.015)] border border-[#F5F5F5] overflow-hidden">
+              ${grouped[date].map((t, index) => `
+                <div class="flex items-center justify-between p-4 ${index !== grouped[date].length - 1 ? 'border-b border-[#F8F8F8]' : ''} hover:bg-[#FAFAF8] transition-colors">
+                  <div class="flex items-center gap-4">
+                    <div class="w-[52px] h-[52px] rounded-full flex items-center justify-center" style="background-color: ${t.color}">
+                      <i data-lucide="${t.icon}" class="w-6 h-6 text-[#7A7A7A] stroke-[1.5]"></i>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                      <p class="font-bold text-[#4A4A4A] text-[15px] m-0 leading-tight">${t.category}</p>
+                      ${t.note ? `<p class="text-[12px] text-[#AFAFAF] mt-1 m-0">${t.note}</p>` : ''}
+                    </div>
+                  </div>
+                  <span class="font-bold text-[17px] font-num ${t.type === 'income' ? 'text-[#83BA61]' : 'text-[#5A5A5A]'}">
+                    ${t.type === 'income' ? '+' : '-'}$${formatMoney(t.amount)}
+                  </span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', dateHtml);
+      });
+    }
+
+    function renderCalendar() {
+      const year = 2026; const month = 3; 
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const firstDay = new Date(year, month, 1).getDay();
+
+      const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+      let html = '';
+
+      weekDays.forEach(d => {
+        html += `<div class="text-[11px] font-bold text-[#C7B5F8] mb-2">${d}</div>`;
+      });
+
+      for (let i = 0; i < firstDay; i++) html += `<div></div>`;
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-0${month + 1}-${String(day).padStart(2, '0')}`;
+        const dayTrans = transactions.filter(t => t.date === dateStr);
+        const hasData = dayTrans.length > 0;
+        const isToday = day === 17;
+
+        let circleClass = 'text-[#5A5A5A] font-medium';
+        if (isToday) circleClass = 'bg-[#A888F9] text-white font-bold shadow-md';
+        else if (hasData) circleClass = 'bg-[#F4F5F7] text-[#4A4A4A] font-medium';
+
+        let dotHtml = '';
+        if (hasData && !isToday) {
+          dotHtml = `<div class="absolute bottom-1 right-2 w-1.5 h-1.5 bg-[#D1D1D6] rounded-full"></div>`;
+        } else if (hasData && isToday) {
+          dotHtml = `<div class="absolute bottom-0 right-0 bg-white rounded-full p-[2px] shadow-sm"><i data-lucide="coffee" class="w-2.5 h-2.5 text-[#A888F9]"></i></div>`;
+        }
+
+        html += `
+          <div class="flex flex-col items-center justify-center relative h-12 cursor-pointer font-num">
+            <div class="w-10 h-10 flex items-center justify-center rounded-full text-[15px] transition-all duration-200 ${circleClass}">
+              ${day}
+            </div>
+            ${dotHtml}
+          </div>
+        `;
+      }
+      document.getElementById('calendar-grid').innerHTML = html;
+    }
+
+    function renderChart() {
+      let totalExpense = 0;
+      const expenses = transactions.filter(t => t.type === 'expense' && t.date.startsWith(currentMonthPrefix));
+      
+      const grouped = expenses.reduce((acc, t) => {
+        totalExpense += t.amount;
+        const existing = acc.find(c => c.name === t.category);
+        if (existing) existing.amount += t.amount;
+        else acc.push({ name: t.category, amount: t.amount, color: t.color, icon: t.icon });
+        return acc;
+      }, []);
+      
+      grouped.sort((a, b) => b.amount - a.amount);
+
+      document.getElementById('chart-total').innerText = `$${formatMoney(totalExpense)}`;
+      const donut = document.getElementById('chart-donut');
+      const emptyState = document.getElementById('chart-empty');
+
+      if (totalExpense > 0) {
+        emptyState.classList.add('hidden');
+        let cumulativePercent = 0;
+        const gradientStops = grouped.map(item => {
+          const percent = (item.amount / totalExpense) * 100;
+          const start = cumulativePercent;
+          const end = cumulativePercent + percent;
+          cumulativePercent = end;
+          return `${item.color} ${start}% ${end}%`;
+        }).join(', ');
+        donut.style.background = `conic-gradient(${gradientStops})`;
+      } else {
+        emptyState.classList.remove('hidden');
+        donut.style.background = 'transparent';
+      }
+
+      const listContainer = document.getElementById('chart-list');
+      listContainer.innerHTML = grouped.map(item => {
+        const percent = ((item.amount / totalExpense) * 100).toFixed(1);
+        return `
+          <div class="flex items-center justify-between group">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: ${item.color}">
+                 <i data-lucide="${item.icon}" class="w-5 h-5 text-[#7A7A7A] stroke-[1.5]"></i>
+              </div>
+              <span class="text-[#4A4A4A] font-bold text-[15px]">${item.name}</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <span class="text-[#D1D1D6] font-num text-sm font-bold w-10 text-right">${percent}%</span>
+              <span class="font-bold text-[#5A5A5A] font-num text-lg w-16 text-right">$${formatMoney(item.amount)}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function switchView(viewName) {
+      currentView = viewName;
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      document.getElementById(`view-${viewName}`).classList.add('active');
+      
+      const btns = ['home', 'calendar', 'chart', 'settings'];
+      btns.forEach(btn => {
+        const el = document.getElementById(`nav-${btn}`);
+        const dot = el.querySelector('.active-dot');
+        
+        if (btn === viewName) {
+          el.className = 'nav-btn p-2 text-[#A888F9] scale-110 transition-all duration-300 relative';
+          dot.style.backgroundColor = '#A888F9';
+        } else {
+          el.className = 'nav-btn p-2 text-[#D1D1D6] hover:text-[#BCAEE8] transition-all duration-300 relative';
+          dot.style.backgroundColor = 'transparent';
+        }
+      });
+    }
+
+    function openModal() {
+      document.getElementById('add-modal').classList.remove('hidden');
+    }
+    
+    function closeModal() {
+      document.getElementById('add-modal').classList.add('hidden');
+      document.getElementById('input-amount').value = '';
+      document.getElementById('input-note').value = '';
+    }
+
+    function switchType(type) {
+      modalType = type;
+      const btnExp = document.getElementById('tab-expense');
+      const btnInc = document.getElementById('tab-income');
+      
+      if (type === 'expense') {
+        btnExp.className = 'px-8 py-2 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]';
+        btnInc.className = 'px-8 py-2 rounded-full transition-all duration-300 text-[#AFAFAF] border border-transparent';
+        renderCategories(EXPENSE_CATS);
+      } else {
+        btnExp.className = 'px-8 py-2 rounded-full transition-all duration-300 text-[#AFAFAF] border border-transparent';
+        btnInc.className = 'px-8 py-2 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]';
+        renderCategories(INCOME_CATS);
+      }
+    }
+
+    function renderCategories(cats) {
+      selectedCategory = cats[0]; 
+      const container = document.getElementById('category-grid');
+      
+      const updateGrid = () => {
+        container.innerHTML = cats.map(cat => {
+          const isSelected = selectedCategory.id === cat.id;
+          const btnClass = isSelected 
+            ? `bg-white shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-[#EAE1FB] scale-105`
+            : `hover:bg-white text-[#B0B0B0] border border-transparent`;
+            
+          const textClass = isSelected ? 'text-[#4A4A4A]' : '';
+
+          return `
+            <button type="button" onclick="selectCategory('${cat.id}')" class="flex flex-col items-center py-3 rounded-2xl transition-all duration-200 ${btnClass}">
+              <div class="w-[42px] h-[42px] rounded-full flex items-center justify-center mb-2" style="background-color: ${cat.color}">
+                <i data-lucide="${cat.icon}" class="w-5 h-5 text-[#7A7A7A] stroke-[1.5]"></i>
+              </div>
+              <span class="text-[12px] font-bold ${textClass}">${cat.name}</span>
+            </button>
+          `;
+        }).join('');
+        lucide.createIcons();
+      };
+      
+      window.selectCategory = (id) => {
+        selectedCategory = cats.find(c => c.id === id);
+        updateGrid();
+      };
+
+      updateGrid();
+    }
+
+    function handleAddSubmit(e) {
+      e.preventDefault();
+      const amountStr = document.getElementById('input-amount').value;
+      const date = document.getElementById('input-date').value;
+      const note = document.getElementById('input-note').value;
+      
+      if (!amountStr || isNaN(amountStr) || Number(amountStr) <= 0) return;
+
+      const newTx = {
+        id: Date.now(),
+        type: modalType,
+        amount: parseFloat(amountStr),
+        category: selectedCategory.name,
+        icon: selectedCategory.icon,
+        color: selectedCategory.color,
+        date: date,
+        note: note
+      };
+
+      transactions.unshift(newTx);
+      renderAll();
+      closeModal();
+    }
+  </script>
+</body>
+</html>
