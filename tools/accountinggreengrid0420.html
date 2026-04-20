@@ -178,9 +178,16 @@
       <div class="bg-white rounded-[32px] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-[#F0F0F0] flex flex-col items-center mb-6">
         
         <!-- ✨ 新增：支出/收入 切換按鈕 -->
-        <div class="bg-[#F0F0F0]/80 p-1 rounded-full flex font-bold text-sm shadow-inner backdrop-blur-sm mb-8 w-full max-w-[200px] mx-auto">
+        <div class="bg-[#F0F0F0]/80 p-1 rounded-full flex font-bold text-sm shadow-inner backdrop-blur-sm mb-4 w-full max-w-[200px] mx-auto">
           <button id="chart-tab-expense" onclick="setChartType('expense')" class="flex-1 py-1.5 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]">支出</button>
           <button id="chart-tab-income" onclick="setChartType('income')" class="flex-1 py-1.5 rounded-full transition-all duration-300 text-[#AFAFAF] border border-transparent">收入</button>
+        </div>
+
+        <!-- ✨ 新增：分析維度切換按鈕 (分類 / 付款方式 / 消費類型) -->
+        <div id="chart-dimension-tabs" class="flex gap-2 justify-center mb-8 w-full max-w-[260px] mx-auto transition-all duration-300">
+          <button id="dim-tab-category" onclick="setChartDimension('category')" class="flex-1 py-1.5 rounded-[12px] text-[12px] font-bold transition-all bg-[#EAE1FB] text-[#7D5AE0] shadow-sm">分類</button>
+          <button id="dim-tab-payment" onclick="setChartDimension('payment')" class="flex-1 py-1.5 rounded-[12px] text-[12px] font-bold transition-all text-[#AFAFAF] hover:bg-[#F8F9FA]">付款</button>
+          <button id="dim-tab-consumption" onclick="setChartDimension('consumption')" class="flex-1 py-1.5 rounded-[12px] text-[12px] font-bold transition-all text-[#AFAFAF] hover:bg-[#F8F9FA]">消費類型</button>
         </div>
 
         <div id="chart-donut" class="w-48 h-48 rounded-full relative mb-10 transition-transform duration-700 hover:scale-105 flex items-center justify-center">
@@ -235,14 +242,21 @@
     </div>
   </div>
 
-  <div id="add-modal" class="fixed inset-0 z-50 bg-[#FAFAF8]/95 backdrop-blur-xl overflow-y-auto hidden max-w-md mx-auto">
+  <!-- ✨ 將彈窗的 z-index 提升到 60，確保能蓋過日曆的明細彈窗 -->
+  <div id="add-modal" class="fixed inset-0 z-[60] bg-[#FAFAF8]/95 backdrop-blur-xl overflow-y-auto hidden max-w-md mx-auto">
     <div class="bg-gingham opacity-40"></div>
     
     <div class="p-6 relative z-10 pb-6 min-h-screen flex flex-col animate-in slide-in-from-bottom-8 duration-300">
       <div class="flex justify-between items-center mb-6 pt-2">
-        <button onclick="closeModal()" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#AFAFAF] shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:bg-[#F4F5F7] transition-colors border border-[#F0F0F0]">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
+        <div class="flex gap-2">
+          <button onclick="closeModal()" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#AFAFAF] shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:bg-[#F4F5F7] transition-colors border border-[#F0F0F0]">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+          <!-- ✨ 新增：隱藏的垃圾桶刪除按鈕 (編輯模式下才會出現) -->
+          <button id="btn-delete-tx" type="button" onclick="deleteTransaction()" class="hidden w-10 h-10 bg-[#FFF5F5] rounded-full flex items-center justify-center text-[#FF8B8B] shadow-sm hover:bg-[#FFEBEB] transition-colors border border-[#FFEBEB]">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
         
         <div class="bg-[#F0F0F0]/80 p-1 rounded-full flex font-bold text-sm shadow-inner backdrop-blur-sm">
           <button id="tab-expense" onclick="switchType('expense')" class="px-8 py-2 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]">支出</button>
@@ -268,6 +282,9 @@
             </div>
         </div>
 
+        <!-- ✨ 新增：支出專屬的額外選項容器 -->
+        <div id="expense-extra-fields" class="w-full space-y-3 pt-1 pb-1"></div>
+
         <div class="space-y-3 pt-1 w-full">
           <div class="relative w-full">
              <i data-lucide="calendar" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D1D1D6]"></i>
@@ -282,7 +299,7 @@
         </div>
 
         <button type="submit" class="w-full bg-[#90C86D] hover:bg-[#82BA5F] text-white font-bold text-lg py-3.5 rounded-[20px] shadow-[0_8px_20px_rgba(144,200,109,0.3)] transition-transform active:scale-95 flex justify-center items-center gap-2 mt-auto tracking-wider shrink-0">
-          完成
+          <span id="btn-submit-text">完成</span>
         </button>
       </form>
     </div>
@@ -336,6 +353,18 @@
     let modalType = 'expense';
     let selectedCategory = EXPENSE_CATS[0];
     
+    // ✨ 新增：付款與消費類型狀態管理
+    const PAYMENT_METHODS = ['現金', '電子支付', '信用卡', '轉帳'];
+    const EPAY_METHODS = ['Apple Pay', 'Line Pay', '街口支付', '悠遊卡', '全支付', '其他'];
+    const CONSUMPTION_TYPES = ['實體消費', '線上消費'];
+    
+    let selectedPayment = '現金';
+    let selectedEPay = 'Line Pay';
+    let selectedConsumption = '實體消費';
+
+    // ✨ 新增：編輯模式的狀態
+    let editingTransactionId = null;
+
     // ✨ 新增：日曆當前顯示的年月狀態 (預設為現在真實的時間)
     let currentCalendarYear = new Date().getFullYear();
     let currentCalendarMonth = new Date().getMonth(); // 0-11
@@ -343,7 +372,24 @@
     // ✨ 新增：圖表分析的狀態管理
     let chartMode = 'month'; // 'week', 'month', 'year'
     let chartAnchorDate = new Date();
-    let chartType = 'expense'; // ✨ 新增：控制分析畫面的收支狀態
+    let chartType = 'expense'; 
+    let chartDimension = 'category'; // ✨ 新增：分析維度 'category', 'payment', 'consumption'
+
+    // ✨ 圖表分析專用的屬性設計設定
+    const CHART_META = {
+      'payment': {
+        '現金': { icon: 'banknote', color: '#FFF8E1' },
+        '電子支付': { icon: 'smartphone', color: '#E4F9E9' },
+        '信用卡': { icon: 'credit-card', color: '#E4EEFF' },
+        '轉帳': { icon: 'arrow-right-left', color: '#F2EBFC' },
+        '未指定': { icon: 'help-circle', color: '#F5F5F5' }
+      },
+      'consumption': {
+        '實體消費': { icon: 'store', color: '#FFE4DE' },
+        '線上消費': { icon: 'globe', color: '#EAE1FB' },
+        '未指定': { icon: 'help-circle', color: '#F5F5F5' }
+      }
+    };
 
     // ✨ 從 localStorage 讀取資料
     const savedData = localStorage.getItem('green_gingham_transactions');
@@ -420,13 +466,19 @@
             </div>
             <div class="bg-white rounded-[24px] shadow-[0_2px_15px_rgba(0,0,0,0.015)] border border-[#F5F5F5] overflow-hidden">
               ${grouped[date].map((t, index) => `
-                <div class="flex items-center justify-between p-4 ${index !== grouped[date].length - 1 ? 'border-b border-[#F8F8F8]' : ''} hover:bg-[#FAFAF8] transition-colors">
+                <!-- ✨ 修改：加上 onclick 呼叫 openModal，實現點擊編輯 -->
+                <div onclick="openModal(${t.id})" class="flex items-center justify-between p-4 ${index !== grouped[date].length - 1 ? 'border-b border-[#F8F8F8]' : ''} hover:bg-[#FAFAF8] transition-colors cursor-pointer active:bg-[#F0F0F0]">
                   <div class="flex items-center gap-4">
                     <div class="w-[52px] h-[52px] rounded-full flex items-center justify-center" style="background-color: ${t.color}">
                       <i data-lucide="${t.icon}" class="w-6 h-6 text-[#7A7A7A] stroke-[1.5]"></i>
                     </div>
-                    <div class="flex flex-col justify-center">
-                      <p class="font-bold text-[#4A4A4A] text-[15px] m-0 leading-tight">${t.category}</p>
+                    <div class="flex flex-col justify-center items-start">
+                      <div class="flex items-center flex-wrap gap-1">
+                        <p class="font-bold text-[#4A4A4A] text-[15px] m-0 leading-tight">${t.category}</p>
+                        <!-- ✨ 新增：在列表顯示付款方式與線上消費的小標籤 -->
+                        ${t.type === 'expense' && t.paymentMethod ? `<span class="text-[9px] bg-[#F0F7EB] text-[#83BA61] px-1.5 py-[2px] rounded-md font-bold">${t.paymentMethod === '電子支付' && t.ePayMethod ? t.ePayMethod : t.paymentMethod}</span>` : ''}
+                        ${t.type === 'expense' && t.consumptionType === '線上消費' ? `<span class="text-[9px] bg-[#F2EBFC] text-[#A888F9] px-1.5 py-[2px] rounded-md font-bold">線上</span>` : ''}
+                      </div>
                       ${t.note ? `<p class="text-[12px] text-[#AFAFAF] mt-1 m-0">${t.note}</p>` : ''}
                     </div>
                   </div>
@@ -577,16 +629,33 @@
       chartType = type;
       const btnExp = document.getElementById('chart-tab-expense');
       const btnInc = document.getElementById('chart-tab-income');
+      const dimTabs = document.getElementById('chart-dimension-tabs'); // 取得維度切換列
       
       if (type === 'expense') {
         btnExp.className = 'flex-1 py-1.5 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]';
         btnInc.className = 'flex-1 py-1.5 rounded-full transition-all duration-300 text-[#AFAFAF] border border-transparent';
         document.getElementById('chart-center-label').innerText = '總支出';
+        dimTabs.style.display = 'flex'; // 支出模式下顯示維度切換
       } else {
         btnExp.className = 'flex-1 py-1.5 rounded-full transition-all duration-300 text-[#AFAFAF] border border-transparent';
         btnInc.className = 'flex-1 py-1.5 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]';
         document.getElementById('chart-center-label').innerText = '總收入';
+        dimTabs.style.display = 'none'; // 收入模式下隱藏維度切換，因為目前收入沒有設計付款與消費類型
       }
+      renderChart();
+    }
+
+    // ✨ 新增：切換圓餅圖分析維度 (分類 / 付款 / 消費)
+    function setChartDimension(dim) {
+      chartDimension = dim;
+      ['category', 'payment', 'consumption'].forEach(d => {
+        const btn = document.getElementById(`dim-tab-${d}`);
+        if (d === dim) {
+          btn.className = 'flex-1 py-1.5 rounded-[12px] text-[12px] font-bold transition-all bg-[#EAE1FB] text-[#7D5AE0] shadow-sm';
+        } else {
+          btn.className = 'flex-1 py-1.5 rounded-[12px] text-[12px] font-bold transition-all text-[#AFAFAF] hover:bg-[#F8F9FA]';
+        }
+      });
       renderChart();
     }
 
@@ -626,9 +695,28 @@
       
       const grouped = expenses.reduce((acc, t) => {
         totalExpense += t.amount;
-        const existing = acc.find(c => c.name === t.category);
+        
+        // ✨ 修改：根據選擇的維度 (chartDimension) 決定用什麼屬性來群組資料
+        let groupName, groupIcon, groupColor;
+
+        if (chartType === 'income' || chartDimension === 'category') {
+          groupName = t.category;
+          groupIcon = t.icon;
+          groupColor = t.color;
+        } else if (chartDimension === 'payment') {
+          // 特殊處理：如果是電子支付，用具體的 Pay 名稱當分類
+          groupName = (t.paymentMethod === '電子支付' && t.ePayMethod) ? t.ePayMethod : (t.paymentMethod || '未指定');
+          groupIcon = CHART_META.payment[t.paymentMethod]?.icon || 'help-circle';
+          groupColor = CHART_META.payment[t.paymentMethod]?.color || '#F5F5F5';
+        } else if (chartDimension === 'consumption') {
+          groupName = t.consumptionType || '未指定';
+          groupIcon = CHART_META.consumption[t.consumptionType]?.icon || 'help-circle';
+          groupColor = CHART_META.consumption[t.consumptionType]?.color || '#F5F5F5';
+        }
+
+        const existing = acc.find(c => c.name === groupName);
         if (existing) existing.amount += t.amount;
-        else acc.push({ name: t.category, amount: t.amount, color: t.color, icon: t.icon });
+        else acc.push({ name: groupName, amount: t.amount, color: groupColor, icon: groupIcon });
         return acc;
       }, []);
       
@@ -696,7 +784,49 @@
       });
     }
 
-    function openModal() {
+    // ✨ 修改：加入 id 參數，判斷是「新增」還是「編輯」
+    function openModal(id = null) {
+      editingTransactionId = id;
+      
+      const delBtn = document.getElementById('btn-delete-tx');
+      const submitBtnText = document.getElementById('btn-submit-text');
+
+      if (id) {
+        // --- 進入編輯模式 ---
+        const t = transactions.find(x => x.id === id);
+        if (t) {
+          document.getElementById('input-amount').value = t.amount;
+          document.getElementById('input-date').value = t.date;
+          document.getElementById('input-note').value = t.note || '';
+          
+          switchType(t.type); // 自動切換收入/支出表單
+          
+          // 選取當時的分類
+          const catList = t.type === 'expense' ? EXPENSE_CATS : INCOME_CATS;
+          const matchedCat = catList.find(c => c.name === t.category);
+          if(matchedCat) selectCategory(matchedCat.id);
+
+          // 復原當時的選項
+          if (t.type === 'expense') {
+            if(t.paymentMethod) selectPayment(t.paymentMethod);
+            if(t.ePayMethod) selectEPay(t.ePayMethod);
+            if(t.consumptionType) selectConsumption(t.consumptionType);
+          }
+          
+          submitBtnText.innerText = '儲存修改';
+          delBtn.classList.remove('hidden'); // 顯示刪除按鈕
+        }
+      } else {
+        // --- 進入新增模式 ---
+        document.getElementById('input-amount').value = '';
+        document.getElementById('input-note').value = '';
+        initDate();
+        switchType('expense');
+        
+        submitBtnText.innerText = '完成';
+        delBtn.classList.add('hidden'); // 隱藏刪除按鈕
+      }
+
       document.getElementById('add-modal').classList.remove('hidden');
     }
     
@@ -704,20 +834,39 @@
       document.getElementById('add-modal').classList.add('hidden');
       document.getElementById('input-amount').value = '';
       document.getElementById('input-note').value = '';
+      editingTransactionId = null; // 清除狀態
+    }
+
+    // ✨ 新增：刪除資料功能
+    function deleteTransaction() {
+      if(confirm('確定要刪除這筆紀錄嗎？')) {
+        transactions = transactions.filter(t => t.id !== editingTransactionId);
+        localStorage.setItem('green_gingham_transactions', JSON.stringify(transactions));
+        
+        renderAll();
+        closeModal();
+        
+        // 如果目前日曆的明細彈窗開著，也需要把它關閉避免顯示舊資料
+        closeDayDetail(); 
+      }
     }
 
     function switchType(type) {
       modalType = type;
       const btnExp = document.getElementById('tab-expense');
       const btnInc = document.getElementById('tab-income');
+      const extraFields = document.getElementById('expense-extra-fields'); // ✨ 取得額外選項容器
       
       if (type === 'expense') {
         btnExp.className = 'px-8 py-2 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]';
         btnInc.className = 'px-8 py-2 rounded-full transition-all duration-300 text-[#AFAFAF] border border-transparent';
+        extraFields.classList.remove('hidden'); // ✨ 如果是支出，顯示額外選項
         renderCategories(EXPENSE_CATS);
+        renderExtraFields(); // ✨ 渲染額外選項按鈕
       } else {
         btnExp.className = 'px-8 py-2 rounded-full transition-all duration-300 text-[#AFAFAF] border border-transparent';
         btnInc.className = 'px-8 py-2 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]';
+        extraFields.classList.add('hidden'); // ✨ 如果是收入，隱藏額外選項
         renderCategories(INCOME_CATS);
       }
     }
@@ -755,6 +904,50 @@
       updateGrid();
     }
 
+    // ✨ 新增：動態渲染付款方式與消費類型的 HTML
+    function renderExtraFields() {
+      let html = `
+        <div>
+          <h3 class="text-[10px] font-bold text-[#AFAFAF] mb-2 ml-2 tracking-widest uppercase">付款方式</h3>
+          <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1 px-1">
+            ${PAYMENT_METHODS.map(m => `
+              <button type="button" onclick="selectPayment('${m}')" class="shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-all ${selectedPayment === m ? 'bg-white shadow-sm border border-[#EAE1FB] text-[#7D5AE0]' : 'text-[#AFAFAF] border border-transparent hover:bg-white/50'}">${m}</button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      // 只有選擇「電子支付」時，才顯示電子支付子選項
+      if (selectedPayment === '電子支付') {
+        html += `
+          <div class="animate-in fade-in slide-in-from-top-1 duration-200 pl-1">
+            <div class="flex flex-wrap gap-1.5 px-1 bg-white/40 p-2 rounded-[16px] border border-white/50 shadow-inner">
+              ${EPAY_METHODS.map(m => `
+                <button type="button" onclick="selectEPay('${m}')" class="px-2.5 py-1.5 rounded-full text-[11px] font-bold transition-all ${selectedEPay === m ? 'bg-[#EAE1FB] text-[#7D5AE0] shadow-sm' : 'text-[#AFAFAF] hover:bg-white'}">${m}</button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      html += `
+        <div>
+          <h3 class="text-[10px] font-bold text-[#AFAFAF] mb-2 ml-2 tracking-widest uppercase">消費類型</h3>
+          <div class="flex gap-2 px-1">
+            ${CONSUMPTION_TYPES.map(m => `
+              <button type="button" onclick="selectConsumption('${m}')" class="flex-1 py-1.5 rounded-full text-[12px] font-bold transition-all ${selectedConsumption === m ? 'bg-white shadow-sm border border-[#EAE1FB] text-[#7D5AE0]' : 'text-[#AFAFAF] border border-transparent hover:bg-white/50'}">${m}</button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      document.getElementById('expense-extra-fields').innerHTML = html;
+    }
+
+    // ✨ 讓 HTML 的 onclick 可以呼叫這些選擇與切換函式
+    window.selectPayment = (m) => { selectedPayment = m; renderExtraFields(); };
+    window.selectEPay = (m) => { selectedEPay = m; renderExtraFields(); };
+    window.selectConsumption = (m) => { selectedConsumption = m; renderExtraFields(); };
+
     function handleAddSubmit(e) {
       e.preventDefault();
       const amountStr = document.getElementById('input-amount').value;
@@ -771,15 +964,29 @@
         icon: selectedCategory.icon,
         color: selectedCategory.color,
         date: date,
-        note: note
+        note: note,
+        // ✨ 新增儲存：僅當是支出時，一併存入選定的付款方式與消費類型
+        paymentMethod: modalType === 'expense' ? selectedPayment : null,
+        ePayMethod: (modalType === 'expense' && selectedPayment === '電子支付') ? selectedEPay : null,
+        consumptionType: modalType === 'expense' ? selectedConsumption : null
       };
 
-      // ✨ 將資料加進陣列，並存入 localStorage
-      transactions.unshift(newTx);
+      // ✨ 修改：判斷是新增還是覆蓋現有資料
+      if (editingTransactionId) {
+        // 替換掉原本那筆資料
+        transactions = transactions.map(t => t.id === editingTransactionId ? newTx : t);
+      } else {
+        // 新增在最前面
+        transactions.unshift(newTx);
+      }
+      
       localStorage.setItem('green_gingham_transactions', JSON.stringify(transactions));
 
       renderAll();
       closeModal();
+      
+      // 更新完若日曆明細開啟中，會一併關閉防呆
+      closeDayDetail();
     }
 
     // ✨ 新增：打開與渲染日期明細彈窗
@@ -803,13 +1010,19 @@
         listContainer.innerHTML = `
           <div class="bg-white rounded-[24px] shadow-[0_2px_15px_rgba(0,0,0,0.015)] border border-[#F5F5F5] overflow-hidden">
             ${dayTrans.map((t, index) => `
-              <div class="flex items-center justify-between p-4 ${index !== dayTrans.length - 1 ? 'border-b border-[#F8F8F8]' : ''} hover:bg-[#FAFAF8] transition-colors">
+              <!-- ✨ 修改：加上 onclick 呼叫 openModal，實現點擊編輯 -->
+              <div onclick="openModal(${t.id})" class="flex items-center justify-between p-4 ${index !== dayTrans.length - 1 ? 'border-b border-[#F8F8F8]' : ''} hover:bg-[#FAFAF8] transition-colors cursor-pointer active:bg-[#F0F0F0]">
                 <div class="flex items-center gap-4">
                   <div class="w-[46px] h-[46px] rounded-full flex items-center justify-center" style="background-color: ${t.color}">
                     <i data-lucide="${t.icon}" class="w-5 h-5 text-[#7A7A7A] stroke-[1.5]"></i>
                   </div>
-                  <div class="flex flex-col justify-center">
-                    <p class="font-bold text-[#4A4A4A] text-[14px] m-0 leading-tight">${t.category}</p>
+                  <div class="flex flex-col justify-center items-start">
+                    <div class="flex items-center flex-wrap gap-1">
+                      <p class="font-bold text-[#4A4A4A] text-[14px] m-0 leading-tight">${t.category}</p>
+                      <!-- ✨ 新增：在明細彈窗也顯示付款方式與線上消費的小標籤 -->
+                      ${t.type === 'expense' && t.paymentMethod ? `<span class="text-[9px] bg-[#F0F7EB] text-[#83BA61] px-1.5 py-[2px] rounded-md font-bold">${t.paymentMethod === '電子支付' && t.ePayMethod ? t.ePayMethod : t.paymentMethod}</span>` : ''}
+                      ${t.type === 'expense' && t.consumptionType === '線上消費' ? `<span class="text-[9px] bg-[#F2EBFC] text-[#A888F9] px-1.5 py-[2px] rounded-md font-bold">線上</span>` : ''}
+                    </div>
                     ${t.note ? `<p class="text-[11px] text-[#AFAFAF] mt-1 m-0">${t.note}</p>` : ''}
                   </div>
                 </div>
