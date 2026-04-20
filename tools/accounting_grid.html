@@ -107,7 +107,8 @@
               <p id="home-date" class="text-xs font-bold text-[#AFAFAF] font-num tracking-wider"></p>
             </div>
             
-            <div class="flex items-center justify-center gap-1.5 mb-2 text-[#AFAFAF]">
+            <!-- ✨ 修改：加上白底毛玻璃膠囊，並加深字體顏色 -->
+            <div class="flex items-center justify-center gap-1.5 mb-2 text-[#7A7A7A] bg-white/60 backdrop-blur-md px-3 py-1 rounded-full border border-white shadow-sm">
                <i data-lucide="wallet" class="w-[14px] h-[14px]"></i>
                <span class="text-[12px] font-bold tracking-widest">本月結餘</span>
             </div>
@@ -138,7 +139,11 @@
       </header>
 
       <div>
-        <h3 class="text-sm font-bold text-[#AFAFAF] mb-4 ml-1 tracking-widest">近期紀錄</h3>
+        <!-- ✨ 修改：加上圖示與白底毛玻璃膠囊，提升閱讀性與精緻度 -->
+        <div class="inline-flex items-center gap-1.5 mb-4 ml-1 bg-white/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white shadow-sm">
+           <i data-lucide="clock" class="w-[14px] h-[14px] text-[var(--accent-primary)]"></i>
+           <h3 class="text-[12px] font-bold text-[#7A7A7A] tracking-widest leading-none mt-[1px]">近期紀錄</h3>
+        </div>
         <div id="home-transactions" class="space-y-6">
           </div>
       </div>
@@ -494,12 +499,13 @@
       const container = document.getElementById('home-transactions');
       
       if (transactions.length === 0) {
+         // ✨ 修改：加入毛玻璃卡片底色，並加深文字顏色、為圖示套用主題色
          container.innerHTML = `
-           <div class="text-center py-12 text-[#AFAFAF]">
-             <div class="w-16 h-16 bg-white rounded-[20px] flex items-center justify-center mx-auto mb-4 shadow-sm border border-[#F0F0F0]">
-               <i data-lucide="inbox" class="w-6 h-6 opacity-50"></i>
+           <div class="text-center py-12 bg-white/60 backdrop-blur-md rounded-[32px] border border-white shadow-[0_4px_15px_rgba(0,0,0,0.02)]">
+             <div class="w-16 h-16 bg-white rounded-[20px] flex items-center justify-center mx-auto mb-4 shadow-[0_4px_12px_rgba(0,0,0,0.04)] border border-[#F0F0F0]">
+               <i data-lucide="inbox" class="w-6 h-6 text-[var(--accent-primary)] opacity-80"></i>
              </div>
-             <p class="font-bold text-sm">目前還沒有紀錄喔！</p>
+             <p class="font-bold text-[14px] text-[#7A7A7A] tracking-wide">目前還沒有紀錄喔！</p>
            </div>
          `;
          return;
