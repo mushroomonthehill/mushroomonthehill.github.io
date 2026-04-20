@@ -262,7 +262,8 @@
         <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-transparent rounded-full active-dot transition-colors duration-300"></span>
       </button>
 
-      <button onclick="openModal()" class="absolute -top-7 left-1/2 -translate-x-1/2 bg-[#90C86D] hover:bg-[#82BA5F] text-white w-[60px] h-[60px] rounded-full shadow-[0_8px_20px_rgba(144,200,109,0.4)] flex items-center justify-center transition-transform hover:scale-105 active:scale-95 border-[4px] border-white z-50">
+      <!-- ✨ 修改：移除 style 發光陰影，改用乾淨柔和的灰階 shadow -->
+      <button onclick="openModal()" class="absolute -top-7 left-1/2 -translate-x-1/2 bg-[var(--accent-primary)] hover:bg-[var(--accent-dark)] text-white w-[60px] h-[60px] rounded-full shadow-[0_8px_16px_rgba(0,0,0,0.1)] flex items-center justify-center transition-all hover:scale-105 active:scale-95 border-[4px] border-white z-50">
         <i data-lucide="plus" class="w-7 h-7"></i>
       </button>
     </div>
@@ -321,7 +322,8 @@
           </div>
         </div>
 
-        <button type="submit" class="w-full bg-[#90C86D] hover:bg-[#82BA5F] text-white font-bold text-lg py-3.5 rounded-[20px] shadow-[0_8px_20px_rgba(144,200,109,0.3)] transition-transform active:scale-95 flex justify-center items-center gap-2 mt-auto tracking-wider shrink-0">
+        <!-- ✨ 修改：同樣移除發光陰影，換成乾淨的灰階陰影 -->
+        <button type="submit" class="w-full bg-[var(--accent-primary)] hover:bg-[var(--accent-dark)] text-white font-bold text-lg py-3.5 rounded-[20px] shadow-[0_8px_16px_rgba(0,0,0,0.08)] transition-all active:scale-95 flex justify-center items-center gap-2 mt-auto tracking-wider shrink-0">
           <span id="btn-submit-text">完成</span>
         </button>
       </form>
