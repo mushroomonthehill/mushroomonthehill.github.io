@@ -154,18 +154,39 @@
     </div>
 
     <div id="view-chart" class="view-section p-6 pb-32">
-      <header class="flex justify-between items-center mb-6 pt-8 px-2">
-        <h2 class="text-[22px] font-bold text-[#4A4A4A]">分析</h2>
-        <div class="bg-white/60 backdrop-blur-md px-4 py-1.5 rounded-full border border-white">
-            <span class="font-num font-bold text-[#7D5AE0] text-sm tracking-wide">April</span>
+      <!-- 修改分析頁面的頭部，加入模式切換與時間選擇器 -->
+      <header class="flex flex-col mb-6 pt-8 px-2 gap-4">
+        <!-- 上半部：標題與模式切換 -->
+        <div class="flex justify-between items-center">
+          <h2 class="text-[22px] font-bold text-[#4A4A4A]">分析</h2>
+          <div class="bg-white/60 backdrop-blur-md p-1 rounded-full border border-white flex text-[13px] font-bold text-[#AFAFAF] shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+            <button onclick="setChartMode('week')" id="btn-mode-week" class="px-4 py-1.5 rounded-full transition-colors border border-transparent">週</button>
+            <button onclick="setChartMode('month')" id="btn-mode-month" class="px-4 py-1.5 rounded-full transition-colors bg-white text-[#7D5AE0] shadow-sm border border-[#F0F0F0]">月</button>
+            <button onclick="setChartMode('year')" id="btn-mode-year" class="px-4 py-1.5 rounded-full transition-colors border border-transparent">年</button>
+          </div>
+        </div>
+        <!-- 下半部：時間區間選擇器 -->
+        <div class="flex items-center justify-between bg-white/60 backdrop-blur-md p-1.5 rounded-[20px] border border-white shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+          <button onclick="prevChartPeriod()" class="p-2 text-[#AFAFAF] hover:text-[#4A4A4A] transition-colors"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+          <div class="px-2">
+            <span id="chart-period-display" class="font-num font-bold text-[#7D5AE0] text-[15px] tracking-wide"></span>
+          </div>
+          <button onclick="nextChartPeriod()" class="p-2 text-[#AFAFAF] hover:text-[#4A4A4A] transition-colors"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
         </div>
       </header>
 
       <div class="bg-white rounded-[32px] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-[#F0F0F0] flex flex-col items-center mb-6">
         
+        <!-- ✨ 新增：支出/收入 切換按鈕 -->
+        <div class="bg-[#F0F0F0]/80 p-1 rounded-full flex font-bold text-sm shadow-inner backdrop-blur-sm mb-8 w-full max-w-[200px] mx-auto">
+          <button id="chart-tab-expense" onclick="setChartType('expense')" class="flex-1 py-1.5 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]">支出</button>
+          <button id="chart-tab-income" onclick="setChartType('income')" class="flex-1 py-1.5 rounded-full transition-all duration-300 text-[#AFAFAF] border border-transparent">收入</button>
+        </div>
+
         <div id="chart-donut" class="w-48 h-48 rounded-full relative mb-10 transition-transform duration-700 hover:scale-105 flex items-center justify-center">
           <div class="absolute inset-4 bg-white rounded-full flex flex-col items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.04)] z-10">
-            <span class="text-[11px] text-[#AFAFAF] font-bold mb-0.5 tracking-widest">總支出</span>
+            <!-- ✨ 修改：加上 id 讓文字能動態切換 -->
+            <span id="chart-center-label" class="text-[11px] text-[#AFAFAF] font-bold mb-0.5 tracking-widest">總支出</span>
             <span id="chart-total" class="font-num text-2xl font-black text-[#5A5A5A]">$0</span>
           </div>
           <div id="chart-empty" class="hidden absolute inset-0 rounded-full border-[4px] border-dashed border-[#F4F5F7] flex items-center justify-center z-20 bg-white">
@@ -319,6 +340,11 @@
     let currentCalendarYear = new Date().getFullYear();
     let currentCalendarMonth = new Date().getMonth(); // 0-11
     
+    // ✨ 新增：圖表分析的狀態管理
+    let chartMode = 'month'; // 'week', 'month', 'year'
+    let chartAnchorDate = new Date();
+    let chartType = 'expense'; // ✨ 新增：控制分析畫面的收支狀態
+
     // ✨ 從 localStorage 讀取資料
     const savedData = localStorage.getItem('green_gingham_transactions');
     let transactions = savedData ? JSON.parse(savedData) : [];
@@ -492,9 +518,111 @@
       lucide.createIcons(); // 重新渲染圖示
     }
 
+    // ✨ 新增：取得週的起始與結束日期 (以週一為每週的第一天)
+    function getWeekRange(date) {
+      const d = new Date(date.getTime());
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+      const start = new Date(d.setDate(diff));
+      const end = new Date(start.getTime());
+      end.setDate(end.getDate() + 6);
+      return { start, end };
+    }
+
+    // ✨ 新增：格式化日期為 YYYY-MM-DD，用來做資料比對
+    function formatDateYYYYMMDD(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    // ✨ 新增：切換圖表模式 (週/月/年)
+    function setChartMode(mode) {
+      chartMode = mode;
+      ['week', 'month', 'year'].forEach(m => {
+        const btn = document.getElementById(`btn-mode-${m}`);
+        if (m === mode) {
+          btn.className = 'px-4 py-1.5 rounded-full transition-colors bg-white text-[#7D5AE0] shadow-sm border border-[#F0F0F0]';
+        } else {
+          btn.className = 'px-4 py-1.5 rounded-full transition-colors text-[#AFAFAF] hover:text-[#4A4A4A] border border-transparent';
+        }
+      });
+      renderChart();
+    }
+
+    // ✨ 新增：圖表切換到上一個時間區間
+    function prevChartPeriod() {
+      if (chartMode === 'month') {
+        chartAnchorDate.setMonth(chartAnchorDate.getMonth() - 1);
+      } else if (chartMode === 'year') {
+        chartAnchorDate.setFullYear(chartAnchorDate.getFullYear() - 1);
+      } else if (chartMode === 'week') {
+        chartAnchorDate.setDate(chartAnchorDate.getDate() - 7);
+      }
+      renderChart();
+    }
+
+    // ✨ 新增：圖表切換到下一個時間區間
+    function nextChartPeriod() {
+      if (chartMode === 'month') {
+        chartAnchorDate.setMonth(chartAnchorDate.getMonth() + 1);
+      } else if (chartMode === 'year') {
+        chartAnchorDate.setFullYear(chartAnchorDate.getFullYear() + 1);
+      } else if (chartMode === 'week') {
+        chartAnchorDate.setDate(chartAnchorDate.getDate() + 7);
+      }
+      renderChart();
+    }
+
+    // ✨ 新增：切換圖表分析的 支出/收入
+    function setChartType(type) {
+      chartType = type;
+      const btnExp = document.getElementById('chart-tab-expense');
+      const btnInc = document.getElementById('chart-tab-income');
+      
+      if (type === 'expense') {
+        btnExp.className = 'flex-1 py-1.5 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]';
+        btnInc.className = 'flex-1 py-1.5 rounded-full transition-all duration-300 text-[#AFAFAF] border border-transparent';
+        document.getElementById('chart-center-label').innerText = '總支出';
+      } else {
+        btnExp.className = 'flex-1 py-1.5 rounded-full transition-all duration-300 text-[#AFAFAF] border border-transparent';
+        btnInc.className = 'flex-1 py-1.5 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]';
+        document.getElementById('chart-center-label').innerText = '總收入';
+      }
+      renderChart();
+    }
+
     function renderChart() {
+      const displayEl = document.getElementById('chart-period-display');
+      let startDateStr, endDateStr;
+
+      // 1. 更新時間區間顯示文字
+      if (chartMode === 'month') {
+        displayEl.innerText = `${chartAnchorDate.getFullYear()} . ${String(chartAnchorDate.getMonth() + 1).padStart(2, '0')}`;
+      } else if (chartMode === 'year') {
+        displayEl.innerText = `${chartAnchorDate.getFullYear()}`;
+      } else if (chartMode === 'week') {
+        const { start, end } = getWeekRange(chartAnchorDate);
+        startDateStr = formatDateYYYYMMDD(start);
+        endDateStr = formatDateYYYYMMDD(end);
+        displayEl.innerText = `${String(start.getMonth() + 1).padStart(2, '0')}.${String(start.getDate()).padStart(2, '0')} - ${String(end.getMonth() + 1).padStart(2, '0')}.${String(end.getDate()).padStart(2, '0')}`;
+      }
+
+      // 2. 根據目前模式與時間區間，篩選紀錄
       let totalExpense = 0;
-      const expenses = transactions.filter(t => t.type === 'expense' && t.date.startsWith(currentMonthPrefix));
+      const expenses = transactions.filter(t => {
+        if (t.type !== chartType) return false; // ✨ 修改：根據目前選擇的是支出還是收入來篩選
+        
+        if (chartMode === 'month') {
+          const prefix = `${chartAnchorDate.getFullYear()}-${String(chartAnchorDate.getMonth() + 1).padStart(2, '0')}`;
+          return t.date.startsWith(prefix);
+        } else if (chartMode === 'year') {
+          const prefix = `${chartAnchorDate.getFullYear()}`;
+          return t.date.startsWith(prefix);
+        } else if (chartMode === 'week') {
+          // 在週的起訖日期之間
+          return t.date >= startDateStr && t.date <= endDateStr;
+        }
+        return false;
+      });
       
       const grouped = expenses.reduce((acc, t) => {
         totalExpense += t.amount;
@@ -544,6 +672,8 @@
           </div>
         `;
       }).join('');
+      
+      lucide.createIcons(); // 更新圖表清單圖示
     }
 
     function switchView(viewName) {
