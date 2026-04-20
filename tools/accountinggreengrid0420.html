@@ -136,11 +136,14 @@
       <header class="flex justify-between items-center mb-6 pt-8 px-2">
         <h2 class="text-[22px] font-bold text-[#4A4A4A]">月曆</h2>
         <div class="flex items-center gap-2 bg-white/60 backdrop-blur-md p-1 rounded-2xl border border-white">
-          <button class="p-1.5 text-[#AFAFAF] hover:text-[#4A4A4A] transition-colors"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+          <!-- 加上 onclick 綁定切換上個月的函式 -->
+          <button onclick="prevMonth()" class="p-1.5 text-[#AFAFAF] hover:text-[#4A4A4A] transition-colors"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
           <div class="px-2">
-            <span class="font-num font-bold text-[#7D5AE0] text-sm tracking-wide">2026.04</span>
+            <!-- 加上 id="calendar-month-display" 讓 JS 可以動態修改文字 -->
+            <span id="calendar-month-display" class="font-num font-bold text-[#7D5AE0] text-sm tracking-wide"></span>
           </div>
-          <button class="p-1.5 text-[#AFAFAF] hover:text-[#4A4A4A] transition-colors"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+          <!-- 加上 onclick 綁定切換下個月的函式 -->
+          <button onclick="nextMonth()" class="p-1.5 text-[#AFAFAF] hover:text-[#4A4A4A] transition-colors"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
         </div>
       </header>
 
@@ -264,6 +267,31 @@
     </div>
   </div>
 
+  <!-- ==================== (修改) 日期明細彈窗 ==================== -->
+  <div id="day-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-[#FAFAF8]/80 backdrop-blur-md hidden max-w-md mx-auto p-4 sm:p-6">
+    <!-- 點擊空白處可關閉彈窗 (改為絕對定位覆蓋整個背景) -->
+    <div class="absolute inset-0" onclick="closeDayDetail()"></div>
+    
+    <!-- 置中彈出卡片 -->
+    <div class="bg-white w-full rounded-[32px] shadow-[0_10px_40px_rgba(0,0,0,0.08)] p-6 animate-in zoom-in-95 fade-in duration-200 relative border border-[#F0F0F0] max-h-[75vh] flex flex-col">
+      
+      <!-- 頂部標題與關閉按鈕 -->
+      <div class="flex justify-between items-center mb-6 px-1 shrink-0">
+        <div class="bg-[#F0F7EB] px-4 py-1.5 rounded-full border border-white shadow-sm">
+          <span id="detail-date-title" class="font-num font-bold text-[#83BA61] text-sm tracking-wide"></span>
+        </div>
+        <button onclick="closeDayDetail()" class="w-8 h-8 bg-[#F4F5F7] rounded-full flex items-center justify-center text-[#AFAFAF] hover:bg-[#EAE1FB] hover:text-[#7D5AE0] transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- 紀錄列表 (加入 overflow-y-auto 確保資料過多時可以在卡片內部捲動) -->
+      <div id="detail-transactions-list" class="space-y-4 overflow-y-auto no-scrollbar px-1 pb-2">
+        <!-- 明細列表由 JS 生成 -->
+      </div>
+    </div>
+  </div>
+
   <script>
     const EXPENSE_CATS = [
       { id: 'e1', name: '餐飲', icon: 'utensils', color: '#FFE4DE' },
@@ -286,6 +314,10 @@
     let currentView = 'home';
     let modalType = 'expense';
     let selectedCategory = EXPENSE_CATS[0];
+    
+    // ✨ 新增：日曆當前顯示的年月狀態 (預設為現在真實的時間)
+    let currentCalendarYear = new Date().getFullYear();
+    let currentCalendarMonth = new Date().getMonth(); // 0-11
     
     // ✨ 從 localStorage 讀取資料
     const savedData = localStorage.getItem('green_gingham_transactions');
@@ -385,7 +417,13 @@
     }
 
     function renderCalendar() {
-      const year = 2026; const month = 3; 
+      // 改用動態的變數，不再寫死
+      const year = currentCalendarYear; 
+      const month = currentCalendarMonth; 
+      
+      // 更新標題上的年月文字 (例如: 2026.04)
+      document.getElementById('calendar-month-display').innerText = `${year}.${String(month + 1).padStart(2, '0')}`;
+
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       const firstDay = new Date(year, month, 1).getDay();
 
@@ -419,8 +457,9 @@
           dotHtml = `<div class="absolute bottom-0 right-0 bg-white rounded-full p-[2px] shadow-sm"><i data-lucide="coffee" class="w-2.5 h-2.5 text-[#A888F9]"></i></div>`;
         }
 
+        // ✨ 加上 onclick 事件，並傳入 dateStr
         html += `
-          <div class="flex flex-col items-center justify-center relative h-12 cursor-pointer font-num">
+          <div onclick="openDayDetail('${dateStr}')" class="flex flex-col items-center justify-center relative h-12 cursor-pointer font-num transition-transform hover:scale-110 active:scale-95">
             <div class="w-10 h-10 flex items-center justify-center rounded-full text-[15px] transition-all duration-200 ${circleClass}">
               ${day}
             </div>
@@ -429,6 +468,28 @@
         `;
       }
       document.getElementById('calendar-grid').innerHTML = html;
+    }
+
+    // ✨ 新增：切換到上個月
+    function prevMonth() {
+      currentCalendarMonth--;
+      if (currentCalendarMonth < 0) {
+        currentCalendarMonth = 11; // 回到 12 月 (index 11)
+        currentCalendarYear--;     // 年份減一
+      }
+      renderCalendar(); // 重新畫日曆
+      lucide.createIcons(); // 因為重新渲染了圖示，需要呼叫這行讓咖啡杯小圖示出現
+    }
+
+    // ✨ 新增：切換到下個月
+    function nextMonth() {
+      currentCalendarMonth++;
+      if (currentCalendarMonth > 11) {
+        currentCalendarMonth = 0;  // 回到 1 月 (index 0)
+        currentCalendarYear++;     // 年份加一
+      }
+      renderCalendar(); // 重新畫日曆
+      lucide.createIcons(); // 重新渲染圖示
     }
 
     function renderChart() {
@@ -589,6 +650,55 @@
 
       renderAll();
       closeModal();
+    }
+
+    // ✨ 新增：打開與渲染日期明細彈窗
+    function openDayDetail(dateStr) {
+      const dayTrans = transactions.filter(t => t.date === dateStr);
+      
+      // 格式化標題日期 (例如: 2026.04.18)
+      document.getElementById('detail-date-title').innerText = dateStr.replace(/-/g, ' . ');
+
+      const listContainer = document.getElementById('detail-transactions-list');
+      
+      if (dayTrans.length === 0) {
+        listContainer.innerHTML = `
+          <div class="text-center py-10 text-[#AFAFAF]">
+            <i data-lucide="coffee" class="w-8 h-8 mx-auto mb-3 opacity-30 text-[#83BA61]"></i>
+            <p class="font-bold text-[13px] tracking-widest">這天沒有記帳紀錄喔</p>
+          </div>
+        `;
+      } else {
+        // 套用與首頁相同的精緻列表樣式
+        listContainer.innerHTML = `
+          <div class="bg-white rounded-[24px] shadow-[0_2px_15px_rgba(0,0,0,0.015)] border border-[#F5F5F5] overflow-hidden">
+            ${dayTrans.map((t, index) => `
+              <div class="flex items-center justify-between p-4 ${index !== dayTrans.length - 1 ? 'border-b border-[#F8F8F8]' : ''} hover:bg-[#FAFAF8] transition-colors">
+                <div class="flex items-center gap-4">
+                  <div class="w-[46px] h-[46px] rounded-full flex items-center justify-center" style="background-color: ${t.color}">
+                    <i data-lucide="${t.icon}" class="w-5 h-5 text-[#7A7A7A] stroke-[1.5]"></i>
+                  </div>
+                  <div class="flex flex-col justify-center">
+                    <p class="font-bold text-[#4A4A4A] text-[14px] m-0 leading-tight">${t.category}</p>
+                    ${t.note ? `<p class="text-[11px] text-[#AFAFAF] mt-1 m-0">${t.note}</p>` : ''}
+                  </div>
+                </div>
+                <span class="font-bold text-[16px] font-num ${t.type === 'income' ? 'text-[#83BA61]' : 'text-[#5A5A5A]'}">
+                  ${t.type === 'income' ? '+' : '-'}$${formatMoney(t.amount)}
+                </span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+      
+      document.getElementById('day-detail-modal').classList.remove('hidden');
+      lucide.createIcons(); // 重新渲染剛生成的圖示
+    }
+
+    // ✨ 新增：關閉日期明細彈窗
+    function closeDayDetail() {
+      document.getElementById('day-detail-modal').classList.add('hidden');
     }
   </script>
 </body>
