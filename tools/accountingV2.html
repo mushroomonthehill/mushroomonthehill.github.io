@@ -1634,15 +1634,18 @@
         barWrapper.appendChild(bar);
         barsContainer.appendChild(barWrapper);
 
+        // 處理 X 軸標籤
         const label = document.createElement('div');
-        label.className = 'flex-1 text-center truncate w-full';
+        // ✨ 修改：移除 truncate，改用 relative 與 h-4 來確保文字完整顯示不被截斷
+        label.className = 'flex-1 flex justify-center relative w-full h-4';
         
         if (trendMode === 'month') {
           if (index === 0 || index === 9 || index === 19 || index === dataPoints.length - 1) {
-             label.innerText = dp.label;
+             // ✨ 修改：加上「日」讓標示更清楚，並設定 whitespace-nowrap 防止換行
+             label.innerHTML = `<span class="absolute whitespace-nowrap">${dp.label}日</span>`;
           }
         } else {
-          label.innerText = dp.label;
+          label.innerHTML = `<span class="absolute whitespace-nowrap">${dp.label}</span>`;
         }
         labelsContainer.appendChild(label);
       });
