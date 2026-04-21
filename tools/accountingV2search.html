@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>**方格子記帳本**</title>
   
+  <!-- ✨ 新增：加入 favicon 網站小圖示 -->
+  <link rel="icon" type="image/png" href="greengridwithText.png">
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -85,7 +88,7 @@
 
   <!-- 全局提示框 (Toast) -->
   <div id="toast-message" class="fixed top-10 left-1/2 -translate-x-1/2 z-[100] bg-white/90 backdrop-blur-md text-[#4A4A4A] border border-[#F0F0F0] shadow-[0_8px_30px_rgba(0,0,0,0.08)] px-6 py-3 rounded-full transition-all duration-300 transform -translate-y-20 opacity-0 font-bold text-[13px] flex items-center gap-2 pointer-events-none">
-    <!-- 內容會由 JS 動態注入避免圖示被吃掉的問題 -->
+    <!-- 內容會由 JS 動態注入 -->
   </div>
 
   <div class="bg-gingham"></div>
@@ -99,7 +102,6 @@
     
     <div id="view-home" class="view-section active p-6 space-y-8 pb-32">
       <header class="pt-8 relative">
-        
         <button onclick="openSearchModal()" class="absolute right-2 top-8 w-10 h-10 bg-white/60 backdrop-blur-md rounded-full flex items-center justify-center text-[#AFAFAF] shadow-sm hover:text-[var(--accent-primary)] transition-colors border border-white z-20">
           <i data-lucide="search" class="w-5 h-5"></i>
         </button>
@@ -355,9 +357,16 @@
         </div>
 
         <div>
-          <h3 class="text-[11px] font-bold text-[#AFAFAF] mb-3 ml-2 tracking-widest uppercase">分類</h3>
+          <h3 class="text-[11px] font-bold text-[#AFAFAF] mb-3 ml-2 tracking-widest uppercase">主分類</h3>
           <div id="category-grid" class="grid grid-cols-4 gap-y-3 gap-x-2">
             </div>
+        </div>
+
+        <!-- ✨ 修改：將 overflow-x-auto 改為 flex-wrap，讓次分類可以自動折到下一行 -->
+        <div id="subcategory-container" class="w-full hidden">
+           <div class="flex flex-wrap gap-2 pb-1 px-1" id="subcategory-list">
+             <!-- JS 動態生成次分類膠囊 -->
+           </div>
         </div>
 
         <div id="expense-extra-fields" class="w-full space-y-3 pt-1 pb-1"></div>
@@ -452,7 +461,8 @@
 
         <div>
           <h3 class="text-[11px] font-bold text-[#AFAFAF] mb-3 ml-1 tracking-widest uppercase">付款方式</h3>
-          <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+          <!-- ✨ 修改：搜尋面板的付款方式也改為 flex-wrap 自動換行 -->
+          <div class="flex flex-wrap gap-2 pb-1">
             <button onclick="setSearchFilter('payment', 'all')" id="s-pay-all" class="shrink-0 px-4 py-1.5 rounded-full text-[12px] font-bold transition-colors bg-[var(--accent-light)] text-[var(--accent-dark)] shadow-sm">全部</button>
             <button onclick="setSearchFilter('payment', '現金')" id="s-pay-cash" class="shrink-0 px-4 py-1.5 rounded-full text-[12px] font-bold transition-colors text-[#AFAFAF] hover:bg-white/50 border border-transparent">現金</button>
             <button onclick="setSearchFilter('payment', '信用卡')" id="s-pay-credit" class="shrink-0 px-4 py-1.5 rounded-full text-[12px] font-bold transition-colors text-[#AFAFAF] hover:bg-white/50 border border-transparent">信用卡</button>
@@ -485,7 +495,6 @@
   </div>
 
   <script>
-    // ✨ 修復：改寫 Toast 機制，避免圖示標籤衝突
     let toastTimeout;
     function showToast(msg, isError = false) {
       const toast = document.getElementById('toast-message');
@@ -493,7 +502,6 @@
       const iconName = isError ? 'alert-circle' : 'check-circle-2';
       const iconColor = isError ? 'text-[#FF8B8B]' : 'text-[var(--accent-primary)]';
       
-      // 直接重新注入完整的 HTML，確保每次都能正常被 Lucide 抓到並轉換成圖片
       toast.innerHTML = `
         <i data-lucide="${iconName}" class="w-4 h-4 ${iconColor}"></i>
         <span>${msg}</span>
@@ -511,7 +519,6 @@
       }, 3000);
     }
 
-    // 自訂確認框 (Confirm)
     let confirmAction = null;
     function showConfirmModal(title, msg, onConfirm) {
        document.getElementById('confirm-title').innerText = title;
@@ -569,27 +576,29 @@
       document.documentElement.style.setProperty('--accent-muted', ac.muted);
     }
 
+    // ✨ 核心升級：擴充完整的次分類，並確保都有「其他」
     const EXPENSE_CATS = [
-      { id: 'e1', name: '餐飲', icon: 'utensils', color: '#FFE4DE' },
-      { id: 'e2', name: '交通', icon: 'bus', color: '#E4EEFF' },
-      { id: 'e3', name: '購物', icon: 'shopping-bag', color: '#F8E8FA' },
-      { id: 'e4', name: '娛樂', icon: 'film', color: '#E4F9E9' },
-      { id: 'e5', name: '居住', icon: 'home', color: '#FFF8E1' },
-      { id: 'e6', name: '零食', icon: 'coffee', color: '#F1E8DF' },
-      { id: 'e7', name: '醫療', icon: 'pill', color: '#E3F9F6' },
-      { id: 'e8', name: '其他', icon: 'sparkles', color: '#F2EBFC' },
+      { id: 'e1', name: '餐飲', icon: 'utensils', color: '#FFE4DE', subcategories: ['早餐', '午餐', '晚餐', '消夜', '下午茶', '飲料', '其他'] },
+      { id: 'e2', name: '交通', icon: 'bus', color: '#E4EEFF', subcategories: ['高鐵', '火車', '公車', '捷運', '計程車', '機票', '油費', '其他'] },
+      { id: 'e3', name: '購物', icon: 'shopping-bag', color: '#F8E8FA', subcategories: ['服飾', '書籍', '生活用品', '保健', '家居用品', '美妝保養', '3C資訊', '其他'] },
+      { id: 'e4', name: '娛樂', icon: 'film', color: '#E4F9E9', subcategories: ['電影', '展覽', '訂閱', '遊戲', '其他'] },
+      { id: 'e5', name: '居住', icon: 'home', color: '#FFF8E1', subcategories: ['水費', '電費', '瓦斯費', '手機費', '電話/網路', '管理費', '房租', '其他'] },
+      { id: 'e6', name: '零食', icon: 'coffee', color: '#F1E8DF', subcategories: ['零食', '甜點', '麵包', '其他'] },
+      { id: 'e7', name: '醫療', icon: 'pill', color: '#E3F9F6', subcategories: ['掛號費', '醫藥費', '保健食品', '保險費', '其他'] },
+      { id: 'e8', name: '其他', icon: 'sparkles', color: '#F2EBFC', subcategories: ['未分類', '其他'] },
     ];
 
     const INCOME_CATS = [
-      { id: 'i1', name: '薪水', icon: 'briefcase', color: '#E4F9E9' },
-      { id: 'i2', name: '零用錢', icon: 'coins', color: '#FFF8E1' },
-      { id: 'i3', name: '獎金', icon: 'gift', color: '#F2EBFC' },
-      { id: 'i4', name: '其他', icon: 'sparkles', color: '#E4EEFF' },
+      { id: 'i1', name: '薪水', icon: 'briefcase', color: '#E4F9E9', subcategories: ['本薪', '加班費', '其他'] },
+      { id: 'i2', name: '零用錢', icon: 'coins', color: '#FFF8E1', subcategories: ['零用錢', '其他'] },
+      { id: 'i3', name: '獎金', icon: 'gift', color: '#F2EBFC', subcategories: ['年終', '績效', '三節', '其他'] },
+      { id: 'i4', name: '其他', icon: 'sparkles', color: '#E4EEFF', subcategories: ['未分類', '其他'] },
     ];
 
     let currentView = 'home';
     let modalType = 'expense';
     let selectedCategory = EXPENSE_CATS[0];
+    let selectedSubcategory = EXPENSE_CATS[0].subcategories[0]; // ✨ 記錄目前的次分類
     
     const PAYMENT_METHODS = ['現金', '電子支付', '信用卡', '轉帳'];
     const EPAY_METHODS = ['Apple Pay', 'Line Pay', '街口支付', '悠遊卡', '全支付', '其他'];
@@ -718,8 +727,11 @@
                     </div>
                     <div class="flex flex-col justify-center items-start">
                       <div class="flex items-center flex-wrap gap-1">
-                        <p class="font-bold text-[#4A4A4A] text-[15px] m-0 leading-tight">${t.category}</p>
-                        ${t.type === 'expense' && t.paymentMethod ? `<span class="text-[9px] bg-[var(--bg-base)] text-[#83BA61] px-1.5 py-[2px] rounded-md font-bold transition-colors">${t.paymentMethod === '電子支付' && t.ePayMethod ? t.ePayMethod : t.paymentMethod}</span>` : ''}
+                        <!-- ✨ 升級：在分類名稱後方，柔和地顯示次分類 (若存在且不是未分類) -->
+                        <p class="font-bold text-[#4A4A4A] text-[15px] m-0 leading-tight">
+                          ${t.category} ${t.subcategory && t.subcategory !== '未分類' ? `<span class="text-[12px] text-[#AFAFAF] font-normal ml-1">${t.subcategory}</span>` : ''}
+                        </p>
+                        ${t.type === 'expense' && t.paymentMethod ? `<span class="text-[9px] bg-[var(--bg-base)] text-[#83BA61] px-1.5 py-[2px] rounded-md font-bold transition-colors ml-1">${t.paymentMethod === '電子支付' && t.ePayMethod ? t.ePayMethod : t.paymentMethod}</span>` : ''}
                         ${t.type === 'expense' && t.consumptionType === '線上消費' ? `<span class="text-[9px] bg-[var(--accent-light)] text-[var(--accent-primary)] px-1.5 py-[2px] rounded-md font-bold transition-colors">線上</span>` : ''}
                       </div>
                       ${t.note ? `<p class="text-[12px] text-[#AFAFAF] mt-1 m-0">${t.note}</p>` : ''}
@@ -1072,7 +1084,11 @@
           
           const catList = t.type === 'expense' ? EXPENSE_CATS : INCOME_CATS;
           const matchedCat = catList.find(c => c.name === t.category);
-          if(matchedCat) selectCategory(matchedCat.id);
+          if(matchedCat) {
+             selectCategory(matchedCat.id);
+             // 如果編輯的紀錄有次分類，就選取它
+             if (t.subcategory) selectSubcategory(t.subcategory);
+          }
 
           if (t.type === 'expense') {
             if(t.paymentMethod) selectPayment(t.paymentMethod);
@@ -1141,10 +1157,13 @@
     }
 
     function renderCategories(cats) {
+      // 預設選擇第一個分類，並自動帶入它的第一個次分類
       selectedCategory = cats[0]; 
+      selectedSubcategory = selectedCategory.subcategories ? selectedCategory.subcategories[0] : '';
+      
       const container = document.getElementById('category-grid');
       
-      const updateGrid = () => {
+      window.updateCategoryGrid = () => {
         container.innerHTML = cats.map(cat => {
           const isSelected = selectedCategory.id === cat.id;
           const btnClass = isSelected 
@@ -1167,17 +1186,44 @@
       
       window.selectCategory = (id) => {
         selectedCategory = cats.find(c => c.id === id);
-        updateGrid();
+        // 切換主分類時，預設選擇該分類的第一個次分類
+        selectedSubcategory = selectedCategory.subcategories ? selectedCategory.subcategories[0] : '';
+        window.updateCategoryGrid();
+        renderSubcategories(); // ✨ 重新渲染下方的次分類膠囊
       };
 
-      updateGrid();
+      window.updateCategoryGrid();
+      renderSubcategories(); // 初始渲染次分類
     }
+
+    // ✨ 核心升級：動態渲染次分類膠囊按鈕
+    function renderSubcategories() {
+      const container = document.getElementById('subcategory-container');
+      const list = document.getElementById('subcategory-list');
+
+      // 如果該分類沒有次分類，或是次分類只有「未分類」，就隱藏次分類區塊
+      if (!selectedCategory.subcategories || selectedCategory.subcategories.length === 0 || (selectedCategory.subcategories.length === 1 && selectedCategory.subcategories[0] === '未分類')) {
+         container.classList.add('hidden');
+         return;
+      }
+
+      container.classList.remove('hidden');
+      list.innerHTML = selectedCategory.subcategories.map(sub => `
+        <button type="button" onclick="selectSubcategory('${sub}')" class="shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-colors ${selectedSubcategory === sub ? 'bg-[var(--accent-light)] text-[var(--accent-dark)] shadow-sm' : 'text-[#AFAFAF] bg-[#F8F9FA] hover:bg-[#EAEAEA] border border-transparent'}">${sub}</button>
+      `).join('');
+    }
+
+    window.selectSubcategory = (sub) => {
+      selectedSubcategory = sub;
+      renderSubcategories();
+    };
 
     function renderExtraFields() {
       let html = `
         <div>
           <h3 class="text-[10px] font-bold text-[#AFAFAF] mb-2 ml-2 tracking-widest uppercase">付款方式</h3>
-          <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1 px-1">
+          <!-- ✨ 修改：新增表單內的付款方式也改為 flex-wrap 自動換行 -->
+          <div class="flex flex-wrap gap-2 pb-1 px-1">
             ${PAYMENT_METHODS.map(m => `
               <button type="button" onclick="selectPayment('${m}')" class="shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-colors ${selectedPayment === m ? 'bg-white shadow-sm border border-[var(--accent-light)] text-[var(--accent-dark)]' : 'text-[#AFAFAF] border border-transparent hover:bg-white/50'}">${m}</button>
             `).join('')}
@@ -1227,6 +1273,7 @@
         type: modalType,
         amount: parseFloat(amountStr),
         category: selectedCategory.name,
+        subcategory: selectedSubcategory, // ✨ 將次分類存入資料庫
         icon: selectedCategory.icon,
         color: selectedCategory.color,
         date: date,
@@ -1280,9 +1327,11 @@
                   </div>
                   <div class="flex flex-col justify-center items-start">
                     <div class="flex items-center flex-wrap gap-1">
-                      <p class="font-bold text-[#4A4A4A] text-[14px] m-0 leading-tight">${t.category}</p>
-                      ${t.type === 'expense' && t.paymentMethod ? `<span class="text-[9px] bg-[var(--bg-base)] text-[#83BA61] px-1.5 py-[2px] rounded-md font-bold transition-colors">${t.paymentMethod === '電子支付' && t.ePayMethod ? t.ePayMethod : t.paymentMethod}</span>` : ''}
-                      ${t.type === 'expense' && t.consumptionType === '線上消費' ? `<span class="text-[9px] bg-[var(--accent-light)] text-[var(--accent-primary)] px-1.5 py-[2px] rounded-md font-bold transition-colors">線上</span>` : ''}
+                      <p class="font-bold text-[#4A4A4A] text-[14px] m-0 leading-tight">
+                        ${t.category} ${t.subcategory && t.subcategory !== '未分類' ? `<span class="text-[12px] text-[#AFAFAF] font-normal ml-1">${t.subcategory}</span>` : ''}
+                      </p>
+                      ${t.type === 'expense' && t.paymentMethod ? `<span class="text-[9px] bg-[var(--bg-base)] text-[#83BA61] px-1.5 py-[2px] rounded-md font-bold transition-colors ml-1">${t.paymentMethod === '電子支付' && t.ePayMethod ? t.ePayMethod : t.paymentMethod}</span>` : ''}
+                      ${t.type === 'expense' && t.consumptionType === '線上消費' ? `<span class="text-[9px] bg-[var(--accent-light)] text-[var(--accent-primary)] px-1.5 py-[2px] rounded-md font-bold transition-colors ml-1">線上</span>` : ''}
                     </div>
                     ${t.note ? `<p class="text-[11px] text-[#AFAFAF] mt-1 m-0">${t.note}</p>` : ''}
                   </div>
@@ -1311,15 +1360,17 @@
       }
 
       let csvContent = "\uFEFF"; 
-      csvContent += "日期,收支類型,分類,金額,付款方式,消費類型,備註\n";
+      // ✨ 升級：在匯出報表加入「次分類」的欄位
+      csvContent += "日期,收支類型,主分類,次分類,金額,付款方式,消費類型,備註\n";
 
       dataArray.forEach(t => {
         const typeStr = t.type === 'income' ? '收入' : '支出';
+        const subcatStr = t.subcategory || '-';
         const payment = t.type === 'expense' ? (t.paymentMethod === '電子支付' && t.ePayMethod ? t.ePayMethod : (t.paymentMethod || '未指定')) : '-';
         const consumption = t.type === 'expense' ? (t.consumptionType || '未指定') : '-';
         const safeNote = t.note ? t.note.replace(/,/g, "，").replace(/\n/g, " ") : ''; 
 
-        const row = `${t.date},${typeStr},${t.category},${t.amount},${payment},${consumption},${safeNote}`;
+        const row = `${t.date},${typeStr},${t.category},${subcatStr},${t.amount},${payment},${consumption},${safeNote}`;
         csvContent += row + "\n";
       });
 
@@ -1412,6 +1463,7 @@
       const filtered = transactions.filter(t => {
         const matchKeyword = !searchFilters.keyword || 
                              t.category.toLowerCase().includes(searchFilters.keyword) || 
+                             (t.subcategory && t.subcategory.toLowerCase().includes(searchFilters.keyword)) || // ✨ 搜尋條件加入次分類
                              (t.note && t.note.toLowerCase().includes(searchFilters.keyword)) ||
                              (t.amount.toString().includes(searchFilters.keyword));
 
@@ -1473,9 +1525,11 @@
                   </div>
                   <div class="flex flex-col justify-center items-start">
                     <div class="flex items-center flex-wrap gap-1">
-                      <p class="font-bold text-[#4A4A4A] text-[14px] m-0 leading-tight">${t.category}</p>
-                      ${t.type === 'expense' && t.paymentMethod ? `<span class="text-[9px] bg-[var(--bg-base)] text-[#83BA61] px-1.5 py-[2px] rounded-md font-bold transition-colors">${t.paymentMethod === '電子支付' && t.ePayMethod ? t.ePayMethod : t.paymentMethod}</span>` : ''}
-                      ${t.type === 'expense' && t.consumptionType === '線上消費' ? `<span class="text-[9px] bg-[var(--accent-light)] text-[var(--accent-primary)] px-1.5 py-[2px] rounded-md font-bold transition-colors">線上</span>` : ''}
+                      <p class="font-bold text-[#4A4A4A] text-[14px] m-0 leading-tight">
+                        ${t.category} ${t.subcategory && t.subcategory !== '未分類' ? `<span class="text-[12px] text-[#AFAFAF] font-normal ml-1">${t.subcategory}</span>` : ''}
+                      </p>
+                      ${t.type === 'expense' && t.paymentMethod ? `<span class="text-[9px] bg-[var(--bg-base)] text-[#83BA61] px-1.5 py-[2px] rounded-md font-bold transition-colors ml-1">${t.paymentMethod === '電子支付' && t.ePayMethod ? t.ePayMethod : t.paymentMethod}</span>` : ''}
+                      ${t.type === 'expense' && t.consumptionType === '線上消費' ? `<span class="text-[9px] bg-[var(--accent-light)] text-[var(--accent-primary)] px-1.5 py-[2px] rounded-md font-bold transition-colors ml-1">線上</span>` : ''}
                     </div>
                     ${t.note ? `<p class="text-[12px] text-[#AFAFAF] mt-1 m-0">${t.note}</p>` : ''}
                   </div>
