@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>**方格子記帳本**</title>
+  <title>方格子記帳本</title>
+  
+  <!-- ✨ 新增：加入 favicon 網站小圖示 -->
+  <link rel="icon" type="image/png" href="greengridwithText.png">
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -85,8 +88,7 @@
 
   <!-- 全局提示框 (Toast) -->
   <div id="toast-message" class="fixed top-10 left-1/2 -translate-x-1/2 z-[100] bg-white/90 backdrop-blur-md text-[#4A4A4A] border border-[#F0F0F0] shadow-[0_8px_30px_rgba(0,0,0,0.08)] px-6 py-3 rounded-full transition-all duration-300 transform -translate-y-20 opacity-0 font-bold text-[13px] flex items-center gap-2 pointer-events-none">
-    <i data-lucide="info" class="w-4 h-4 text-[var(--accent-primary)]"></i>
-    <span id="toast-text">提示訊息</span>
+    <!-- 內容會由 JS 動態注入 -->
   </div>
 
   <div class="bg-gingham"></div>
@@ -99,7 +101,11 @@
   <div id="app-container" class="relative z-10 min-h-screen max-w-md mx-auto">
     
     <div id="view-home" class="view-section active p-6 space-y-8 pb-32">
-      <header class="pt-8">
+      <header class="pt-8 relative">
+        <button onclick="openSearchModal()" class="absolute right-2 top-8 w-10 h-10 bg-white/60 backdrop-blur-md rounded-full flex items-center justify-center text-[#AFAFAF] shadow-sm hover:text-[var(--accent-primary)] transition-colors border border-white z-20">
+          <i data-lucide="search" class="w-5 h-5"></i>
+        </button>
+
         <div class="text-center mb-8 relative px-2">
           <div class="absolute left-[10%] top-[10%] w-40 h-40 bg-[var(--accent-primary)] opacity-10 rounded-full mix-blend-multiply filter blur-3xl z-0 pointer-events-none transition-colors"></div>
           <div class="absolute right-[10%] bottom-[10%] w-40 h-40 bg-[var(--accent-muted)] opacity-10 rounded-full mix-blend-multiply filter blur-3xl z-0 pointer-events-none transition-colors"></div>
@@ -212,8 +218,29 @@
         </div>
 
         <div id="chart-list" class="w-full space-y-5">
-          </div>
+        </div>
       </div>
+
+      <!-- ✨ 新增：趨勢分析長條圖區塊 -->
+      <div class="bg-white rounded-[32px] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-[#F0F0F0] mb-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-[15px] font-bold text-[#4A4A4A] flex items-center gap-2">
+            <i data-lucide="bar-chart-3" class="w-4 h-4 text-[var(--accent-primary)]"></i> 收支趨勢
+          </h3>
+          <div class="bg-[#F8F9FA] p-1 rounded-full flex text-[11px] font-bold text-[#AFAFAF]">
+            <button id="btn-trend-week" onclick="setTrendMode('week')" class="px-3 py-1 rounded-full transition-colors border border-transparent">週</button>
+            <button id="btn-trend-month" onclick="setTrendMode('month')" class="px-3 py-1 rounded-full transition-colors border border-transparent">月</button>
+            <button id="btn-trend-year" onclick="setTrendMode('year')" class="px-3 py-1 rounded-full transition-colors bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]">年</button>
+          </div>
+        </div>
+        
+        <!-- 長條圖本體 (JS 動態生成) -->
+        <div class="relative h-40 flex items-end justify-between gap-1 mt-6 border-b border-[#F0F0F0] pb-2" id="trend-chart-bars"></div>
+        
+        <!-- X軸標籤 (JS 動態生成) -->
+        <div class="flex justify-between mt-2 text-[10px] text-[#AFAFAF] font-bold font-num px-1" id="trend-chart-labels"></div>
+      </div>
+
     </div>
 
     <!-- ==================== 設定與主題視圖 ==================== -->
@@ -241,7 +268,7 @@
           </div>
         </div>
 
-        <!-- ✨ 升級版：資料管理區塊與匯出按鈕 -->
+        <!-- 資料匯出 -->
         <div class="bg-white rounded-[32px] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-[#F0F0F0]">
           <h3 class="text-[13px] font-bold text-[#AFAFAF] mb-5 tracking-widest flex items-center gap-2">
             <i data-lucide="database" class="w-4 h-4"></i> 資料匯出
@@ -351,9 +378,15 @@
         </div>
 
         <div>
-          <h3 class="text-[11px] font-bold text-[#AFAFAF] mb-3 ml-2 tracking-widest uppercase">分類</h3>
+          <h3 class="text-[11px] font-bold text-[#AFAFAF] mb-3 ml-2 tracking-widest uppercase">主分類</h3>
           <div id="category-grid" class="grid grid-cols-4 gap-y-3 gap-x-2">
             </div>
+        </div>
+
+        <div id="subcategory-container" class="w-full hidden">
+           <div class="flex flex-wrap gap-2 pb-1 px-1" id="subcategory-list">
+             <!-- JS 動態生成次分類膠囊 -->
+           </div>
         </div>
 
         <div id="expense-extra-fields" class="w-full space-y-3 pt-1 pb-1"></div>
@@ -378,6 +411,7 @@
     </div>
   </div>
 
+  <!-- 日曆明細彈窗 -->
   <div id="day-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-[#FAFAF8]/80 backdrop-blur-md hidden max-w-md mx-auto p-4 sm:p-6">
     <div class="absolute inset-0" onclick="closeDayDetail()"></div>
     
@@ -397,7 +431,7 @@
     </div>
   </div>
 
-  <!-- ✨ 新增：自訂美化確認對話框 (取代原生的 confirm) -->
+  <!-- 確認對話框 (取代原生的 confirm) -->
   <div id="confirm-modal" class="fixed inset-0 z-[70] flex items-center justify-center bg-[#FAFAF8]/80 backdrop-blur-sm hidden max-w-md mx-auto p-6">
     <div class="bg-white w-full max-w-[300px] rounded-[32px] shadow-[0_10px_40px_rgba(0,0,0,0.08)] p-7 text-center border border-[#F0F0F0] animate-in zoom-in-95 fade-in duration-200">
       <div class="w-14 h-14 bg-[#FFF5F5] rounded-full flex items-center justify-center mx-auto mb-4 text-[#FF8B8B]">
@@ -412,34 +446,98 @@
     </div>
   </div>
 
+  <!-- 搜尋與篩選全螢幕面板 -->
+  <div id="search-modal" class="fixed inset-0 z-[55] bg-[#FAFAF8]/95 backdrop-blur-xl overflow-y-auto hidden max-w-md mx-auto">
+    <div class="bg-gingham opacity-40"></div>
+    
+    <div class="p-6 relative z-10 min-h-screen flex flex-col animate-in slide-in-from-bottom-8 duration-300">
+      
+      <!-- 標題列 -->
+      <div class="flex justify-between items-center mb-6 pt-2">
+        <h2 class="text-[22px] font-bold text-[#4A4A4A] ml-1">搜尋與篩選</h2>
+        <button onclick="closeSearchModal()" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#AFAFAF] shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:bg-[#F4F5F7] transition-colors border border-[#F0F0F0]">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- 關鍵字搜尋框 -->
+      <div class="relative w-full mb-6">
+         <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#D1D1D6]"></i>
+         <input type="text" id="search-keyword" oninput="executeSearch()" placeholder="輸入分類、備註或金額..."
+          class="w-full box-border bg-white pl-11 pr-4 py-3.5 rounded-[20px] shadow-sm border border-[#F0F0F0] text-[#5A5A5A] font-bold outline-none focus:border-[var(--accent-muted)] focus:ring-2 focus:ring-[var(--accent-light)] transition-all placeholder-[#D1D1D6]">
+      </div>
+
+      <!-- 快速篩選膠囊 -->
+      <div class="space-y-5 mb-6 bg-white/60 p-5 rounded-[24px] border border-white shadow-sm">
+        
+        <div>
+          <h3 class="text-[11px] font-bold text-[#AFAFAF] mb-3 ml-1 tracking-widest uppercase">收支類型</h3>
+          <div class="flex gap-2">
+            <button onclick="setSearchFilter('type', 'all')" id="s-type-all" class="flex-1 py-1.5 rounded-full text-[13px] font-bold transition-colors bg-[var(--accent-light)] text-[var(--accent-dark)] shadow-sm">全部</button>
+            <button onclick="setSearchFilter('type', 'expense')" id="s-type-expense" class="flex-1 py-1.5 rounded-full text-[13px] font-bold transition-colors text-[#AFAFAF] hover:bg-white/50 border border-transparent">支出</button>
+            <button onclick="setSearchFilter('type', 'income')" id="s-type-income" class="flex-1 py-1.5 rounded-full text-[13px] font-bold transition-colors text-[#AFAFAF] hover:bg-white/50 border border-transparent">收入</button>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-[11px] font-bold text-[#AFAFAF] mb-3 ml-1 tracking-widest uppercase">付款方式</h3>
+          <div class="flex flex-wrap gap-2 pb-1">
+            <button onclick="setSearchFilter('payment', 'all')" id="s-pay-all" class="shrink-0 px-4 py-1.5 rounded-full text-[12px] font-bold transition-colors bg-[var(--accent-light)] text-[var(--accent-dark)] shadow-sm">全部</button>
+            <button onclick="setSearchFilter('payment', '現金')" id="s-pay-cash" class="shrink-0 px-4 py-1.5 rounded-full text-[12px] font-bold transition-colors text-[#AFAFAF] hover:bg-white/50 border border-transparent">現金</button>
+            <button onclick="setSearchFilter('payment', '信用卡')" id="s-pay-credit" class="shrink-0 px-4 py-1.5 rounded-full text-[12px] font-bold transition-colors text-[#AFAFAF] hover:bg-white/50 border border-transparent">信用卡</button>
+            <button onclick="setSearchFilter('payment', '電子支付')" id="s-pay-epay" class="shrink-0 px-4 py-1.5 rounded-full text-[12px] font-bold transition-colors text-[#AFAFAF] hover:bg-white/50 border border-transparent">電子支付</button>
+            <button onclick="setSearchFilter('payment', '轉帳')" id="s-pay-transfer" class="shrink-0 px-4 py-1.5 rounded-full text-[12px] font-bold transition-colors text-[#AFAFAF] hover:bg-white/50 border border-transparent">轉帳</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 搜尋結果區塊 -->
+      <div class="flex-1 flex flex-col">
+        <div class="flex justify-between items-end mb-4 ml-1">
+          <h3 class="text-[13px] font-bold text-[#7A7A7A] flex items-center gap-1.5">
+            <i data-lucide="list" class="w-4 h-4"></i> 搜尋結果
+          </h3>
+          <div class="text-right flex flex-col items-end">
+            <span id="search-count" class="text-[10px] text-[#AFAFAF] font-bold tracking-widest mb-0.5">0 筆紀錄</span>
+            <div id="search-summary" class="flex gap-2">
+              <span class="text-[12px] font-bold text-[#FF8B8B] font-num bg-white px-2 py-0.5 rounded-md shadow-sm border border-[#F0F0F0]">支 $0</span>
+            </div>
+          </div>
+        </div>
+        
+        <div id="search-results-list" class="space-y-3 pb-32">
+           <!-- 結果由 JS 渲染 -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <script>
-    // 自訂提示框 (Toast)
+    let toastTimeout;
     function showToast(msg, isError = false) {
       const toast = document.getElementById('toast-message');
-      const toastText = document.getElementById('toast-text');
-      const icon = toast.querySelector('i');
       
-      toastText.innerText = msg;
+      const iconName = isError ? 'alert-circle' : 'check-circle-2';
+      const iconColor = isError ? 'text-[#FF8B8B]' : 'text-[var(--accent-primary)]';
       
-      if (isError) {
-        icon.setAttribute('data-lucide', 'alert-circle');
-        icon.className = 'w-4 h-4 text-[#FF8B8B]';
-      } else {
-        icon.setAttribute('data-lucide', 'check-circle-2');
-        icon.className = 'w-4 h-4 text-[var(--accent-primary)]';
-      }
+      toast.innerHTML = `
+        <i data-lucide="${iconName}" class="w-4 h-4 ${iconColor}"></i>
+        <span>${msg}</span>
+      `;
       lucide.createIcons();
 
       toast.classList.remove('-translate-y-20', 'opacity-0');
       toast.classList.add('translate-y-0', 'opacity-100');
       
-      setTimeout(() => {
+      if (toastTimeout) clearTimeout(toastTimeout);
+      
+      toastTimeout = setTimeout(() => {
         toast.classList.remove('translate-y-0', 'opacity-100');
         toast.classList.add('-translate-y-20', 'opacity-0');
       }, 3000);
     }
 
-    // 自訂確認框 (Confirm)
     let confirmAction = null;
     function showConfirmModal(title, msg, onConfirm) {
        document.getElementById('confirm-title').innerText = title;
@@ -498,26 +596,27 @@
     }
 
     const EXPENSE_CATS = [
-      { id: 'e1', name: '餐飲', icon: 'utensils', color: '#FFE4DE' },
-      { id: 'e2', name: '交通', icon: 'bus', color: '#E4EEFF' },
-      { id: 'e3', name: '購物', icon: 'shopping-bag', color: '#F8E8FA' },
-      { id: 'e4', name: '娛樂', icon: 'film', color: '#E4F9E9' },
-      { id: 'e5', name: '居住', icon: 'home', color: '#FFF8E1' },
-      { id: 'e6', name: '零食', icon: 'coffee', color: '#F1E8DF' },
-      { id: 'e7', name: '醫療', icon: 'pill', color: '#E3F9F6' },
-      { id: 'e8', name: '其他', icon: 'sparkles', color: '#F2EBFC' },
+      { id: 'e1', name: '餐飲', icon: 'utensils', color: '#FFE4DE', subcategories: ['早餐', '午餐', '晚餐', '消夜', '下午茶', '飲料', '其他'] },
+      { id: 'e2', name: '交通', icon: 'bus', color: '#E4EEFF', subcategories: ['高鐵', '火車', '公車', '捷運', '計程車', '機票', '油費', '其他'] },
+      { id: 'e3', name: '購物', icon: 'shopping-bag', color: '#F8E8FA', subcategories: ['服飾', '書籍', '生活用品', '保健', '家居用品', '美妝保養', '3C資訊', '其他'] },
+      { id: 'e4', name: '娛樂', icon: 'film', color: '#E4F9E9', subcategories: ['電影', '展覽', '訂閱', '遊戲', '其他'] },
+      { id: 'e5', name: '居住', icon: 'home', color: '#FFF8E1', subcategories: ['水費', '電費', '瓦斯費', '手機費', '電話/網路', '管理費', '房租', '其他'] },
+      { id: 'e6', name: '零食', icon: 'coffee', color: '#F1E8DF', subcategories: ['零食', '甜點', '麵包', '其他'] },
+      { id: 'e7', name: '醫療', icon: 'pill', color: '#E3F9F6', subcategories: ['掛號費', '醫藥費', '保健食品', '保險費', '其他'] },
+      { id: 'e8', name: '其他', icon: 'sparkles', color: '#F2EBFC', subcategories: ['未分類', '其他'] },
     ];
 
     const INCOME_CATS = [
-      { id: 'i1', name: '薪水', icon: 'briefcase', color: '#E4F9E9' },
-      { id: 'i2', name: '零用錢', icon: 'coins', color: '#FFF8E1' },
-      { id: 'i3', name: '獎金', icon: 'gift', color: '#F2EBFC' },
-      { id: 'i4', name: '其他', icon: 'sparkles', color: '#E4EEFF' },
+      { id: 'i1', name: '薪水', icon: 'briefcase', color: '#E4F9E9', subcategories: ['本薪', '加班費', '其他'] },
+      { id: 'i2', name: '零用錢', icon: 'coins', color: '#FFF8E1', subcategories: ['零用錢', '其他'] },
+      { id: 'i3', name: '獎金', icon: 'gift', color: '#F2EBFC', subcategories: ['年終', '績效', '三節', '其他'] },
+      { id: 'i4', name: '其他', icon: 'sparkles', color: '#E4EEFF', subcategories: ['未分類', '其他'] },
     ];
 
     let currentView = 'home';
     let modalType = 'expense';
     let selectedCategory = EXPENSE_CATS[0];
+    let selectedSubcategory = EXPENSE_CATS[0].subcategories[0];
     
     const PAYMENT_METHODS = ['現金', '電子支付', '信用卡', '轉帳'];
     const EPAY_METHODS = ['Apple Pay', 'Line Pay', '街口支付', '悠遊卡', '全支付', '其他'];
@@ -560,7 +659,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       applyTheme(); 
       initDate();
-      initExportDates(); // 初始化匯出區間日期
+      initExportDates(); 
       renderAll();
       switchType('expense');
       document.getElementById('add-form').addEventListener('submit', handleAddSubmit);
@@ -581,7 +680,6 @@
       document.getElementById('input-date').value = formatDateYYYYMMDD(today); 
     }
 
-    // 初始化匯出的預設起訖日期 (當月的第一天與最後一天)
     function initExportDates() {
       const today = new Date();
       const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -647,9 +745,11 @@
                     </div>
                     <div class="flex flex-col justify-center items-start">
                       <div class="flex items-center flex-wrap gap-1">
-                        <p class="font-bold text-[#4A4A4A] text-[15px] m-0 leading-tight">${t.category}</p>
-                        ${t.type === 'expense' && t.paymentMethod ? `<span class="text-[9px] bg-[var(--bg-base)] text-[#83BA61] px-1.5 py-[2px] rounded-md font-bold transition-colors">${t.paymentMethod === '電子支付' && t.ePayMethod ? t.ePayMethod : t.paymentMethod}</span>` : ''}
-                        ${t.type === 'expense' && t.consumptionType === '線上消費' ? `<span class="text-[9px] bg-[var(--accent-light)] text-[var(--accent-primary)] px-1.5 py-[2px] rounded-md font-bold transition-colors">線上</span>` : ''}
+                        <p class="font-bold text-[#4A4A4A] text-[15px] m-0 leading-tight">
+                          ${t.category} ${t.subcategory && t.subcategory !== '未分類' ? `<span class="text-[12px] text-[#AFAFAF] font-normal ml-1">${t.subcategory}</span>` : ''}
+                        </p>
+                        ${t.type === 'expense' && t.paymentMethod ? `<span class="text-[9px] bg-[var(--bg-base)] text-[#83BA61] px-1.5 py-[2px] rounded-md font-bold transition-colors ml-1">${t.paymentMethod === '電子支付' && t.ePayMethod ? t.ePayMethod : t.paymentMethod}</span>` : ''}
+                        ${t.type === 'expense' && t.consumptionType === '線上消費' ? `<span class="text-[9px] bg-[var(--accent-light)] text-[var(--accent-primary)] px-1.5 py-[2px] rounded-md font-bold transition-colors ml-1">線上</span>` : ''}
                       </div>
                       ${t.note ? `<p class="text-[12px] text-[#AFAFAF] mt-1 m-0">${t.note}</p>` : ''}
                     </div>
@@ -910,6 +1010,9 @@
       }).join('');
       
       lucide.createIcons();
+      
+      // ✨ 同步渲染長條圖
+      renderTrendChart();
     }
 
     function renderSettings() {
@@ -1001,7 +1104,10 @@
           
           const catList = t.type === 'expense' ? EXPENSE_CATS : INCOME_CATS;
           const matchedCat = catList.find(c => c.name === t.category);
-          if(matchedCat) selectCategory(matchedCat.id);
+          if(matchedCat) {
+             selectCategory(matchedCat.id);
+             if (t.subcategory) selectSubcategory(t.subcategory);
+          }
 
           if (t.type === 'expense') {
             if(t.paymentMethod) selectPayment(t.paymentMethod);
@@ -1032,7 +1138,6 @@
       editingTransactionId = null; 
     }
 
-    // ✨ 升級：使用自訂確認視窗取代 confirm()
     function deleteTransaction() {
       showConfirmModal('確定要刪除這筆紀錄嗎？', '刪除後這筆金額將無法復原喔！', () => {
         transactions = transactions.filter(t => t.id !== editingTransactionId);
@@ -1041,6 +1146,11 @@
         renderAll();
         closeModal();
         closeDayDetail(); 
+        
+        if (!document.getElementById('search-modal').classList.contains('hidden')) {
+           executeSearch();
+        }
+
         showToast('紀錄已成功刪除');
       });
     }
@@ -1067,9 +1177,11 @@
 
     function renderCategories(cats) {
       selectedCategory = cats[0]; 
+      selectedSubcategory = selectedCategory.subcategories ? selectedCategory.subcategories[0] : '';
+      
       const container = document.getElementById('category-grid');
       
-      const updateGrid = () => {
+      window.updateCategoryGrid = () => {
         container.innerHTML = cats.map(cat => {
           const isSelected = selectedCategory.id === cat.id;
           const btnClass = isSelected 
@@ -1092,17 +1204,40 @@
       
       window.selectCategory = (id) => {
         selectedCategory = cats.find(c => c.id === id);
-        updateGrid();
+        selectedSubcategory = selectedCategory.subcategories ? selectedCategory.subcategories[0] : '';
+        window.updateCategoryGrid();
+        renderSubcategories(); 
       };
 
-      updateGrid();
+      window.updateCategoryGrid();
+      renderSubcategories(); 
     }
+
+    function renderSubcategories() {
+      const container = document.getElementById('subcategory-container');
+      const list = document.getElementById('subcategory-list');
+
+      if (!selectedCategory.subcategories || selectedCategory.subcategories.length === 0 || (selectedCategory.subcategories.length === 1 && selectedCategory.subcategories[0] === '未分類')) {
+         container.classList.add('hidden');
+         return;
+      }
+
+      container.classList.remove('hidden');
+      list.innerHTML = selectedCategory.subcategories.map(sub => `
+        <button type="button" onclick="selectSubcategory('${sub}')" class="shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-colors ${selectedSubcategory === sub ? 'bg-[var(--accent-light)] text-[var(--accent-dark)] shadow-sm' : 'text-[#AFAFAF] bg-[#F8F9FA] hover:bg-[#EAEAEA] border border-transparent'}">${sub}</button>
+      `).join('');
+    }
+
+    window.selectSubcategory = (sub) => {
+      selectedSubcategory = sub;
+      renderSubcategories();
+    };
 
     function renderExtraFields() {
       let html = `
         <div>
           <h3 class="text-[10px] font-bold text-[#AFAFAF] mb-2 ml-2 tracking-widest uppercase">付款方式</h3>
-          <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1 px-1">
+          <div class="flex flex-wrap gap-2 pb-1 px-1">
             ${PAYMENT_METHODS.map(m => `
               <button type="button" onclick="selectPayment('${m}')" class="shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-colors ${selectedPayment === m ? 'bg-white shadow-sm border border-[var(--accent-light)] text-[var(--accent-dark)]' : 'text-[#AFAFAF] border border-transparent hover:bg-white/50'}">${m}</button>
             `).join('')}
@@ -1152,6 +1287,7 @@
         type: modalType,
         amount: parseFloat(amountStr),
         category: selectedCategory.name,
+        subcategory: selectedSubcategory, 
         icon: selectedCategory.icon,
         color: selectedCategory.color,
         date: date,
@@ -1174,6 +1310,10 @@
       renderAll();
       closeModal();
       closeDayDetail();
+      
+      if (!document.getElementById('search-modal').classList.contains('hidden')) {
+         executeSearch();
+      }
     }
 
     function openDayDetail(dateStr) {
@@ -1201,9 +1341,11 @@
                   </div>
                   <div class="flex flex-col justify-center items-start">
                     <div class="flex items-center flex-wrap gap-1">
-                      <p class="font-bold text-[#4A4A4A] text-[14px] m-0 leading-tight">${t.category}</p>
-                      ${t.type === 'expense' && t.paymentMethod ? `<span class="text-[9px] bg-[var(--bg-base)] text-[#83BA61] px-1.5 py-[2px] rounded-md font-bold transition-colors">${t.paymentMethod === '電子支付' && t.ePayMethod ? t.ePayMethod : t.paymentMethod}</span>` : ''}
-                      ${t.type === 'expense' && t.consumptionType === '線上消費' ? `<span class="text-[9px] bg-[var(--accent-light)] text-[var(--accent-primary)] px-1.5 py-[2px] rounded-md font-bold transition-colors">線上</span>` : ''}
+                      <p class="font-bold text-[#4A4A4A] text-[14px] m-0 leading-tight">
+                        ${t.category} ${t.subcategory && t.subcategory !== '未分類' ? `<span class="text-[12px] text-[#AFAFAF] font-normal ml-1">${t.subcategory}</span>` : ''}
+                      </p>
+                      ${t.type === 'expense' && t.paymentMethod ? `<span class="text-[9px] bg-[var(--bg-base)] text-[#83BA61] px-1.5 py-[2px] rounded-md font-bold transition-colors ml-1">${t.paymentMethod === '電子支付' && t.ePayMethod ? t.ePayMethod : t.paymentMethod}</span>` : ''}
+                      ${t.type === 'expense' && t.consumptionType === '線上消費' ? `<span class="text-[9px] bg-[var(--accent-light)] text-[var(--accent-primary)] px-1.5 py-[2px] rounded-md font-bold transition-colors ml-1">線上</span>` : ''}
                     </div>
                     ${t.note ? `<p class="text-[11px] text-[#AFAFAF] mt-1 m-0">${t.note}</p>` : ''}
                   </div>
@@ -1225,25 +1367,23 @@
       document.getElementById('day-detail-modal').classList.add('hidden');
     }
 
-    // ==================== ✨ 升級：CSV 匯出系統 ====================
-
-    // 共用的 CSV 產生與下載邏輯
     function generateAndDownloadCSV(dataArray, filenamePrefix) {
       if (dataArray.length === 0) {
         showToast('這段期間沒有任何紀錄可以匯出喔！', true);
         return;
       }
 
-      let csvContent = "\uFEFF"; // 避免中文亂碼
-      csvContent += "日期,收支類型,分類,金額,付款方式,消費類型,備註\n";
+      let csvContent = "\uFEFF"; 
+      csvContent += "日期,收支類型,主分類,次分類,金額,付款方式,消費類型,備註\n";
 
       dataArray.forEach(t => {
         const typeStr = t.type === 'income' ? '收入' : '支出';
+        const subcatStr = t.subcategory || '-';
         const payment = t.type === 'expense' ? (t.paymentMethod === '電子支付' && t.ePayMethod ? t.ePayMethod : (t.paymentMethod || '未指定')) : '-';
         const consumption = t.type === 'expense' ? (t.consumptionType || '未指定') : '-';
         const safeNote = t.note ? t.note.replace(/,/g, "，").replace(/\n/g, " ") : ''; 
 
-        const row = `${t.date},${typeStr},${t.category},${t.amount},${payment},${consumption},${safeNote}`;
+        const row = `${t.date},${typeStr},${t.category},${subcatStr},${t.amount},${payment},${consumption},${safeNote}`;
         csvContent += row + "\n";
       });
 
@@ -1261,7 +1401,6 @@
       showToast(`已成功下載 ${dataArray.length} 筆紀錄`);
     }
 
-    // 匯出：指定區間
     function exportRangeCSV() {
       const startDate = document.getElementById('export-start-date').value;
       const endDate = document.getElementById('export-end-date').value;
@@ -1276,14 +1415,239 @@
         return;
       }
 
-      // 篩選在這個日期區間內的紀錄 (包含起訖當天)
       const filteredData = transactions.filter(t => t.date >= startDate && t.date <= endDate);
       generateAndDownloadCSV(filteredData, `區間備份_${startDate}至${endDate}`);
     }
 
-    // 匯出：全部紀錄
     function exportAllCSV() {
       generateAndDownloadCSV(transactions, '全部備份');
+    }
+
+    let searchFilters = {
+      keyword: '',
+      type: 'all',    
+      payment: 'all'  
+    };
+
+    function openSearchModal() {
+      searchFilters = { keyword: '', type: 'all', payment: 'all' };
+      document.getElementById('search-keyword').value = '';
+      updateSearchFilterUI();
+      executeSearch();
+      document.getElementById('search-modal').classList.remove('hidden');
+      
+      setTimeout(() => document.getElementById('search-keyword').focus(), 100);
+    }
+
+    function closeSearchModal() {
+      document.getElementById('search-modal').classList.add('hidden');
+    }
+
+    function setSearchFilter(key, value) {
+      searchFilters[key] = value;
+      updateSearchFilterUI();
+      executeSearch();
+    }
+
+    function updateSearchFilterUI() {
+      ['all', 'expense', 'income'].forEach(t => {
+        const btn = document.getElementById(`s-type-${t}`);
+        if (t === searchFilters.type) {
+          btn.className = 'flex-1 py-1.5 rounded-full text-[13px] font-bold transition-colors bg-[var(--accent-light)] text-[var(--accent-dark)] shadow-sm';
+        } else {
+          btn.className = 'flex-1 py-1.5 rounded-full text-[13px] font-bold transition-colors text-[#AFAFAF] hover:bg-white/50 border border-transparent';
+        }
+      });
+
+      ['all', 'cash', 'credit', 'epay', 'transfer'].forEach((p, idx) => {
+        const vals = ['all', '現金', '信用卡', '電子支付', '轉帳'];
+        const btn = document.getElementById(`s-pay-${p}`);
+        if (vals[idx] === searchFilters.payment) {
+          btn.className = 'shrink-0 px-4 py-1.5 rounded-full text-[12px] font-bold transition-colors bg-[var(--accent-light)] text-[var(--accent-dark)] shadow-sm';
+        } else {
+          btn.className = 'shrink-0 px-4 py-1.5 rounded-full text-[12px] font-bold transition-colors text-[#AFAFAF] hover:bg-white/50 border border-transparent';
+        }
+      });
+    }
+
+    function executeSearch() {
+      searchFilters.keyword = document.getElementById('search-keyword').value.toLowerCase();
+
+      const filtered = transactions.filter(t => {
+        const matchKeyword = !searchFilters.keyword || 
+                             t.category.toLowerCase().includes(searchFilters.keyword) || 
+                             (t.subcategory && t.subcategory.toLowerCase().includes(searchFilters.keyword)) || 
+                             (t.note && t.note.toLowerCase().includes(searchFilters.keyword)) ||
+                             (t.amount.toString().includes(searchFilters.keyword));
+
+        const matchType = searchFilters.type === 'all' || t.type === searchFilters.type;
+
+        const matchPayment = searchFilters.payment === 'all' || 
+                             t.paymentMethod === searchFilters.payment || 
+                             (t.type === 'income' && searchFilters.payment === 'all'); 
+
+        return matchKeyword && matchType && matchPayment;
+      });
+
+      renderSearchResults(filtered);
+    }
+
+    function renderSearchResults(results) {
+      const listContainer = document.getElementById('search-results-list');
+      const countEl = document.getElementById('search-count');
+      const summaryEl = document.getElementById('search-summary');
+      
+      countEl.innerText = `${results.length} 筆紀錄`;
+
+      let totalExp = 0; let totalInc = 0;
+      results.forEach(t => {
+        if(t.type === 'expense') totalExp += t.amount;
+        else totalInc += t.amount;
+      });
+
+      let summaryHtml = '';
+      if (totalExp > 0 || totalInc === 0) summaryHtml += `<span class="text-[12px] font-bold text-[#FF8B8B] font-num bg-white px-2 py-0.5 rounded-md shadow-sm border border-[#F0F0F0]">支 $${formatMoney(totalExp)}</span>`;
+      if (totalInc > 0) summaryHtml += `<span class="text-[12px] font-bold text-[#83BA61] font-num bg-white px-2 py-0.5 rounded-md shadow-sm border border-[#F0F0F0]">收 $${formatMoney(totalInc)}</span>`;
+      summaryEl.innerHTML = summaryHtml;
+
+      if (results.length === 0) {
+        listContainer.innerHTML = `
+          <div class="text-center py-12 bg-white/60 backdrop-blur-md rounded-[32px] border border-white shadow-[0_4px_15px_rgba(0,0,0,0.02)] mt-4">
+            <i data-lucide="search-x" class="w-10 h-10 text-[#D1D1D6] mx-auto mb-3"></i>
+            <p class="font-bold text-[14px] text-[#AFAFAF] tracking-wide">找不到符合的紀錄</p>
+          </div>
+        `;
+      } else {
+        const sorted = [...results].sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        listContainer.innerHTML = `
+          <div class="bg-white rounded-[28px] shadow-[0_2px_15px_rgba(0,0,0,0.015)] border border-[#F5F5F5] overflow-hidden mt-2">
+            ${sorted.map((t, index) => `
+              <div onclick="openModal(${t.id})" class="flex flex-col p-4 ${index !== sorted.length - 1 ? 'border-b border-[#F8F8F8]' : ''} hover:bg-[#FAFAF8] transition-colors cursor-pointer active:bg-[#F0F0F0]">
+                
+                <div class="flex justify-between items-center mb-2">
+                   <span class="text-[10px] font-bold text-[var(--accent-primary)] bg-[var(--accent-light)] px-2 py-0.5 rounded flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i>${t.date.replace(/-/g, '/')}</span>
+                   <span class="font-bold text-[16px] font-num ${t.type === 'income' ? 'text-[#83BA61]' : 'text-[#5A5A5A]'}">
+                     ${t.type === 'income' ? '+' : '-'}$${formatMoney(t.amount)}
+                   </span>
+                </div>
+
+                <div class="flex items-center gap-4">
+                  <div class="w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0" style="background-color: ${t.color}">
+                    <i data-lucide="${t.icon}" class="w-5 h-5 text-[#7A7A7A] stroke-[1.5]"></i>
+                  </div>
+                  <div class="flex flex-col justify-center items-start">
+                    <div class="flex items-center flex-wrap gap-1">
+                      <p class="font-bold text-[#4A4A4A] text-[14px] m-0 leading-tight">
+                        ${t.category} ${t.subcategory && t.subcategory !== '未分類' ? `<span class="text-[12px] text-[#AFAFAF] font-normal ml-1">${t.subcategory}</span>` : ''}
+                      </p>
+                      ${t.type === 'expense' && t.paymentMethod ? `<span class="text-[9px] bg-[var(--bg-base)] text-[#83BA61] px-1.5 py-[2px] rounded-md font-bold transition-colors ml-1">${t.paymentMethod === '電子支付' && t.ePayMethod ? t.ePayMethod : t.paymentMethod}</span>` : ''}
+                      ${t.type === 'expense' && t.consumptionType === '線上消費' ? `<span class="text-[9px] bg-[var(--accent-light)] text-[var(--accent-primary)] px-1.5 py-[2px] rounded-md font-bold transition-colors ml-1">線上</span>` : ''}
+                    </div>
+                    ${t.note ? `<p class="text-[12px] text-[#AFAFAF] mt-1 m-0">${t.note}</p>` : ''}
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+      lucide.createIcons(); 
+    }
+
+    // ==================== ✨ 新增：長條圖趨勢分析系統 ====================
+    let trendMode = 'year'; // 預設顯示年趨勢
+
+    function setTrendMode(mode) {
+      trendMode = mode;
+      ['week', 'month', 'year'].forEach(m => {
+        const btn = document.getElementById(`btn-trend-${m}`);
+        if (m === mode) {
+          btn.className = 'px-3 py-1 rounded-full transition-colors bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]';
+        } else {
+          btn.className = 'px-3 py-1 rounded-full transition-colors text-[#AFAFAF] hover:text-[#4A4A4A] border border-transparent';
+        }
+      });
+      renderTrendChart();
+    }
+
+    function renderTrendChart() {
+      const barsContainer = document.getElementById('trend-chart-bars');
+      const labelsContainer = document.getElementById('trend-chart-labels');
+      
+      if (!barsContainer || !labelsContainer) return;
+
+      const year = chartAnchorDate.getFullYear();
+      const month = chartAnchorDate.getMonth();
+      let dataPoints = []; 
+      
+      if (trendMode === 'week') {
+        const { start } = getWeekRange(chartAnchorDate);
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(start);
+          d.setDate(start.getDate() + i);
+          const dateStr = formatDateYYYYMMDD(d);
+          const sum = transactions.filter(t => t.type === chartType && t.date === dateStr).reduce((a, b) => a + b.amount, 0);
+          const days = ['日', '一', '二', '三', '四', '五', '六'];
+          dataPoints.push({ label: days[i], amount: sum });
+        }
+      } else if (trendMode === 'month') {
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        for (let i = 1; i <= daysInMonth; i++) {
+          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+          const sum = transactions.filter(t => t.type === chartType && t.date === dateStr).reduce((a, b) => a + b.amount, 0);
+          dataPoints.push({ label: String(i), amount: sum });
+        }
+      } else if (trendMode === 'year') {
+        for (let i = 1; i <= 12; i++) {
+          const prefix = `${year}-${String(i).padStart(2, '0')}`;
+          const sum = transactions.filter(t => t.type === chartType && t.date.startsWith(prefix)).reduce((a, b) => a + b.amount, 0);
+          dataPoints.push({ label: `${i}月`, amount: sum });
+        }
+      }
+
+      const maxAmount = Math.max(...dataPoints.map(d => d.amount), 1); 
+
+      barsContainer.innerHTML = '';
+      labelsContainer.innerHTML = '';
+
+      dataPoints.forEach((dp, index) => {
+        const heightPct = (dp.amount / maxAmount) * 100;
+        
+        const barWrapper = document.createElement('div');
+        barWrapper.className = 'flex-1 flex flex-col justify-end items-center group relative h-full w-full';
+        
+        const bar = document.createElement('div');
+        if (dp.amount > 0) {
+            bar.className = 'w-full max-w-[14px] bg-[var(--accent-light)] rounded-t-md transition-all duration-300 group-hover:bg-[var(--accent-primary)] relative cursor-pointer';
+            bar.style.height = `${Math.max(heightPct, 3)}%`; 
+            
+            const tooltip = document.createElement('div');
+            tooltip.className = 'absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-[#4A4A4A] text-white text-[10px] py-1 px-2 rounded-md pointer-events-none whitespace-nowrap z-10 shadow-md font-num';
+            tooltip.innerText = `$${formatMoney(dp.amount)}`;
+            bar.appendChild(tooltip);
+        } else {
+            bar.className = 'w-full max-w-[14px] bg-transparent rounded-t-md';
+            bar.style.height = '0%';
+        }
+
+        barWrapper.appendChild(bar);
+        barsContainer.appendChild(barWrapper);
+
+        const label = document.createElement('div');
+        label.className = 'flex-1 text-center truncate w-full';
+        
+        if (trendMode === 'month') {
+          if (index === 0 || index === 9 || index === 19 || index === dataPoints.length - 1) {
+             label.innerText = dp.label;
+          }
+        } else {
+          label.innerText = dp.label;
+        }
+        labelsContainer.appendChild(label);
+      });
+      
+      lucide.createIcons();
     }
 
   </script>
