@@ -116,6 +116,7 @@
   <!-- ==================== ✨ 開場動畫 (Splash Screen) ==================== -->
   <div id="splash-screen" class="fixed inset-0 z-[200] flex flex-col items-center justify-center transition-opacity duration-700 bg-[var(--bg-base)]">
     <div class="bg-gingham opacity-90"></div>
+
     <div class="relative z-10 flex flex-col items-center">
       <div class="relative mb-6">
         <div class="absolute -top-4 -left-6 rotate-12 scale-110 z-20"><div class="splash-daisy splash-pop-1"></div></div>
@@ -326,9 +327,7 @@
             <button id="btn-setcat-income" onclick="switchCatSettingsTab('income')" class="flex-1 py-1.5 rounded-full transition-colors text-[#AFAFAF] border border-transparent">收入分類</button>
           </div>
 
-          <div id="settings-category-list" class="space-y-3 mb-5 max-h-[320px] overflow-y-auto no-scrollbar pr-1">
-             <!-- 分類列表會由 JS 動態生成 -->
-          </div>
+          <div id="settings-category-list" class="space-y-3 mb-5 max-h-[320px] overflow-y-auto no-scrollbar pr-1"></div>
 
           <button onclick="openCategoryModal()" class="w-full py-3.5 rounded-[20px] font-bold text-[var(--accent-primary)] bg-white border-2 border-dashed border-[var(--accent-light)] transition-all hover:bg-[var(--bg-base)] active:scale-95 flex items-center justify-center gap-2">
              <i data-lucide="plus-circle" class="w-5 h-5"></i> 新增自訂分類
@@ -370,6 +369,31 @@
             </button>
           </div>
         </div>
+
+        <!-- 系統備份與還原區塊 -->
+        <div class="bg-white rounded-[32px] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-[#F0F0F0]">
+          <h3 class="text-[13px] font-bold text-[#AFAFAF] mb-3 tracking-widest flex items-center gap-2">
+            <i data-lucide="hard-drive" class="w-4 h-4"></i> 系統備份與還原
+          </h3>
+          
+          <div class="bg-[#F8F9FA] p-4 rounded-[20px] mb-5 border border-[#F0F0F0]">
+            <p class="text-[12px] text-[#7A7A7A] leading-relaxed font-bold">
+              💡 您的資料皆安全地儲存於本機。若需更換手機或瀏覽器，請先<span class="text-[#83BA61]">下載備份檔</span>，再於新裝置<span class="text-[#FF8B8B]">匯入還原</span>，即可無縫轉移所有紀錄與設定。
+            </p>
+          </div>
+          
+          <div class="flex flex-col gap-3">
+            <button onclick="exportBackupJSON()" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-[20px] font-bold transition-all bg-[#F8F9FA] text-[#7A7A7A] hover:bg-[#F0F0F0] hover:scale-[1.02] active:scale-95 shadow-sm border border-[#EAEAEA]">
+              <i data-lucide="download" class="w-5 h-5"></i> 備份全部資料 (.json)
+            </button>
+
+            <input type="file" id="import-file" accept=".json" class="hidden" onchange="importBackupJSON(event)">
+            <button onclick="document.getElementById('import-file').click()" class="w-full flex items-center justify-center gap-2 py-3.5 rounded-[20px] font-bold transition-all bg-[#FFF5F5] text-[#FF8B8B] hover:bg-[#FFEBEB] hover:scale-[1.02] active:scale-95 shadow-sm border border-[#FFEBEB]">
+              <i data-lucide="upload-cloud" class="w-5 h-5"></i> 匯入還原檔 (.json)
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -389,7 +413,8 @@
         <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-transparent rounded-full active-dot transition-colors duration-300"></span>
       </button>
       
-      <div class="w-14"></div> <button onclick="switchView('chart')" id="nav-chart" class="nav-btn p-2 text-[#D1D1D6] hover:text-[var(--accent-muted)] transition-all duration-300 relative">
+      <div class="w-14"></div> 
+      <button onclick="switchView('chart')" id="nav-chart" class="nav-btn p-2 text-[#D1D1D6] hover:text-[var(--accent-muted)] transition-all duration-300 relative">
         <i data-lucide="pie-chart" class="w-6 h-6"></i>
         <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-transparent rounded-full active-dot transition-colors duration-300"></span>
       </button>
@@ -427,7 +452,8 @@
         <div class="w-10"></div>
       </div>
 
-      <form id="add-form" class="space-y-5 flex-1 flex flex-col">
+      <!-- ✨ 確保此處加上 onsubmit="handleAddSubmit(event)" 阻擋頁面重整 -->
+      <form id="add-form" class="space-y-5 flex-1 flex flex-col" onsubmit="handleAddSubmit(event)">
         
         <div class="flex flex-col items-center py-2">
           <div class="flex items-center text-[44px] font-black text-[#4A4A4A] font-num leading-none">
@@ -440,13 +466,11 @@
 
         <div>
           <h3 class="text-[11px] font-bold text-[#AFAFAF] mb-3 ml-2 tracking-widest uppercase">主分類</h3>
-          <div id="category-grid" class="grid grid-cols-4 gap-y-3 gap-x-2">
-            </div>
+          <div id="category-grid" class="grid grid-cols-4 gap-y-3 gap-x-2"></div>
         </div>
 
         <div id="subcategory-container" class="w-full hidden">
-           <div class="flex flex-wrap gap-2 pb-1 px-1" id="subcategory-list">
-           </div>
+           <div class="flex flex-wrap gap-2 pb-1 px-1" id="subcategory-list"></div>
         </div>
 
         <div id="expense-extra-fields" class="w-full space-y-3 pt-1 pb-1"></div>
@@ -471,7 +495,7 @@
     </div>
   </div>
 
-  <!-- ✨ 分類編輯與自訂彈窗 -->
+  <!-- 分類編輯與自訂彈窗 -->
   <div id="category-modal" class="fixed inset-0 z-[80] flex items-end justify-center bg-[#FAFAF8]/90 backdrop-blur-md hidden max-w-md mx-auto sm:items-center sm:p-6">
     <div class="absolute inset-0" onclick="closeCategoryModal()"></div>
     <div class="bg-white w-full rounded-t-[32px] sm:rounded-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] sm:shadow-[0_10px_40px_rgba(0,0,0,0.08)] p-6 pt-8 animate-in slide-in-from-bottom-8 sm:zoom-in-95 duration-300 relative border border-[#F0F0F0] max-h-[85vh] flex flex-col">
@@ -483,45 +507,38 @@
         </button>
       </div>
 
-      <!-- 加上 px-2 -mx-2 防止光環被切掉 -->
       <div class="overflow-y-auto no-scrollbar flex-1 space-y-6 pb-6 px-2 -mx-2">
           
-          <!-- 分類名稱 -->
           <div>
              <p class="text-[11px] font-bold text-[#AFAFAF] mb-2 tracking-widest">主分類名稱</p>
              <input type="text" id="cat-input-name" placeholder="例如：寵物、進修..." class="w-full bg-[#F8F9FA] px-4 py-3 rounded-[16px] text-[#5A5A5A] font-bold outline-none focus:ring-2 focus:ring-[var(--accent-light)] transition-all placeholder-[#D1D1D6]">
           </div>
 
-          <!-- 圖示選擇 -->
           <div>
              <p class="text-[11px] font-bold text-[#AFAFAF] mb-2 tracking-widest">專屬圖示</p>
-             <!-- ✨ 修改：加上 justify-center 讓圖示群組完美置中 -->
              <div class="flex flex-wrap gap-2 justify-center" id="cat-icon-picker"></div>
           </div>
 
-          <!-- 顏色選擇 -->
           <div>
              <p class="text-[11px] font-bold text-[#AFAFAF] mb-2 tracking-widest">專屬顏色</p>
-             <!-- ✨ 修改：加上 justify-center 讓色盤完美置中 -->
              <div class="flex flex-wrap gap-2 justify-center" id="cat-color-picker"></div>
           </div>
 
-          <!-- 次分類編輯區 -->
           <div>
              <p class="text-[11px] font-bold text-[#AFAFAF] mb-2 tracking-widest">次分類標籤管理</p>
              <div class="flex gap-2 mb-3">
                <input type="text" id="cat-sub-input" placeholder="輸入新的次分類..." class="flex-1 bg-[#F8F9FA] px-4 py-2.5 rounded-[16px] text-[#5A5A5A] font-bold text-[13px] outline-none focus:ring-2 focus:ring-[var(--accent-light)] transition-all placeholder-[#D1D1D6]">
-               <button onclick="addSubcategoryTag()" class="bg-[var(--accent-primary)] text-white px-4 py-2.5 rounded-[16px] font-bold shadow-sm active:scale-95 transition-transform"><i data-lucide="plus" class="w-4 h-4"></i></button>
+               <button onclick="addSubcategoryTag()" type="button" class="bg-[var(--accent-primary)] text-white px-4 py-2.5 rounded-[16px] font-bold shadow-sm active:scale-95 transition-transform"><i data-lucide="plus" class="w-4 h-4"></i></button>
              </div>
              <div class="flex flex-wrap gap-2" id="cat-sub-list"></div>
           </div>
       </div>
 
       <div class="pt-4 border-t border-[#F0F0F0] flex gap-3 mt-auto shrink-0 bg-white">
-         <button id="cat-btn-delete" onclick="deleteCategoryConfig()" class="hidden w-12 h-[52px] rounded-[20px] bg-[#FFF5F5] text-[#FF8B8B] flex items-center justify-center shadow-sm active:scale-95 transition-transform border border-[#FFEBEB] shrink-0">
+         <button id="cat-btn-delete" onclick="deleteCategoryConfig()" type="button" class="hidden w-12 h-[52px] rounded-[20px] bg-[#FFF5F5] text-[#FF8B8B] flex items-center justify-center shadow-sm active:scale-95 transition-transform border border-[#FFEBEB] shrink-0">
            <i data-lucide="trash-2" class="w-5 h-5"></i>
          </button>
-         <button onclick="saveCategoryConfig()" class="flex-1 bg-[var(--accent-primary)] hover:bg-[var(--accent-dark)] text-white font-bold text-[16px] py-3.5 rounded-[20px] shadow-[0_8px_16px_rgba(0,0,0,0.08)] transition-all active:scale-95">
+         <button onclick="saveCategoryConfig()" type="button" class="flex-1 bg-[var(--accent-primary)] hover:bg-[var(--accent-dark)] text-white font-bold text-[16px] py-3.5 rounded-[20px] shadow-[0_8px_16px_rgba(0,0,0,0.08)] transition-all active:scale-95">
            儲存分類設定
          </button>
       </div>
@@ -637,27 +654,17 @@
     let expenseCats = JSON.parse(localStorage.getItem('gg_expense_cats')) || DEFAULT_EXPENSE_CATS;
     let incomeCats = JSON.parse(localStorage.getItem('gg_income_cats')) || DEFAULT_INCOME_CATS;
 
-    // 自訂分類專用的可選圖示與顏色庫
-    // ✨ 修改：大幅擴充可選圖示 (新增飲食、水電帳單、交通、財務等生活圖示)
     const PRESET_ICONS = [
-      // 原本的圖示
       'utensils', 'bus', 'shopping-bag', 'film', 'home', 'coffee', 'pill', 'sparkles',
       'briefcase', 'coins', 'gift', 'heart', 'music', 'book', 'smartphone', 'car',
       'plane', 'monitor', 'scissors', 'smile', 'camera', 'train', 'paw-print', 'gamepad-2',
       'dumbbell', 'graduation-cap', 'baby', 'shirt',
-      // 🍎 新增：飲食與日常
       'apple', 'pizza', 'wine', 'beer', 'cup-soda', 
-      // ⚡ 新增：生活水電與居家
       'zap', 'droplet', 'flame', 'wifi', 'tv', 'plug',
-      // 🚲 新增：交通與旅遊
       'bike', 'ship', 'ticket', 'tent', 'map', 'compass',
-      // 👜 新增：購物與配件
       'shopping-cart', 'watch', 'glasses', 'umbrella',
-      // ✏️ 新增：學習與辦公
       'pen', 'pencil', 'book-open', 'calculator', 'clipboard',
-      // 💰 新增：財務與銀行
       'credit-card', 'banknote', 'piggy-bank', 'receipt', 'wallet', 'landmark',
-      // 🏥 新增：醫療與其他
       'activity', 'cross', 'bath', 'palette'
     ];
     const PRESET_COLORS = ['#FFE4DE', '#E4EEFF', '#F8E8FA', '#E4F9E9', '#FFF8E1', '#F1E8DF', '#E3F9F6', '#F2EBFC', '#FFD8CF', '#D3E5FF', '#D1F4D9', '#E8DACC', '#EAE0F9', '#FFB2B2', '#B2D8FF', '#FFDFB2', '#E2F0CB', '#FFD3B6', '#D5AAFF'];
@@ -722,8 +729,6 @@
       initExportDates(); 
       renderAll();
       switchType('expense');
-      
-      document.getElementById('add-form').addEventListener('submit', handleAddSubmit);
       
       document.getElementById('cat-sub-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
@@ -1255,7 +1260,7 @@
     let catSettingsTab = 'expense';
     let editingCatId = null;
     let tempCatIcon = 'sparkles';
-    let tempCatColor = '#F2EBFC';
+    let tempCatColor = '#FFE4DE';
     let tempCatSubcategories = [];
 
     function switchCatSettingsTab(tab) {
@@ -1690,9 +1695,9 @@
     window.selectEPay = (m) => { selectedEPay = m; renderExtraFields(); };
     window.selectConsumption = (m) => { selectedConsumption = m; renderExtraFields(); };
 
-    // ✨ 修改重點：加上 (e) 參數，並且加入 e.preventDefault() 阻擋畫面重新整理
+    // ✨ 正確的送出攔截與處理邏輯
     function handleAddSubmit(e) {
-      if (e) e.preventDefault(); // 阻擋表單送出時的預設重新整理行為
+      if (e) e.preventDefault(); 
       
       const amountStr = document.getElementById('input-amount').value;
       const date = document.getElementById('input-date').value;
@@ -1702,7 +1707,7 @@
       if (!selectedCategory) return showToast('請先建立或選擇一個分類喔！', true);
 
       const newTx = {
-        id: Date.now(),
+        id: editingTransactionId || Date.now(),
         type: modalType,
         amount: parseFloat(amountStr),
         category: selectedCategory.name,
@@ -1728,7 +1733,11 @@
 
       renderAll();
       closeModal();
-      closeDayDetail();
+      
+      // 若從日曆明細開啟，則重新整理該日明細
+      if (!document.getElementById('day-detail-modal').classList.contains('hidden')) {
+          openDayDetail(date);
+      }
       
       if (!document.getElementById('search-modal').classList.contains('hidden')) {
          executeSearch();
@@ -1840,6 +1849,78 @@
 
     function exportAllCSV() {
       generateAndDownloadCSV(transactions, '全部備份');
+    }
+
+    // ==================== 系統備份與還原邏輯 ====================
+    function exportBackupJSON() {
+      const backupData = {
+        transactions: transactions,
+        expenseCats: expenseCats,
+        incomeCats: incomeCats,
+        theme: {
+          wallpaper: currentWallpaper,
+          accent: currentAccent
+        },
+        exportDate: new Date().toISOString()
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
+      const downloadAnchorNode = document.createElement('a');
+      const todayStr = formatDateYYYYMMDD(new Date()).replace(/-/g, '');
+      
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", `方格子記帳本_完整備份_${todayStr}.json`);
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+      
+      showToast('備份檔已成功下載！');
+    }
+
+    function importBackupJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          
+          if (!importedData.transactions || !importedData.expenseCats || !importedData.incomeCats) {
+            throw new Error('無效的備份檔格式');
+          }
+
+          showConfirmModal('確定要還原資料嗎？', '這將會覆蓋您目前手機上的所有紀錄與設定，且無法復原喔！', () => {
+            transactions = importedData.transactions;
+            expenseCats = importedData.expenseCats;
+            incomeCats = importedData.incomeCats;
+            
+            localStorage.setItem('green_gingham_transactions', JSON.stringify(transactions));
+            localStorage.setItem('gg_expense_cats', JSON.stringify(expenseCats));
+            localStorage.setItem('gg_income_cats', JSON.stringify(incomeCats));
+
+            if(importedData.theme) {
+               currentWallpaper = importedData.theme.wallpaper || 'green';
+               currentAccent = importedData.theme.accent || 'purple';
+               localStorage.setItem('gg_wallpaper', currentWallpaper);
+               localStorage.setItem('gg_accent', currentAccent);
+            }
+
+            applyTheme();
+            renderAll();
+            switchView('home');
+            showToast('資料已成功還原！歡迎回來！');
+          });
+          
+        } catch (error) {
+          console.error(error);
+          showToast('備份檔讀取失敗或格式不符！', true);
+        }
+        
+        document.getElementById('import-file').value = '';
+      };
+      
+      reader.readAsText(file);
     }
 
     let searchFilters = { keyword: '', type: 'all', payment: 'all' };
