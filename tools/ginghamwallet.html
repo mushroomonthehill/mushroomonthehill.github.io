@@ -1688,7 +1688,10 @@
     window.selectEPay = (m) => { selectedEPay = m; renderExtraFields(); };
     window.selectConsumption = (m) => { selectedConsumption = m; renderExtraFields(); };
 
-    function handleAddSubmit() {
+    // ✨ 修改重點：加上 (e) 參數，並且加入 e.preventDefault() 阻擋畫面重新整理
+    function handleAddSubmit(e) {
+      if (e) e.preventDefault(); // 阻擋表單送出時的預設重新整理行為
+      
       const amountStr = document.getElementById('input-amount').value;
       const date = document.getElementById('input-date').value;
       const note = document.getElementById('input-note').value;
