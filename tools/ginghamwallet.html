@@ -82,7 +82,7 @@
       border: 1px solid rgba(255, 255, 255, 0.5);
     }
 
-    /* ✨ 開場動畫 (Splash Screen) 專屬樣式 */
+    /* 開場動畫 (Splash Screen) 專屬樣式 */
     .splash-daisy {
       width: 28px;
       height: 28px;
@@ -115,7 +115,8 @@
 
   <!-- ==================== ✨ 開場動畫 (Splash Screen) ==================== -->
   <div id="splash-screen" class="fixed inset-0 z-[200] flex flex-col items-center justify-center transition-opacity duration-700 bg-[var(--bg-base)]">
-    <!-- 滿版方格子背景 -->
+    
+    <!-- 格紋背景，隨著主題變化 -->
     <div class="bg-gingham opacity-90"></div>
 
     <!-- 中間主要 Logo 區塊 -->
@@ -560,14 +561,14 @@
     document.addEventListener('DOMContentLoaded', () => {
       applyTheme(); 
       
-      // ✨ 開場動畫 (Splash Screen) 控制邏輯
+      // 開場動畫 (Splash Screen) 控制邏輯
       setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         if (splash) {
            splash.classList.add('opacity-0', 'pointer-events-none');
-           setTimeout(() => splash.remove(), 700); // 動畫結束後從網頁移除，避免干擾點擊
+           setTimeout(() => splash.remove(), 700); 
         }
-      }, 2800); // 停留 2.8 秒後開始淡出
+      }, 2800); 
 
       initDate();
       initExportDates(); 
@@ -1063,6 +1064,8 @@
       }).join('');
       
       lucide.createIcons();
+      
+      // 同步繪製趨勢長條圖
       renderTrendChart();
     }
 
