@@ -82,7 +82,7 @@
       border: 1px solid rgba(255, 255, 255, 0.5);
     }
 
-    /* 開場動畫 (Splash Screen) 專屬樣式 */
+    /* 開場動畫專屬樣式 */
     .splash-daisy {
       width: 28px;
       height: 28px;
@@ -115,32 +115,23 @@
 
   <!-- ==================== ✨ 開場動畫 (Splash Screen) ==================== -->
   <div id="splash-screen" class="fixed inset-0 z-[200] flex flex-col items-center justify-center transition-opacity duration-700 bg-[var(--bg-base)]">
-    
-    <!-- 格紋背景，隨著主題變化 -->
     <div class="bg-gingham opacity-90"></div>
-
-    <!-- 中間主要 Logo 區塊 -->
     <div class="relative z-10 flex flex-col items-center">
-      
-      <!-- 動態小白花群 -->
       <div class="relative mb-6">
         <div class="absolute -top-4 -left-6 rotate-12 scale-110 z-20"><div class="splash-daisy splash-pop-1"></div></div>
         <div class="absolute top-2 -right-8 -rotate-12 scale-75 z-20"><div class="splash-daisy splash-pop-2"></div></div>
         <div class="absolute -bottom-6 -right-2 rotate-45 scale-125 z-0"><div class="splash-daisy splash-pop-3"></div></div>
         <div class="absolute -bottom-2 -left-8 rotate-[20deg] scale-90 z-20"><div class="splash-daisy splash-pop-4"></div></div>
 
-        <!-- 毛玻璃錢包 Logo -->
         <div class="w-24 h-24 bg-white/70 backdrop-blur-xl rounded-[28px] border-[3px] border-white shadow-[0_10px_40px_rgba(0,0,0,0.08)] flex items-center justify-center splash-logo relative z-10">
           <i data-lucide="wallet" class="w-10 h-10 text-[var(--accent-primary)]"></i>
         </div>
       </div>
 
-      <!-- App 標題 -->
       <h1 class="text-3xl font-black text-[#4A4A4A] tracking-widest splash-title">方格子記帳本</h1>
       <p class="text-[13px] font-bold text-[var(--accent-primary)] font-num tracking-[0.25em] mt-2 splash-subtitle">GINGHAM WALLET</p>
     </div>
 
-    <!-- 底部 Slogan -->
     <div class="absolute bottom-16 flex flex-col items-center z-10 splash-slogan-box w-full">
       <p class="text-[15px] font-bold text-[#5A5A5A] tracking-[0.25em] mb-1.5 ml-1">方寸之間・記錄生活</p>
       <p class="text-[10px] font-bold text-[#AFAFAF] tracking-widest uppercase font-num">Track your life, simply.</p>
@@ -149,7 +140,6 @@
 
   <!-- 全局提示框 (Toast) -->
   <div id="toast-message" class="fixed top-10 left-1/2 -translate-x-1/2 z-[100] bg-white/90 backdrop-blur-md text-[#4A4A4A] border border-[#F0F0F0] shadow-[0_8px_30px_rgba(0,0,0,0.08)] px-6 py-3 rounded-full transition-all duration-300 transform -translate-y-20 opacity-0 font-bold text-[13px] flex items-center gap-2 pointer-events-none">
-    <!-- 內容由 JS 注入 -->
   </div>
 
   <!-- 背景底圖 -->
@@ -162,6 +152,7 @@
 
   <div id="app-container" class="relative z-10 min-h-screen max-w-md mx-auto">
     
+    <!-- ==================== 首頁視圖 ==================== -->
     <div id="view-home" class="view-section active p-6 space-y-8 pb-32">
       <header class="pt-8 relative">
         <button onclick="openSearchModal()" class="absolute right-2 top-8 w-10 h-10 bg-white/60 backdrop-blur-md rounded-full flex items-center justify-center text-[#AFAFAF] shadow-sm hover:text-[var(--accent-primary)] transition-colors border border-white z-20">
@@ -213,11 +204,11 @@
            <i data-lucide="clock" class="w-[14px] h-[14px] text-[var(--accent-primary)]"></i>
            <h3 class="text-[12px] font-bold text-[#7A7A7A] tracking-widest leading-none mt-[1px]">近期紀錄</h3>
         </div>
-        <div id="home-transactions" class="space-y-6">
-          </div>
+        <div id="home-transactions" class="space-y-6"></div>
       </div>
     </div>
 
+    <!-- ==================== 月曆視圖 ==================== -->
     <div id="view-calendar" class="view-section p-6 h-full pb-32">
       <header class="flex justify-between items-center mb-6 pt-8 px-2">
         <h2 class="text-[22px] font-bold text-[#4A4A4A]">月曆</h2>
@@ -231,11 +222,11 @@
       </header>
 
       <div class="bg-white rounded-[32px] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-[#F0F0F0] pb-8">
-        <div class="grid grid-cols-7 gap-y-6 text-center" id="calendar-grid">
-          </div>
+        <div class="grid grid-cols-7 gap-y-6 text-center" id="calendar-grid"></div>
       </div>
     </div>
 
+    <!-- ==================== 分析視圖 ==================== -->
     <div id="view-chart" class="view-section p-6 pb-32">
       <header class="flex flex-col mb-6 pt-8 px-2 gap-4">
         <div class="flex justify-between items-center">
@@ -257,7 +248,6 @@
       </header>
 
       <div class="bg-white rounded-[32px] p-8 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-[#F0F0F0] flex flex-col items-center mb-6">
-        
         <div class="bg-[#F0F0F0]/80 p-1 rounded-full flex font-bold text-sm shadow-inner backdrop-blur-sm mb-4 w-full max-w-[200px] mx-auto">
           <button id="chart-tab-expense" onclick="setChartType('expense')" class="flex-1 py-1.5 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]">支出</button>
           <button id="chart-tab-income" onclick="setChartType('income')" class="flex-1 py-1.5 rounded-full transition-all duration-300 text-[#AFAFAF] border border-transparent">收入</button>
@@ -279,8 +269,7 @@
           </div>
         </div>
 
-        <div id="chart-list" class="w-full space-y-5">
-        </div>
+        <div id="chart-list" class="w-full space-y-5"></div>
       </div>
 
       <!-- 趨勢分析長條圖 -->
@@ -299,7 +288,6 @@
         <div class="relative h-40 flex items-end justify-between gap-1 mt-6 border-b border-[#F0F0F0] pb-2" id="trend-chart-bars"></div>
         <div class="flex justify-between mt-2 text-[10px] text-[#AFAFAF] font-bold font-num px-1" id="trend-chart-labels"></div>
       </div>
-
     </div>
 
     <!-- ==================== 設定與主題視圖 ==================== -->
@@ -325,6 +313,26 @@
           </h3>
           <div class="grid grid-cols-5 gap-y-4 gap-x-2" id="accent-options">
           </div>
+        </div>
+
+        <!-- 自訂分類與次分類管理區塊 -->
+        <div class="bg-white rounded-[32px] p-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-[#F0F0F0]">
+          <h3 class="text-[13px] font-bold text-[#AFAFAF] mb-5 tracking-widest flex items-center gap-2">
+            <i data-lucide="tags" class="w-4 h-4"></i> 自訂分類與圖示
+          </h3>
+          
+          <div class="flex gap-2 mb-4 bg-[#F8F9FA] p-1 rounded-full text-[12px] font-bold">
+            <button id="btn-setcat-expense" onclick="switchCatSettingsTab('expense')" class="flex-1 py-1.5 rounded-full transition-colors bg-[var(--accent-light)] text-[var(--accent-dark)] shadow-sm">支出分類</button>
+            <button id="btn-setcat-income" onclick="switchCatSettingsTab('income')" class="flex-1 py-1.5 rounded-full transition-colors text-[#AFAFAF] border border-transparent">收入分類</button>
+          </div>
+
+          <div id="settings-category-list" class="space-y-3 mb-5 max-h-[320px] overflow-y-auto no-scrollbar pr-1">
+             <!-- 分類列表會由 JS 動態生成 -->
+          </div>
+
+          <button onclick="openCategoryModal()" class="w-full py-3.5 rounded-[20px] font-bold text-[var(--accent-primary)] bg-white border-2 border-dashed border-[var(--accent-light)] transition-all hover:bg-[var(--bg-base)] active:scale-95 flex items-center justify-center gap-2">
+             <i data-lucide="plus-circle" class="w-5 h-5"></i> 新增自訂分類
+          </button>
         </div>
 
         <!-- 資料匯出 -->
@@ -397,7 +405,7 @@
     </div>
   </div>
 
-  <!-- 新增/編輯彈窗 -->
+  <!-- 新增/編輯記帳彈窗 -->
   <div id="add-modal" class="fixed inset-0 z-[60] bg-[#FAFAF8]/95 backdrop-blur-xl overflow-y-auto hidden max-w-md mx-auto">
     <div class="bg-gingham opacity-40"></div>
     
@@ -463,12 +471,65 @@
     </div>
   </div>
 
+  <!-- ✨ 分類編輯與自訂彈窗 -->
+  <div id="category-modal" class="fixed inset-0 z-[80] flex items-end justify-center bg-[#FAFAF8]/90 backdrop-blur-md hidden max-w-md mx-auto sm:items-center sm:p-6">
+    <div class="absolute inset-0" onclick="closeCategoryModal()"></div>
+    <div class="bg-white w-full rounded-t-[32px] sm:rounded-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.08)] sm:shadow-[0_10px_40px_rgba(0,0,0,0.08)] p-6 pt-8 animate-in slide-in-from-bottom-8 sm:zoom-in-95 duration-300 relative border border-[#F0F0F0] max-h-[85vh] flex flex-col">
+      
+      <div class="flex justify-between items-center mb-6 shrink-0">
+        <h2 class="text-[20px] font-bold text-[#4A4A4A]" id="cat-modal-title">新增自訂分類</h2>
+        <button onclick="closeCategoryModal()" class="w-8 h-8 bg-[#F4F5F7] rounded-full flex items-center justify-center text-[#AFAFAF] hover:bg-[#EAEAEA] transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- 加上 px-2 -mx-2 防止光環被切掉 -->
+      <div class="overflow-y-auto no-scrollbar flex-1 space-y-6 pb-6 px-2 -mx-2">
+          
+          <!-- 分類名稱 -->
+          <div>
+             <p class="text-[11px] font-bold text-[#AFAFAF] mb-2 tracking-widest">主分類名稱</p>
+             <input type="text" id="cat-input-name" placeholder="例如：寵物、進修..." class="w-full bg-[#F8F9FA] px-4 py-3 rounded-[16px] text-[#5A5A5A] font-bold outline-none focus:ring-2 focus:ring-[var(--accent-light)] transition-all placeholder-[#D1D1D6]">
+          </div>
+
+          <!-- 圖示選擇 -->
+          <div>
+             <p class="text-[11px] font-bold text-[#AFAFAF] mb-2 tracking-widest">專屬圖示</p>
+             <div class="flex flex-wrap gap-2" id="cat-icon-picker"></div>
+          </div>
+
+          <!-- 顏色選擇 -->
+          <div>
+             <p class="text-[11px] font-bold text-[#AFAFAF] mb-2 tracking-widest">專屬顏色</p>
+             <div class="flex flex-wrap gap-2" id="cat-color-picker"></div>
+          </div>
+
+          <!-- 次分類編輯區 -->
+          <div>
+             <p class="text-[11px] font-bold text-[#AFAFAF] mb-2 tracking-widest">次分類標籤管理</p>
+             <div class="flex gap-2 mb-3">
+               <input type="text" id="cat-sub-input" placeholder="輸入新的次分類..." class="flex-1 bg-[#F8F9FA] px-4 py-2.5 rounded-[16px] text-[#5A5A5A] font-bold text-[13px] outline-none focus:ring-2 focus:ring-[var(--accent-light)] transition-all placeholder-[#D1D1D6]">
+               <button onclick="addSubcategoryTag()" class="bg-[var(--accent-primary)] text-white px-4 py-2.5 rounded-[16px] font-bold shadow-sm active:scale-95 transition-transform"><i data-lucide="plus" class="w-4 h-4"></i></button>
+             </div>
+             <div class="flex flex-wrap gap-2" id="cat-sub-list"></div>
+          </div>
+      </div>
+
+      <div class="pt-4 border-t border-[#F0F0F0] flex gap-3 mt-auto shrink-0 bg-white">
+         <button id="cat-btn-delete" onclick="deleteCategoryConfig()" class="hidden w-12 h-[52px] rounded-[20px] bg-[#FFF5F5] text-[#FF8B8B] flex items-center justify-center shadow-sm active:scale-95 transition-transform border border-[#FFEBEB] shrink-0">
+           <i data-lucide="trash-2" class="w-5 h-5"></i>
+         </button>
+         <button onclick="saveCategoryConfig()" class="flex-1 bg-[var(--accent-primary)] hover:bg-[var(--accent-dark)] text-white font-bold text-[16px] py-3.5 rounded-[20px] shadow-[0_8px_16px_rgba(0,0,0,0.08)] transition-all active:scale-95">
+           儲存分類設定
+         </button>
+      </div>
+    </div>
+  </div>
+
   <!-- 日曆明細彈窗 -->
   <div id="day-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-[#FAFAF8]/80 backdrop-blur-md hidden max-w-md mx-auto p-4 sm:p-6">
     <div class="absolute inset-0" onclick="closeDayDetail()"></div>
-    
     <div class="bg-white w-full rounded-[32px] shadow-[0_10px_40px_rgba(0,0,0,0.08)] p-6 animate-in zoom-in-95 fade-in duration-200 relative border border-[#F0F0F0] max-h-[75vh] flex flex-col">
-      
       <div class="flex justify-between items-center mb-6 px-1 shrink-0">
         <div class="bg-[var(--bg-base)] px-4 py-1.5 rounded-full border border-white shadow-sm">
           <span id="detail-date-title" class="font-num font-bold text-[var(--accent-primary)] text-sm tracking-wide"></span>
@@ -477,9 +538,7 @@
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
-
-      <div id="detail-transactions-list" class="space-y-4 overflow-y-auto no-scrollbar px-1 pb-2">
-      </div>
+      <div id="detail-transactions-list" class="space-y-4 overflow-y-auto no-scrollbar px-1 pb-2"></div>
     </div>
   </div>
 
@@ -501,7 +560,6 @@
   <!-- 搜尋與篩選全螢幕面板 -->
   <div id="search-modal" class="fixed inset-0 z-[55] bg-[#FAFAF8]/95 backdrop-blur-xl overflow-y-auto hidden max-w-md mx-auto">
     <div class="bg-gingham opacity-40"></div>
-    
     <div class="p-6 relative z-10 min-h-screen flex flex-col animate-in slide-in-from-bottom-8 duration-300">
       <div class="flex justify-between items-center mb-6 pt-2">
         <h2 class="text-[22px] font-bold text-[#4A4A4A] ml-1">搜尋與篩選</h2>
@@ -525,7 +583,6 @@
             <button onclick="setSearchFilter('type', 'income')" id="s-type-income" class="flex-1 py-1.5 rounded-full text-[13px] font-bold transition-colors text-[#AFAFAF] hover:bg-white/50 border border-transparent">收入</button>
           </div>
         </div>
-
         <div>
           <h3 class="text-[11px] font-bold text-[#AFAFAF] mb-3 ml-1 tracking-widest uppercase">付款方式</h3>
           <div class="flex flex-wrap gap-2 pb-1">
@@ -550,18 +607,107 @@
             </div>
           </div>
         </div>
-        
-        <div id="search-results-list" class="space-y-3 pb-32">
-        </div>
+        <div id="search-results-list" class="space-y-3 pb-32"></div>
       </div>
     </div>
   </div>
 
   <script>
+    // ==================== ✨ 動態分類系統 ====================
+    const DEFAULT_EXPENSE_CATS = [
+      { id: 'e1', name: '餐飲', icon: 'utensils', color: '#FFE4DE', subcategories: ['早餐', '午餐', '晚餐', '消夜', '下午茶', '飲料', '其他'] },
+      { id: 'e2', name: '交通', icon: 'bus', color: '#E4EEFF', subcategories: ['高鐵', '火車', '公車', '捷運', '計程車', '機票', '油費', '其他'] },
+      { id: 'e3', name: '購物', icon: 'shopping-bag', color: '#F8E8FA', subcategories: ['服飾', '書籍', '生活用品', '保健', '家居用品', '美妝保養', '3C資訊', '其他'] },
+      { id: 'e4', name: '娛樂', icon: 'film', color: '#E4F9E9', subcategories: ['電影', '展覽', '訂閱', '遊戲', '其他'] },
+      { id: 'e5', name: '居住', icon: 'home', color: '#FFF8E1', subcategories: ['水費', '電費', '瓦斯費', '手機費', '電話/網路', '管理費', '房租', '其他'] },
+      { id: 'e6', name: '零食', icon: 'coffee', color: '#F1E8DF', subcategories: ['零食', '甜點', '麵包', '其他'] },
+      { id: 'e7', name: '醫療', icon: 'pill', color: '#E3F9F6', subcategories: ['掛號費', '醫藥費', '保健食品', '保險費', '其他'] },
+      { id: 'e8', name: '其他', icon: 'sparkles', color: '#F2EBFC', subcategories: ['未分類', '其他'] },
+    ];
+
+    const DEFAULT_INCOME_CATS = [
+      { id: 'i1', name: '薪水', icon: 'briefcase', color: '#E4F9E9', subcategories: ['本薪', '加班費', '其他'] },
+      { id: 'i2', name: '零用錢', icon: 'coins', color: '#FFF8E1', subcategories: ['零用錢', '其他'] },
+      { id: 'i3', name: '獎金', icon: 'gift', color: '#F2EBFC', subcategories: ['年終', '績效', '三節', '其他'] },
+      { id: 'i4', name: '其他', icon: 'sparkles', color: '#E4EEFF', subcategories: ['未分類', '其他'] },
+    ];
+
+    let expenseCats = JSON.parse(localStorage.getItem('gg_expense_cats')) || DEFAULT_EXPENSE_CATS;
+    let incomeCats = JSON.parse(localStorage.getItem('gg_income_cats')) || DEFAULT_INCOME_CATS;
+
+    // 自訂分類專用的可選圖示與顏色庫
+    // ✨ 修改：大幅擴充可選圖示 (新增飲食、水電帳單、交通、財務等生活圖示)
+    const PRESET_ICONS = [
+      // 原本的圖示
+      'utensils', 'bus', 'shopping-bag', 'film', 'home', 'coffee', 'pill', 'sparkles',
+      'briefcase', 'coins', 'gift', 'heart', 'music', 'book', 'smartphone', 'car',
+      'plane', 'monitor', 'scissors', 'smile', 'camera', 'train', 'paw-print', 'gamepad-2',
+      'dumbbell', 'graduation-cap', 'baby', 'shirt',
+      // 🍎 新增：飲食與日常
+      'apple', 'pizza', 'wine', 'beer', 'cup-soda', 
+      // ⚡ 新增：生活水電與居家
+      'zap', 'droplet', 'flame', 'wifi', 'tv', 'plug',
+      // 🚲 新增：交通與旅遊
+      'bike', 'ship', 'ticket', 'tent', 'map', 'compass',
+      // 👜 新增：購物與配件
+      'shopping-cart', 'watch', 'glasses', 'umbrella',
+      // ✏️ 新增：學習與辦公
+      'pen', 'pencil', 'book-open', 'calculator', 'clipboard',
+      // 💰 新增：財務與銀行
+      'credit-card', 'banknote', 'piggy-bank', 'receipt', 'wallet', 'landmark',
+      // 🏥 新增：醫療與其他
+      'activity', 'cross', 'bath', 'palette'
+    ];
+    const PRESET_COLORS = ['#FFE4DE', '#E4EEFF', '#F8E8FA', '#E4F9E9', '#FFF8E1', '#F1E8DF', '#E3F9F6', '#F2EBFC', '#FFD8CF', '#D3E5FF', '#D1F4D9', '#E8DACC', '#EAE0F9', '#FFB2B2', '#B2D8FF', '#FFDFB2', '#E2F0CB', '#FFD3B6', '#D5AAFF'];
+
+    // ==================== 全局變數 ====================
+    let currentView = 'home';
+    let modalType = 'expense';
+    let selectedCategory = expenseCats[0];
+    let selectedSubcategory = expenseCats[0].subcategories[0];
+    
+    const PAYMENT_METHODS = ['現金', '電子支付', '信用卡', '轉帳'];
+    const EPAY_METHODS = ['Apple Pay', 'Line Pay', '街口支付', '悠遊卡', '全支付', '其他'];
+    const CONSUMPTION_TYPES = ['實體消費', '線上消費'];
+    
+    let selectedPayment = '現金';
+    let selectedEPay = 'Line Pay';
+    let selectedConsumption = '實體消費';
+
+    let editingTransactionId = null;
+
+    let currentCalendarYear = new Date().getFullYear();
+    let currentCalendarMonth = new Date().getMonth(); 
+    
+    let chartMode = 'month'; 
+    let chartAnchorDate = new Date();
+    let chartType = 'expense'; 
+    let chartDimension = 'category'; 
+
+    const CHART_META = {
+      'payment': {
+        '現金': { icon: 'banknote', color: '#FFF8E1' },
+        '電子支付': { icon: 'smartphone', color: '#E4F9E9' },
+        '信用卡': { icon: 'credit-card', color: '#E4EEFF' },
+        '轉帳': { icon: 'arrow-right-left', color: '#F2EBFC' },
+        '未指定': { icon: 'help-circle', color: '#F5F5F5' }
+      },
+      'consumption': {
+        '實體消費': { icon: 'store', color: '#FFE4DE' },
+        '線上消費': { icon: 'globe', color: '#EAE1FB' },
+        '未指定': { icon: 'help-circle', color: '#F5F5F5' }
+      }
+    };
+
+    const savedData = localStorage.getItem('green_gingham_transactions');
+    let transactions = savedData ? JSON.parse(savedData) : [];
+
+    const currentMonthPrefix = '2026-04';
+
+    // ==================== 啟動邏輯 ====================
     document.addEventListener('DOMContentLoaded', () => {
       applyTheme(); 
       
-      // 開場動畫 (Splash Screen) 控制邏輯
       setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         if (splash) {
@@ -574,27 +720,30 @@
       initExportDates(); 
       renderAll();
       switchType('expense');
+      
       document.getElementById('add-form').addEventListener('submit', handleAddSubmit);
+      
+      document.getElementById('cat-sub-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addSubcategoryTag();
+        }
+      });
     });
 
     let toastTimeout;
     function showToast(msg, isError = false) {
       const toast = document.getElementById('toast-message');
-      
       const iconName = isError ? 'alert-circle' : 'check-circle-2';
       const iconColor = isError ? 'text-[#FF8B8B]' : 'text-[var(--accent-primary)]';
       
-      toast.innerHTML = `
-        <i data-lucide="${iconName}" class="w-4 h-4 ${iconColor}"></i>
-        <span>${msg}</span>
-      `;
+      toast.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4 ${iconColor}"></i><span>${msg}</span>`;
       lucide.createIcons();
 
       toast.classList.remove('-translate-y-20', 'opacity-0');
       toast.classList.add('translate-y-0', 'opacity-100');
       
       if (toastTimeout) clearTimeout(toastTimeout);
-      
       toastTimeout = setTimeout(() => {
         toast.classList.remove('translate-y-0', 'opacity-100');
         toast.classList.add('-translate-y-20', 'opacity-0');
@@ -617,6 +766,7 @@
        closeConfirmModal();
     }
 
+    // ==================== 主題顏色定義 ====================
     const WALLPAPERS = [
       { id: 'green', name: '粉綠格', base: '#F0F7EB', grid: 'rgba(162, 212, 137, 0.25)' },
       { id: 'blue', name: '粉藍格', base: '#F0F5F7', grid: 'rgba(137, 186, 212, 0.25)' },
@@ -658,67 +808,6 @@
       document.documentElement.style.setProperty('--accent-muted', ac.muted);
     }
 
-    const EXPENSE_CATS = [
-      { id: 'e1', name: '餐飲', icon: 'utensils', color: '#FFE4DE', subcategories: ['早餐', '午餐', '晚餐', '消夜', '下午茶', '飲料', '其他'] },
-      { id: 'e2', name: '交通', icon: 'bus', color: '#E4EEFF', subcategories: ['高鐵', '火車', '公車', '捷運', '計程車', '機票', '油費', '其他'] },
-      { id: 'e3', name: '購物', icon: 'shopping-bag', color: '#F8E8FA', subcategories: ['服飾', '書籍', '生活用品', '保健', '家居用品', '美妝保養', '3C資訊', '其他'] },
-      { id: 'e4', name: '娛樂', icon: 'film', color: '#E4F9E9', subcategories: ['電影', '展覽', '訂閱', '遊戲', '其他'] },
-      { id: 'e5', name: '居住', icon: 'home', color: '#FFF8E1', subcategories: ['水費', '電費', '瓦斯費', '手機費', '電話/網路', '管理費', '房租', '其他'] },
-      { id: 'e6', name: '零食', icon: 'coffee', color: '#F1E8DF', subcategories: ['零食', '甜點', '麵包', '其他'] },
-      { id: 'e7', name: '醫療', icon: 'pill', color: '#E3F9F6', subcategories: ['掛號費', '醫藥費', '保健食品', '保險費', '其他'] },
-      { id: 'e8', name: '其他', icon: 'sparkles', color: '#F2EBFC', subcategories: ['未分類', '其他'] },
-    ];
-
-    const INCOME_CATS = [
-      { id: 'i1', name: '薪水', icon: 'briefcase', color: '#E4F9E9', subcategories: ['本薪', '加班費', '其他'] },
-      { id: 'i2', name: '零用錢', icon: 'coins', color: '#FFF8E1', subcategories: ['零用錢', '其他'] },
-      { id: 'i3', name: '獎金', icon: 'gift', color: '#F2EBFC', subcategories: ['年終', '績效', '三節', '其他'] },
-      { id: 'i4', name: '其他', icon: 'sparkles', color: '#E4EEFF', subcategories: ['未分類', '其他'] },
-    ];
-
-    let currentView = 'home';
-    let modalType = 'expense';
-    let selectedCategory = EXPENSE_CATS[0];
-    let selectedSubcategory = EXPENSE_CATS[0].subcategories[0];
-    
-    const PAYMENT_METHODS = ['現金', '電子支付', '信用卡', '轉帳'];
-    const EPAY_METHODS = ['Apple Pay', 'Line Pay', '街口支付', '悠遊卡', '全支付', '其他'];
-    const CONSUMPTION_TYPES = ['實體消費', '線上消費'];
-    
-    let selectedPayment = '現金';
-    let selectedEPay = 'Line Pay';
-    let selectedConsumption = '實體消費';
-
-    let editingTransactionId = null;
-
-    let currentCalendarYear = new Date().getFullYear();
-    let currentCalendarMonth = new Date().getMonth(); 
-    
-    let chartMode = 'month'; 
-    let chartAnchorDate = new Date();
-    let chartType = 'expense'; 
-    let chartDimension = 'category'; 
-
-    const CHART_META = {
-      'payment': {
-        '現金': { icon: 'banknote', color: '#FFF8E1' },
-        '電子支付': { icon: 'smartphone', color: '#E4F9E9' },
-        '信用卡': { icon: 'credit-card', color: '#E4EEFF' },
-        '轉帳': { icon: 'arrow-right-left', color: '#F2EBFC' },
-        '未指定': { icon: 'help-circle', color: '#F5F5F5' }
-      },
-      'consumption': {
-        '實體消費': { icon: 'store', color: '#FFE4DE' },
-        '線上消費': { icon: 'globe', color: '#EAE1FB' },
-        '未指定': { icon: 'help-circle', color: '#F5F5F5' }
-      }
-    };
-
-    const savedData = localStorage.getItem('green_gingham_transactions');
-    let transactions = savedData ? JSON.parse(savedData) : [];
-
-    const currentMonthPrefix = '2026-04';
-
     function formatMoney(num) {
       return num.toLocaleString('en-US');
     }
@@ -738,7 +827,6 @@
       const today = new Date();
       const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
       const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-      
       document.getElementById('export-start-date').value = formatDateYYYYMMDD(firstDay);
       document.getElementById('export-end-date').value = formatDateYYYYMMDD(lastDay);
     }
@@ -1064,8 +1152,6 @@
       }).join('');
       
       lucide.createIcons();
-      
-      // 同步繪製趨勢長條圖
       renderTrendChart();
     }
 
@@ -1163,6 +1249,181 @@
       lucide.createIcons();
     }
 
+    // ==================== ✨ 自訂分類管理系統 (設定頁面) ====================
+    let catSettingsTab = 'expense';
+    let editingCatId = null;
+    let tempCatIcon = 'sparkles';
+    let tempCatColor = '#F2EBFC';
+    let tempCatSubcategories = [];
+
+    function switchCatSettingsTab(tab) {
+        catSettingsTab = tab;
+        const btnExp = document.getElementById('btn-setcat-expense');
+        const btnInc = document.getElementById('btn-setcat-income');
+        if(tab === 'expense') {
+             btnExp.className = 'flex-1 py-1.5 rounded-full transition-colors bg-[var(--accent-light)] text-[var(--accent-dark)] shadow-sm';
+             btnInc.className = 'flex-1 py-1.5 rounded-full transition-colors text-[#AFAFAF] border border-transparent';
+        } else {
+             btnExp.className = 'flex-1 py-1.5 rounded-full transition-colors text-[#AFAFAF] border border-transparent';
+             btnInc.className = 'flex-1 py-1.5 rounded-full transition-colors bg-[var(--accent-light)] text-[var(--accent-dark)] shadow-sm';
+        }
+        renderCategorySettings();
+    }
+
+    function renderCategorySettings() {
+        const list = catSettingsTab === 'expense' ? expenseCats : incomeCats;
+        const container = document.getElementById('settings-category-list');
+        
+        container.innerHTML = list.map(cat => `
+            <div onclick="openCategoryModal('${cat.id}')" class="bg-[#F8F9FA] hover:bg-[#F0F2F5] transition-colors rounded-[20px] p-3 flex items-center justify-between cursor-pointer border border-transparent hover:border-[#EAEAEA]">
+                <div class="flex items-center gap-4 overflow-hidden">
+                    <div class="w-[42px] h-[42px] rounded-[14px] flex items-center justify-center shrink-0 shadow-sm" style="background-color: ${cat.color}">
+                        <i data-lucide="${cat.icon}" class="w-5 h-5 text-[#5A5A5A] opacity-70"></i>
+                    </div>
+                    <div class="truncate">
+                        <p class="font-bold text-[#4A4A4A] text-[15px] leading-tight">${cat.name}</p>
+                        <p class="text-[11px] text-[#AFAFAF] truncate mt-1 tracking-wide">${cat.subcategories.join('、')}</p>
+                    </div>
+                </div>
+                <i data-lucide="chevron-right" class="w-5 h-5 text-[#D1D1D6] shrink-0 mr-1"></i>
+            </div>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    function openCategoryModal(catId = null) {
+        editingCatId = catId;
+        const list = catSettingsTab === 'expense' ? expenseCats : incomeCats;
+        
+        if (catId) {
+            const cat = list.find(c => c.id === catId);
+            document.getElementById('cat-modal-title').innerText = '編輯自訂分類';
+            document.getElementById('cat-input-name').value = cat.name;
+            tempCatIcon = cat.icon;
+            tempCatColor = cat.color;
+            tempCatSubcategories = [...cat.subcategories];
+            document.getElementById('cat-btn-delete').classList.remove('hidden');
+        } else {
+            document.getElementById('cat-modal-title').innerText = '新增自訂分類';
+            document.getElementById('cat-input-name').value = '';
+            tempCatIcon = PRESET_ICONS[0];
+            tempCatColor = PRESET_COLORS[0];
+            tempCatSubcategories = ['其他'];
+            document.getElementById('cat-btn-delete').classList.add('hidden');
+        }
+        
+        renderCatIconPicker();
+        renderCatColorPicker();
+        renderTempSubcategories();
+        
+        document.getElementById('category-modal').classList.remove('hidden');
+    }
+
+    function closeCategoryModal() {
+        document.getElementById('category-modal').classList.add('hidden');
+        document.getElementById('cat-sub-input').value = '';
+    }
+
+    function renderCatIconPicker() {
+        const container = document.getElementById('cat-icon-picker');
+        container.innerHTML = PRESET_ICONS.map(icon => `
+            <button type="button" onclick="tempCatIcon='${icon}'; renderCatIconPicker()" class="w-[42px] h-[42px] rounded-[14px] flex items-center justify-center transition-all ${tempCatIcon === icon ? 'bg-[var(--accent-light)] text-[var(--accent-dark)] shadow-sm scale-110' : 'bg-[#F8F9FA] text-[#AFAFAF] hover:bg-[#EAEAEA]'}">
+                <i data-lucide="${icon}" class="w-5 h-5"></i>
+            </button>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    function renderCatColorPicker() {
+        const container = document.getElementById('cat-color-picker');
+        container.innerHTML = PRESET_COLORS.map(color => `
+            <button type="button" onclick="tempCatColor='${color}'; renderCatColorPicker()" class="w-8 h-8 rounded-full transition-all shadow-sm ${tempCatColor === color ? 'ring-[3px] ring-offset-1 ring-[var(--accent-primary)] scale-110' : 'hover:scale-110'}" style="background-color: ${color}"></button>
+        `).join('');
+    }
+
+    function renderTempSubcategories() {
+        const container = document.getElementById('cat-sub-list');
+        container.innerHTML = tempCatSubcategories.map(sub => `
+            <div class="flex items-center gap-1 bg-[#F8F9FA] px-3 py-1.5 rounded-full text-[#5A5A5A] text-[12px] font-bold border border-[#EAEAEA]">
+                ${sub}
+                ${sub !== '其他' && sub !== '未分類' ? `<button type="button" onclick="removeSubcategoryTag('${sub}')" class="text-[#D1D1D6] hover:text-[#FF8B8B] ml-1"><i data-lucide="x" class="w-3 h-3"></i></button>` : ''}
+            </div>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    function addSubcategoryTag() {
+        const input = document.getElementById('cat-sub-input');
+        const val = input.value.trim();
+        if (val && !tempCatSubcategories.includes(val)) {
+            tempCatSubcategories = tempCatSubcategories.filter(s => s !== '其他');
+            tempCatSubcategories.push(val);
+            tempCatSubcategories.push('其他');
+            input.value = '';
+            renderTempSubcategories();
+        }
+    }
+
+    function removeSubcategoryTag(sub) {
+        tempCatSubcategories = tempCatSubcategories.filter(s => s !== sub);
+        renderTempSubcategories();
+    }
+
+    function saveCategoryConfig() {
+        const newName = document.getElementById('cat-input-name').value.trim();
+        if (!newName) return showToast('請輸入分類名稱！', true);
+        if (!tempCatSubcategories.includes('其他')) tempCatSubcategories.push('其他');
+
+        const newCat = {
+            id: editingCatId || 'c_' + Date.now(),
+            name: newName,
+            icon: tempCatIcon,
+            color: tempCatColor,
+            subcategories: tempCatSubcategories
+        };
+
+        if (catSettingsTab === 'expense') {
+            if (editingCatId) {
+                expenseCats = expenseCats.map(c => c.id === editingCatId ? newCat : c);
+            } else {
+                expenseCats.push(newCat);
+            }
+            localStorage.setItem('gg_expense_cats', JSON.stringify(expenseCats));
+        } else {
+            if (editingCatId) {
+                incomeCats = incomeCats.map(c => c.id === editingCatId ? newCat : c);
+            } else {
+                incomeCats.push(newCat);
+            }
+            localStorage.setItem('gg_income_cats', JSON.stringify(incomeCats));
+        }
+
+        renderCategorySettings();
+        if (modalType === catSettingsTab) {
+            renderCategories(catSettingsTab === 'expense' ? expenseCats : incomeCats);
+        }
+        closeCategoryModal();
+        showToast('分類已成功儲存！');
+    }
+
+    function deleteCategoryConfig() {
+        showConfirmModal('確定要刪除這個分類嗎？', '這不會刪除過去的記帳紀錄，但未來無法再選擇此分類。', () => {
+            if (catSettingsTab === 'expense') {
+                expenseCats = expenseCats.filter(c => c.id !== editingCatId);
+                localStorage.setItem('gg_expense_cats', JSON.stringify(expenseCats));
+            } else {
+                incomeCats = incomeCats.filter(c => c.id !== editingCatId);
+                localStorage.setItem('gg_income_cats', JSON.stringify(incomeCats));
+            }
+            renderCategorySettings();
+            if (modalType === catSettingsTab) {
+                renderCategories(catSettingsTab === 'expense' ? expenseCats : incomeCats);
+            }
+            closeCategoryModal();
+            showToast('分類已成功刪除！');
+        });
+    }
+
     function renderSettings() {
       const wallpaperGrid = document.getElementById('wallpaper-options');
       const accentGrid = document.getElementById('accent-options');
@@ -1189,6 +1450,7 @@
         `).join('');
       }
       
+      renderCategorySettings(); 
       lucide.createIcons();
     }
 
@@ -1250,11 +1512,14 @@
           
           switchType(t.type); 
           
-          const catList = t.type === 'expense' ? EXPENSE_CATS : INCOME_CATS;
+          const catList = t.type === 'expense' ? expenseCats : incomeCats;
           const matchedCat = catList.find(c => c.name === t.category);
+          
           if(matchedCat) {
              selectCategory(matchedCat.id);
              if (t.subcategory) selectSubcategory(t.subcategory);
+          } else if(catList.length > 0) {
+             selectCategory(catList[0].id);
           }
 
           if (t.type === 'expense') {
@@ -1313,17 +1578,18 @@
         btnExp.className = 'px-8 py-2 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]';
         btnInc.className = 'px-8 py-2 rounded-full transition-all duration-300 text-[#AFAFAF] border border-transparent';
         extraFields.classList.remove('hidden'); 
-        renderCategories(EXPENSE_CATS);
+        renderCategories(expenseCats);
         renderExtraFields(); 
       } else {
         btnExp.className = 'px-8 py-2 rounded-full transition-all duration-300 text-[#AFAFAF] border border-transparent';
         btnInc.className = 'px-8 py-2 rounded-full transition-all duration-300 bg-white text-[#4A4A4A] shadow-sm border border-[#F0F0F0]';
         extraFields.classList.add('hidden'); 
-        renderCategories(INCOME_CATS);
+        renderCategories(incomeCats);
       }
     }
 
     function renderCategories(cats) {
+      if(cats.length === 0) return; 
       selectedCategory = cats[0]; 
       selectedSubcategory = selectedCategory.subcategories ? selectedCategory.subcategories[0] : '';
       
@@ -1343,7 +1609,7 @@
               <div class="w-[42px] h-[42px] rounded-full flex items-center justify-center mb-2" style="background-color: ${cat.color}">
                 <i data-lucide="${cat.icon}" class="w-5 h-5 text-[#7A7A7A] stroke-[1.5]"></i>
               </div>
-              <span class="text-[12px] font-bold ${textClass}">${cat.name}</span>
+              <span class="text-[12px] font-bold ${textClass} truncate w-full text-center px-1">${cat.name}</span>
             </button>
           `;
         }).join('');
@@ -1351,7 +1617,7 @@
       };
       
       window.selectCategory = (id) => {
-        selectedCategory = cats.find(c => c.id === id);
+        selectedCategory = cats.find(c => c.id === id) || cats[0];
         selectedSubcategory = selectedCategory.subcategories ? selectedCategory.subcategories[0] : '';
         window.updateCategoryGrid();
         renderSubcategories(); 
@@ -1365,7 +1631,7 @@
       const container = document.getElementById('subcategory-container');
       const list = document.getElementById('subcategory-list');
 
-      if (!selectedCategory.subcategories || selectedCategory.subcategories.length === 0 || (selectedCategory.subcategories.length === 1 && selectedCategory.subcategories[0] === '未分類')) {
+      if (!selectedCategory || !selectedCategory.subcategories || selectedCategory.subcategories.length === 0 || (selectedCategory.subcategories.length === 1 && selectedCategory.subcategories[0] === '未分類')) {
          container.classList.add('hidden');
          return;
       }
@@ -1422,13 +1688,13 @@
     window.selectEPay = (m) => { selectedEPay = m; renderExtraFields(); };
     window.selectConsumption = (m) => { selectedConsumption = m; renderExtraFields(); };
 
-    function handleAddSubmit(e) {
-      e.preventDefault();
+    function handleAddSubmit() {
       const amountStr = document.getElementById('input-amount').value;
       const date = document.getElementById('input-date').value;
       const note = document.getElementById('input-note').value;
       
       if (!amountStr || isNaN(amountStr) || Number(amountStr) <= 0) return;
+      if (!selectedCategory) return showToast('請先建立或選擇一個分類喔！', true);
 
       const newTx = {
         id: Date.now(),
@@ -1484,7 +1750,7 @@
             ${dayTrans.map((t, index) => `
               <div onclick="openModal(${t.id})" class="flex items-center justify-between p-4 ${index !== dayTrans.length - 1 ? 'border-b border-[#F8F8F8]' : ''} hover:bg-[#FAFAF8] transition-colors cursor-pointer active:bg-[#F0F0F0]">
                 <div class="flex items-center gap-4">
-                  <div class="w-[46px] h-[46px] rounded-full flex items-center justify-center" style="background-color: ${t.color}">
+                  <div class="w-[46px] h-[46px] rounded-full flex items-center justify-center shrink-0" style="background-color: ${t.color}">
                     <i data-lucide="${t.icon}" class="w-5 h-5 text-[#7A7A7A] stroke-[1.5]"></i>
                   </div>
                   <div class="flex flex-col justify-center items-start">
@@ -1571,11 +1837,7 @@
       generateAndDownloadCSV(transactions, '全部備份');
     }
 
-    let searchFilters = {
-      keyword: '',
-      type: 'all',    
-      payment: 'all'  
-    };
+    let searchFilters = { keyword: '', type: 'all', payment: 'all' };
 
     function openSearchModal() {
       searchFilters = { keyword: '', type: 'all', payment: 'all' };
@@ -1583,7 +1845,6 @@
       updateSearchFilterUI();
       executeSearch();
       document.getElementById('search-modal').classList.remove('hidden');
-      
       setTimeout(() => document.getElementById('search-keyword').focus(), 100);
     }
 
@@ -1629,7 +1890,6 @@
                              (t.amount.toString().includes(searchFilters.keyword));
 
         const matchType = searchFilters.type === 'all' || t.type === searchFilters.type;
-
         const matchPayment = searchFilters.payment === 'all' || 
                              t.paymentMethod === searchFilters.payment || 
                              (t.type === 'income' && searchFilters.payment === 'all'); 
